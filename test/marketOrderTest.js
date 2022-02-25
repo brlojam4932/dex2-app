@@ -30,14 +30,13 @@ describe("Market Test", () => {
   describe("Transactions", () => {
     it("Should throw an error when creating a sell market order without adequate token balance", async () => {
 
-      const initialTokenBalance = await dex.balances(owner.address, ethers.utils.formatBytes32String("LINK"));
+      const initialTokenBalance = await dex.balances(addr1.address, ethers.utils.formatBytes32String("LINK"));
       console.log("Init Token Balance: ", initialTokenBalance.toNumber());
 
       await expect(
         dex.connect(addr1).createMarketOrder(1, ethers.utils.formatBytes32String("LINK"), 10)
       ).to.be.reverted;
-
-      expect(await dex.balances(owner.address, ethers.utils.formatBytes32String("LINK"))).to.equal(initialTokenBalance);
+      
     });
     it("Market BUY orders can be submitted even if the order book is empty", async () => {
 
@@ -52,7 +51,7 @@ describe("Market Test", () => {
       const orderBookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 0); // get buy side
       console.log("Orderbook length after: ", orderBookAfter.length);
 
-      // I think it's still supposed to be empty
+      // Should be empty
       expect(orderBookAfter.length).to.equal(0);
     });
     it("Market orders should not fill more limit orders than the market order amount", async () => {
@@ -115,7 +114,8 @@ describe("Market Test", () => {
       console.log("Orderbook length: ", orderbookAfter.length)
       expect(orderbookAfter[0].filled).to.equal(0);
       console.log("Orderbook filled: ", orderbookAfter[0].filled.toNumber());
-      // Note: I think "filled" is 0 because it has not been filled?
+      // Note: I think "filled" is 0 because it has not been filled. The market order was only for 10 link. 
+      // Two Sell orders where filled but one remains (5 link) as it should only fill the the amount the market order was for.
 
     });
     it("Market orders should be filled until the order book is empty", async () => {
@@ -298,7 +298,7 @@ describe("Market Test", () => {
 
       // check order book, SELL side, before trade
       const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1)
-      console.log("Orderbook SELL, Before: ", orderbookBefore.length); 
+      console.log("Orderbook length, SELL, Before: ", orderbookBefore.length); 
 
       expect(orderbookBefore.length).to.equal(1);
 
@@ -308,7 +308,7 @@ describe("Market Test", () => {
 
       // check order book, SELL side, after trade
       const orderbookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1)
-      console.log("Orderbook SELL, After: ", orderbookAfter.length); 
+      console.log("Orderbook length, SELL, After: ", orderbookAfter.length); 
 
       expect(orderbookAfter.length).to.equal(0);
     });
@@ -404,7 +404,7 @@ describe("Market Test", () => {
       expect(balanceBefore1).to.equal(balanceAfter1);
       expect(balanceBefore2).to.equal(balanceAfter2);
 
-    })
+    });
   });
 
 });
