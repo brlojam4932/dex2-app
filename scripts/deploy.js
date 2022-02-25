@@ -12,7 +12,13 @@ async function main() {
 
   await link.deployed();
 
+  // deploy to localhost:
+  // npx hardhat run scripts/deploy.js --network localhost
+
   /*
+
+  //To interact with the Smart Contract: npx hardhat run scripts/deploy.js
+
   console.log("dex deployed to:", dex.address);
 
   const Link = await hre.ethers.getContractFactory("Link");
@@ -55,8 +61,6 @@ async function main() {
 
   */
 
-  // npx hardhat run scripts/deploy.js
-
 };
 
 
@@ -82,4 +86,5 @@ main()
   // console.log(await link.name())
   // > console.log(await link.totalSupply())
   // BigNumber { value: "1000" }
+
 
