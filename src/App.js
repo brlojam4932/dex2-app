@@ -1,74 +1,559 @@
-import './App.css';
 import React from 'react';
+import { ethers } from 'ethers';
+import './App.css';
+import { useState, useEffect } from 'react';
+import Link from "./artifacts/contracts/Tokens.sol/Link.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
-// import { ethers, BigNumber } from "ethers";
-// import { useEffect, useState } from react;
+import TxList from './components/TxList.jsx';
+
+// https://youtu.be/a0osIaAOFSE
+// the complete guide to full stack ehtereum development - tutorial for beginners
+
+//https://youtu.be/38WUVVoMZKM
+// read/write/events
+
+// ERC20 functions explained
+//https://ethereum.org/en/developers/tutorials/understand-the-erc-20-token-smart-contract/#:~:text=The%20ERC%2D20%20standard%20allows,spend%20on%20behalf%20of%20owner%20.
+
+
+//practice - Flexbox CSS in 20 minutes
+//https://youtu.be/JJSoEo8JSnc
 
 
 function App() {
+  const [txs, setTxs] = useState([]);
+  const [contractListened, setContractListened] = useState();
+  const [error, setError] = useState(false);
+  const [contractAddress, setContractAddress] = useState("-");
+  const [contractInfo, setContractInfo] = useState({
+    address: "-",
+    tokenName: "-",
+    tokenSymbol: "-",
+    totalSupply: "-",
+  });
+
+  const [balanceInfo, setBalanceInfo] = useState({
+    address: "-",
+    balance: "-"
+  });
+
+  const [isApproved, setIsApproved] = useState(false);
+  const [allowanceAmount, setAllowanceAmount] = useState();
+  const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
+  const [isTransferFrom, setIsTransferFrom] = useState(false);
+  const [isTransfer, setIsTransfer] = useState(false);
+
+  useEffect(() => {
+    if (contractInfo.address !== "-") {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const linkToken = new ethers.Contract(
+        contractInfo.address,
+        Link.abi,
+        provider
+      );
+
+      //event Transfer(address indexed from, address indexed to, uint256 value);
+
+      linkToken.on("Transfer", (from, to, amount, event) => {
+        console.log({ from, to, amount, event });
+
+        setTxs((currentTxs) => [
+          ...currentTxs,
+          {
+            txHash: event.transactionHash,
+            from,
+            to,
+            amount: String(amount)
+          }
+        ]);
+      });
+      setContractListened(linkToken);
+
+      return () => {
+        contractListened.removeAllListeners();
+      };
+
+    }
+  }, [contractInfo.address]);
+
+
+  const handleGetTokenInfo = async (e) => {
+    e.preventDeault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      // construct for key/value pairs from fields...
+      const data = new FormData(e.target);
+      // new instance of provider and contract
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      // new contract instance and args: address, abi, provider or signer
+      const linkToken = new ethers.Contract(data.get(contractAddress), Link.abi, provider);
+      // create constants for contract info
+      const tokenName = await linkToken.name();
+      const tokenSymbol = await linkToken.symbol();
+      const totalSupply = await linkToken.totalSupply();
+      // set the new constants as a new state for the Contract Info object
+      setContractInfo({
+        address: data.get(contractAddress),
+        tokenName,
+        tokenSymbol,
+        totalSupply,
+      });
+      // finally set the contract address as a new state
+      setContractAddress(data);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+
+  // function balanceOf(address account) external view returns (uint256)
+  const getMyBalance = async () => {
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+
+      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, provider);
+
+      const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+      const balance = await linkToken.balanceOf(signerAddress);
+
+      setBalanceInfo({
+        address: signerAddress,
+        balance: String(balance)
+      });
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const handleTransfer = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const data = new FormData(e.target);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, signer);
+      await provider.send("eth_requestAccounts", []);
+      const transaction = await linkToken.transfer(data.get("recipient"), data.get("amount"));
+      await transaction.wait();
+      console.log('Success! -- recipient recieved amount');
+      setIsTransfer(true);
+    } catch (error) {
+      console.log(error);
+      //if (error) return alert('transfer amount exceeds balance');
+      setError(true);
+    };
+  };
+
+  // function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+  // address a, b & c -> a is the sender, b is the spender, c is the recipient
+  // address b can send to address c on a's behalf
+
+  const handleTransferFrom = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const data = new FormData(e.target);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, signer);
+      await provider.send("eth_requestAccounts", [])
+      const transactionFrom = await linkToken.transferFrom(data.get("sender"), data.get("recipient"), data.get("amount"));
+      await transactionFrom.wait();
+      console.log("transferFrom -- success");
+      setIsTransferFrom(true);
+    } catch (error) {
+      console.log(error);
+      setError(true);
+      //if (error) return alert("transfer from amount exceeds balance");
+    };
+
+  };
+
+  //function approve(address spender, uint256 amount) external returns (bool);
+  // address a, b & c -> address a approves address b, the spender
+
+  const handleApprove = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const data = new FormData(e.target);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, signer);
+      const transaction = await linkToken.approve(data.get("spender"), data.get("amount"));
+      await transaction.wait();
+      //console.log("Success! -- approved");
+      setIsApproved(true);
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("error, make sure is a different address other than your own");
+    };
+  };
+
+  // function allowance(address owner, address spender) external view returns (uint256);
+  // address a is owner and address b is the spender -> checks the balance owner allows spender to spend
+
+  const handleAllowance = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const data = new FormData(e.target);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, provider);
+      const signer = provider.getSigner();
+      const owner = await signer.getAddress();
+      console.log(owner);
+      const allowance = await linkToken.allowance(data.get("owner"), data.get("spender"));
+      console.log(allowance.toString());
+      setIsAllowanceMsg(true);
+      setAllowanceAmount(allowance.toString());
+
+      return allowance;
+
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("Input correct address");
+    };
+  };
+
+
   return (
     <>
       <div className='container-1'>
         <div className='box-1'>
           <h3>Box One</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <form className="m-4" onSubmit={handleGetTokenInfo}>
+            <div className="credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+              <main className="mt-4 p-4">
+                <h1 className="text-xl font-semibold text-info text-left">
+                  Smart Contract UI
+                </h1>
+                <p><small className="text-muted">Read from a smart contract, approve, transfer, transfer from and recieve transaction messages from the blockchain.</small> </p>
+                <br />
+                <div>
+                  <h6 className="card-subtitle mb-2 text-muted">contract</h6>
+                  <div className="my-3">
+                    <input
+                      type="text"
+                      name={contractAddress}
+                      className="input p-1"
+                      placeholder="ERC20 contract address"
+                      style={{ background: "#1f1f1f", borderStyle: "solid 1px", borderColor: "#7bc3ed", borderRadius: "5px", color: "white" }}
+                    />
+                  </div>
+                </div>
+              </main>
+              <footer className="p-4">
+                <button
+                  type="submit"
+                  className="btn btn-outline-success"
+                >
+                  Get token info
+                </button>
+              </footer>
+              <div className="px-4">
+                <div className="overflow-x-auto">
+                  <table className="table w-full text-primary">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Symbol</th>
+                        <th>Total supply</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th>{contractInfo.tokenName}</th>
+                        <td>{contractInfo.tokenSymbol}</td>
+                        <td>{String(contractInfo.totalSupply)}</td>
+                        <td>{contractInfo.deployedAt}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div className="p-4">
+                <button
+                  onClick={getMyBalance}
+                  type="submit"
+                  className="btn btn-outline-success"
+                >
+                  Get my balance
+                </button>
+              </div>
+              <div className="px-4">
+                <div className="overflow-x-auto">
+                  <table className="table w-full text-primary">
+                    <thead>
+                      <tr>
+                        <th>Address</th>
+                        <th>Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th>{balanceInfo.address}</th>
+                        <td>{balanceInfo.balance}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+            <div className="mt-4 p-4">
+              <h3 className="text-xl font-semibold text-info text-left">
+                Transactions / Transfers
+              </h3>
+              {/* transfer */}
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">transfer</h6>
+                  <form onSubmit={handleTransfer}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">recipient</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="recipient"
+                        className="input p-1"
+                        placeholder="Recipient address"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">amount</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Amount to transfer"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Transfer
+                      </button>
+                      <div className="my-4 mb-2">
+                        {isTransfer &&
+                          <div className="alert alert-dismissible alert-success">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransfer(false)}></button>
+                            <strong>Well Done!</strong> Your transfer has been completed.
+                          </div>
+                        }
+
+                        {error &&
+                          <div className="alert alert-dismissible alert-danger">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <strong>Oh snap!</strong> and try submitting again. Your balance must be sufficient.
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+              <br />
+              {/* approve */}
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">approve</h6>
+                  <form onSubmit={handleApprove}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">spender</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="spender"
+                        className="input p-1"
+                        placeholder="Spender address"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">amount</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Amount to approve"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Approve
+                      </button>
+                      <div className="my-4 mb-2">
+                        {isApproved &&
+                          <div className="alert alert-dismissible alert-success">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
+                            <strong>Well Done!</strong> You have successfully approved spender.
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+              <br />
+              {/* allowance */}
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">allowance</h6>
+                  <form onSubmit={handleAllowance}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">owner</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="owner"
+                        className="input p-1"
+                        placeholder="Owner address"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">spender</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="spender"
+                        className="input p-1"
+                        placeholder="Spender address"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Allowance
+                      </button>
+                      <div className="my-3">
+                        {isAllowanceMsg &&
+                          <div className="alert alert-dismissible alert-warning">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsAllowanceMsg(false)}></button>
+                            Spender can spend this amount:{" "}{allowanceAmount}{" "}
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+              <br />
+              {/* transfer from */}
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">transfer from</h6>
+                  <form onSubmit={handleTransferFrom}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">sender</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="sender"
+                        className="input p-1"
+                        placeholder="Sender address"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">recipient</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="recipient"
+                        className="input p-1"
+                        placeholder="Recipient address"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">amount</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Amount to transfer"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Transfer from
+                      </button>
+                      <div className="my-4 mb-2">
+                        {isTransferFrom &&
+                          <div className="alert alert-dismissible alert-success">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransferFrom(false)}></button>
+                            <strong>Well Done!</strong> Your transfer has been completed.
+                          </div>
+                        }
+                        {error &&
+                          <div className="alert alert-dismissible alert-danger">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <strong>Error!</strong> Transfer amount exceeds balance.
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+              {/* Tx List */}
+              <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+                <div className="mt-4 p-4">
+                  <h3 className="text-xl font-semibold text-info text-left">
+                    Recent Transactions
+                  </h3>
+                  <p>
+                    <TxList txs={txs} />
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
         <div className='box-2'>
           <h3>Box Two</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
-        <div className='box-3'>
-          <h3>Box Three</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-      </div>
-
-      <div className='container-2'>
-        <div className='container-2-box'>
-          <h3>Box Four</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-        <div className='container-2-box'>
-          <h3>Box Five</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-        <div className='container-2-box'>
-          <h3>Box Six</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-      </div>
-
-      <div className='container-3'>
-        <div className='container-3-box'>
-          <h3>Box Seven</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-        <div className='container-3-box'>
-          <h3>Box Eight</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-        <div className='container-3-box'>
-          <h3>Box Nine</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-        <div className='container-3-box'>
-          <h3>Box Ten</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-        <div className='container-3-box'>
-          <h3>Box Eleven</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
-        <div className='container-3-box'>
-          <h3>Box Twelve</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
       </div>
     </>
-
-
-
-
   );
 }
 
