@@ -2,14 +2,14 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("Market Test", () => {
-  let Dex, dex, Link, link, owner, addr1, addr2, addr3, addr4;
+  let Dex, dex, RealToken, realToken, owner, addr1, addr2, addr3, addr4;
 
   beforeEach(async () => {
     Dex = await ethers.getContractFactory("Dex");
     dex = await Dex.deploy();
 
-    Link = await ethers.getContractFactory("Link");
-    link = await Link.deploy();
+    RealToken = await ethers.getContractFactory("RealToken");
+    realToken = await RealToken.deploy();
 
     //Testing from a different account
     [owner, addr1, addr2, addr3, addr4] = await ethers.getSigners();
@@ -23,8 +23,8 @@ describe("Market Test", () => {
 
     it("should check that the Link total supply is equal to the owner's balance", async () => {
 
-      const ownerBalance = await link.balanceOf(owner.address);
-      expect(await link.totalSupply()).to.equal(ownerBalance);
+      const ownerBalance = await realToken.balanceOf(owner.address);
+      expect(await realToken.totalSupply()).to.equal(ownerBalance);
     });
   });
   describe("Transactions", () => {
@@ -57,58 +57,58 @@ describe("Market Test", () => {
     it("Market orders should not fill more limit orders than the market order amount", async () => {
 
       //Get the sell side orderbook
-      const orderbook = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1);
+      const orderbook = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
       expect(orderbook.length).to.equal(0);
       console.log("Orderbook SELL length start:", orderbook.length);
 
-      await dex.addToken(ethers.utils.formatBytes32String("LINK"), link.address);
+      await dex.addToken(ethers.utils.formatBytes32String("RETK"), realToken.address);
 
       const depositEthTx = await dex.depositEth({ value: 30000 });
       await depositEthTx.wait();
 
-      // Send LINK tokens to accounts 1, 2, 3 from accounts 0
-      const transferTx1 = await link.transfer(addr1.address, 150);
+      // Send RETK tokens to accounts 1, 2, 3 from accounts 0
+      const transferTx1 = await realToken.transfer(addr1.address, 150);
       await transferTx1.wait();
 
-      const transferTx2 = await link.transfer(addr2.address, 150);
+      const transferTx2 = await realToken.transfer(addr2.address, 150);
       await transferTx2.wait();
 
-      const transferTx3 = await link.transfer(addr3.address, 150);
+      const transferTx3 = await realToken.transfer(addr3.address, 150);
       await transferTx3.wait();
 
       // Approve DEX for accounts 1, 2, 3
-      const approveTx1 = await link.connect(addr1).approve(dex.address, 50);
+      const approveTx1 = await realToken.connect(addr1).approve(dex.address, 50);
       await approveTx1.wait();
-      const approveTx2 = await link.connect(addr2).approve(dex.address, 50);
+      const approveTx2 = await realToken.connect(addr2).approve(dex.address, 50);
       await approveTx2.wait();
-      const approveTx3 = await link.connect(addr3).approve(dex.address, 50);
+      const approveTx3 = await realToken.connect(addr3).approve(dex.address, 50);
       await approveTx3.wait();
 
       //Deposit LINK into DEX for accounts 1, 2, 3
-      const depositTx1 = await dex.connect(addr1).deposit(50, ethers.utils.formatBytes32String("LINK"));
+      const depositTx1 = await dex.connect(addr1).deposit(50, ethers.utils.formatBytes32String("RETK"));
       await depositTx1.wait();
-      const depositTx2 = await dex.connect(addr2).deposit(50, ethers.utils.formatBytes32String("LINK"));
+      const depositTx2 = await dex.connect(addr2).deposit(50, ethers.utils.formatBytes32String("RETK"));
       await depositTx2.wait();
-      const depositTx3 = await dex.connect(addr3).deposit(50, ethers.utils.formatBytes32String("LINK"));
+      const depositTx3 = await dex.connect(addr3).deposit(50, ethers.utils.formatBytes32String("RETK"));
       await depositTx3.wait();
 
       // Fill the Limit sell order book
-      const limitSellTx1 = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 5, 300);
+      const limitSellTx1 = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 5, 300);
       await limitSellTx1.wait();
 
-      const limitSellTx2 = await dex.connect(addr2).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 5, 400);
+      const limitSellTx2 = await dex.connect(addr2).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 5, 400);
       await limitSellTx2.wait();
 
-      const limitSellTx3 = await dex.connect(addr3).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 5, 500);
+      const limitSellTx3 = await dex.connect(addr3).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 5, 500);
       await limitSellTx3.wait();
 
       // Create market order which fills 2/3 orders in the book
-      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 10);
+      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 10);
       await marketOrderTx.wait();
       console.log("Market Order BUY: ", marketOrderTx);
 
       //Get the sell side orderbook
-      const orderbookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1);
+      const orderbookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
 
       expect(orderbookAfter.length).to.equal(1);
       console.log("Orderbook length: ", orderbookAfter.length)
@@ -136,66 +136,66 @@ describe("Market Test", () => {
 
       // assert/expect
       // balance before + amount bought should equal balance after
-      await dex.addToken(ethers.utils.formatBytes32String("LINK"), link.address);
+      await dex.addToken(ethers.utils.formatBytes32String("RETK"), realToken.address);
 
       await dex.depositEth({ value: 30000 });
 
-      // Link token transfers to address 1, 2, 3, again since order book is empty
-      await link.transfer(addr1.address, 150);
-      await link.transfer(addr2.address, 150);
-      await link.transfer(addr3.address, 150);
+      // realToken token transfers to address 1, 2, 3, again since order book is empty
+      await realToken.transfer(addr1.address, 150);
+      await realToken.transfer(addr2.address, 150);
+      await realToken.transfer(addr3.address, 150);
 
       // approve dex for address 1, 2, 3
-      await link.connect(addr1).approve(dex.address, 50);
-      await link.connect(addr2).approve(dex.address, 50);
-      await link.connect(addr3).approve(dex.address, 50);
+      await realToken.connect(addr1).approve(dex.address, 50);
+      await realToken.connect(addr2).approve(dex.address, 50);
+      await realToken.connect(addr3).approve(dex.address, 50);
 
-      // deposit link to address 1, 2, 3
-      await dex.connect(addr1).deposit(50, ethers.utils.formatBytes32String("LINK"));
-      await dex.connect(addr2).deposit(50, ethers.utils.formatBytes32String("LINK"));
-      await dex.connect(addr3).deposit(50, ethers.utils.formatBytes32String("LINK"));
+      // deposit realToken to address 1, 2, 3
+      await dex.connect(addr1).deposit(50, ethers.utils.formatBytes32String("RETK"));
+      await dex.connect(addr2).deposit(50, ethers.utils.formatBytes32String("RETK"));
+      await dex.connect(addr3).deposit(50, ethers.utils.formatBytes32String("RETK"));
 
 
       // create limit sell orders
-      const limitSellTx1 = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 5, 300);
+      const limitSellTx1 = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 5, 300);
       await limitSellTx1.wait();
 
-      const limitSellTx2 = await dex.connect(addr2).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 5, 400);
+      const limitSellTx2 = await dex.connect(addr2).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 5, 400);
       await limitSellTx2.wait();
 
-      const limitSellTx3 = await dex.connect(addr3).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 5, 500);
+      const limitSellTx3 = await dex.connect(addr3).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 5, 500);
       await limitSellTx3.wait();
 
       //Get sell side orderbook
-      const orderbook = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1);
+      const orderbook = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
       expect(orderbook.length).to.equal(3, "Sell side Orderbook should have 3 orders");
       console.log("Orderbook SELL length start:", orderbook.length);
 
-      const balanceBefore = await dex.balances(owner.address, ethers.utils.formatBytes32String("LINK"));
-      console.log("Link balance before BUY order: ", balanceBefore.toNumber());
+      const balanceBefore = await dex.balances(owner.address, ethers.utils.formatBytes32String("RETK"));
+      console.log("RETK balance before BUY order: ", balanceBefore.toNumber());
 
-      await dex.createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 50);
+      await dex.createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 50);
 
-      const balanceAfter = await dex.balances(owner.address, ethers.utils.formatBytes32String("LINK"));
-      console.log("Link balance after BUY order: ", balanceAfter.toNumber());
+      const balanceAfter = await dex.balances(owner.address, ethers.utils.formatBytes32String("RETK"));
+      console.log("RETK balance after BUY order: ", balanceAfter.toNumber());
 
       expect(balanceBefore + 15).to.equal(balanceAfter);
-      console.log("Link balance before BUY order - expect: ", balanceAfter.toNumber());
+      console.log("RETK balance before BUY order - expect: ", balanceAfter.toNumber());
     });
     it("The eth balance of the buyer should decrease with the filled amount", async () => {
 
       await dex.depositEth({ value: 3000 });
 
-      await dex.addToken(ethers.utils.formatBytes32String("LINK"), link.address);
+      await dex.addToken(ethers.utils.formatBytes32String("RETK"), realToken.address);
 
-      await link.connect(addr1).approve(dex.address, 150);
+      await realToken.connect(addr1).approve(dex.address, 150);
 
-      await link.transfer(addr1.address, 10);
+      await realToken.transfer(addr1.address, 10);
 
-      const depositTx = await dex.connect(addr1).deposit(10, ethers.utils.formatBytes32String("LINK"));
+      const depositTx = await dex.connect(addr1).deposit(10, ethers.utils.formatBytes32String("RETK"));
       await depositTx.wait();
 
-      const limitOrderTx = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 1, 300);
+      const limitOrderTx = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 1, 300);
       await limitOrderTx.wait();
       console.log("Limit order tx: ", limitOrderTx);
 
@@ -203,7 +203,7 @@ describe("Market Test", () => {
       const balanceBefore = await dex.balances(owner.address, ethers.utils.formatBytes32String("ETH"))
       console.log("Eth balance before trade: ", balanceBefore.toNumber());
 
-      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 1);
+      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 1);
       await marketOrderTx.wait();
       console.log("Market order tx: ", marketOrderTx);
 
@@ -219,58 +219,58 @@ describe("Market Test", () => {
       const depositEthTx = await dex.depositEth({ value: 3000 });
       await depositEthTx.wait();
 
-      const addTokenTx = await dex.addToken(ethers.utils.formatBytes32String("LINK"), link.address);
+      const addTokenTx = await dex.addToken(ethers.utils.formatBytes32String("RETK"), realToken.address);
       await addTokenTx.wait();
 
-      const approveTx1 = await link.connect(addr1).approve(dex.address, 150);
+      const approveTx1 = await realToken.connect(addr1).approve(dex.address, 150);
       await approveTx1.wait();
 
-      const approveTx2 = await link.connect(addr2).approve(dex.address, 150);
+      const approveTx2 = await realToken.connect(addr2).approve(dex.address, 150);
       await approveTx2.wait();
 
-      const transferTx1 = await link.transfer(addr1.address, 10);
+      const transferTx1 = await realToken.transfer(addr1.address, 10);
       await transferTx1.wait();
 
-      const transferTx2 = await link.transfer(addr2.address, 10);
+      const transferTx2 = await realToken.transfer(addr2.address, 10);
       await transferTx2.wait();
 
-      // deposit Link to address 1, 2
-      const depositReceipt1 = await dex.connect(addr1).deposit(10, ethers.utils.formatBytes32String("LINK"));
+      // deposit realToken to address 1, 2
+      const depositReceipt1 = await dex.connect(addr1).deposit(10, ethers.utils.formatBytes32String("RETK"));
       await depositReceipt1.wait();
 
-      const depositReceipt2 = await dex.connect(addr2).deposit(10, ethers.utils.formatBytes32String("LINK"));
+      const depositReceipt2 = await dex.connect(addr2).deposit(10, ethers.utils.formatBytes32String("RETK"));
       await depositReceipt2.wait();
 
       //Create limit orders, accounts 1, 2
-      const limitOrderTx1 = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 1, 100);
+      const limitOrderTx1 = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 1, 100);
       await limitOrderTx1.wait();
       console.log("Limit order Sell: ", limitOrderTx1);
 
-      const limitOrderTx2 = await dex.connect(addr2).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 1, 100);
+      const limitOrderTx2 = await dex.connect(addr2).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 1, 100);
       await limitOrderTx2.wait();
       console.log("Limit order Sell: ", limitOrderTx2);
 
-      //Check sellers Link balance before trade, accounts 1, 2
-      const account1LinkBalanceBefore = await dex.balances(addr1.address, ethers.utils.formatBytes32String("LINK"));
-      console.log("Link balance before trade, acc1: ", account1LinkBalanceBefore.toNumber());
+      //Check sellers RETK balance before trade, accounts 1, 2
+      const account1RETKBalanceBefore = await dex.balances(addr1.address, ethers.utils.formatBytes32String("RETK"));
+      console.log("RETK balance before trade, acc1: ", account1RETKBalanceBefore.toNumber());
 
-      const account2LinkBalanceBefore = await dex.balances(addr2.address, ethers.utils.formatBytes32String("LINK"));
-      console.log("Link balance before trade, acc2: ", account2LinkBalanceBefore.toNumber());
+      const account2RETKBalanceBefore = await dex.balances(addr2.address, ethers.utils.formatBytes32String("RETK"));
+      console.log("RETK balance before trade, acc2: ", account2RETKBalanceBefore.toNumber());
 
       //Create market BUY order
-      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 2);
+      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 2);
       await marketOrderTx.wait();
       console.log("Market order Buy: ", marketOrderTx);
 
-      //Check sellers Link balance after trade for accounts 1, 2
-      const account1LinkBalanceAfter = await dex.balances(addr1.address, ethers.utils.formatBytes32String("LINK"));
-      console.log("Link balance after trade, acc1: ", account1LinkBalanceAfter.toNumber());
+      //Check sellers RETK balance after trade for accounts 1, 2
+      const account1RETKBalanceAfter = await dex.balances(addr1.address, ethers.utils.formatBytes32String("RETK"));
+      console.log("RETK balance after trade, acc1: ", account1RETKBalanceAfter.toNumber());
 
-      const account2LinkBalanceAfter = await dex.balances(addr2.address, ethers.utils.formatBytes32String("LINK"));
-      console.log("Link balance after trade, acc2: ", account2LinkBalanceAfter.toNumber());
+      const account2RETKBalanceAfter = await dex.balances(addr2.address, ethers.utils.formatBytes32String("RETK"));
+      console.log("RETK balance after trade, acc2: ", account2RETKBalanceAfter.toNumber());
 
-      expect(account1LinkBalanceBefore - 1).to.equal(account1LinkBalanceAfter);
-      expect(account2LinkBalanceBefore - 1).to.equal(account2LinkBalanceAfter);
+      expect(account1RETKBalanceBefore - 1).to.equal(account1RETKBalanceAfter);
+      expect(account2RETKBalanceBefore - 1).to.equal(account2RETKBalanceAfter);
 
     });
     it("Filled limit orders should be removed from the orderbook", async () => {
@@ -278,36 +278,36 @@ describe("Market Test", () => {
       const depositEthTx = await dex.depositEth({ value: 3000 });
       await depositEthTx.wait();
 
-      const addTokenTx = await dex.addToken(ethers.utils.formatBytes32String("LINK"), link.address);
+      const addTokenTx = await dex.addToken(ethers.utils.formatBytes32String("RETK"), realToken.address);
       await addTokenTx.wait();
 
-      const approveTx1 = await link.connect(addr3).approve(dex.address, 150);
+      const approveTx1 = await realToken.connect(addr3).approve(dex.address, 150);
       await approveTx1.wait();
 
-      const transferTx1 = await link.transfer(addr3.address, 10);
+      const transferTx1 = await realToken.transfer(addr3.address, 10);
       await transferTx1.wait();
 
       // deposit to dex
-      const depositReceipt1 = await dex.connect(addr3).deposit(10, ethers.utils.formatBytes32String("LINK"));
+      const depositReceipt1 = await dex.connect(addr3).deposit(10, ethers.utils.formatBytes32String("RETK"));
       await depositReceipt1.wait();
 
       // Create Limit order
-      const limitOrderTx1 = await dex.connect(addr3).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 1, 100);
+      const limitOrderTx1 = await dex.connect(addr3).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 1, 100);
       await limitOrderTx1.wait();
       console.log("Limit order Sell: ", limitOrderTx1);
 
       // check order book, SELL side, before trade
-      const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1)
+      const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1)
       console.log("Orderbook length, SELL, Before: ", orderbookBefore.length); 
 
       expect(orderbookBefore.length).to.equal(1);
 
       // Create Market order
-      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 1);
+      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 1);
       await marketOrderTx.wait();
 
       // check order book, SELL side, after trade
-      const orderbookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1)
+      const orderbookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1)
       console.log("Orderbook length, SELL, After: ", orderbookAfter.length); 
 
       expect(orderbookAfter.length).to.equal(0);
@@ -317,26 +317,26 @@ describe("Market Test", () => {
        const depositEthTx = await dex.depositEth({ value: 3000 });
        await depositEthTx.wait();
  
-       const addTokenTx = await dex.addToken(ethers.utils.formatBytes32String("LINK"), link.address);
+       const addTokenTx = await dex.addToken(ethers.utils.formatBytes32String("RETK"), realToken.address);
        await addTokenTx.wait();
  
-       const approveTx1 = await link.connect(addr3).approve(dex.address, 150);
+       const approveTx1 = await realToken.connect(addr3).approve(dex.address, 150);
        await approveTx1.wait();
  
-       const transferTx1 = await link.transfer(addr3.address, 10);
+       const transferTx1 = await realToken.transfer(addr3.address, 10);
        await transferTx1.wait();
  
        // deposit to dex
-       const depositReceipt1 = await dex.connect(addr3).deposit(10, ethers.utils.formatBytes32String("LINK"));
+       const depositReceipt1 = await dex.connect(addr3).deposit(10, ethers.utils.formatBytes32String("RETK"));
        await depositReceipt1.wait();
  
        // Create Limit order
-       const limitOrderTx1 = await dex.connect(addr3).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 5, 100);
+       const limitOrderTx1 = await dex.connect(addr3).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 5, 100);
        await limitOrderTx1.wait();
        console.log("Limit order Sell: ", limitOrderTx1);
  
        // check order book, SELL side, before trade
-       const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1);
+       const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
        console.log("Orderbook amount, SELL, Before: ", orderbookBefore[0].amount.toNumber()); 
        console.log("Orderbook filled, SELL, Before: ", orderbookBefore[0].filled.toNumber()); 
 
@@ -344,11 +344,11 @@ describe("Market Test", () => {
        expect(orderbookBefore[0].filled).to.equal(0, "Expecting 0");
  
        // Create Market order
-       const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 2);
+       const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 2);
        await marketOrderTx.wait();
  
        // check order book, SELL side, after trade
-       const orderbookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 1)
+       const orderbookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1)
        console.log("Orderbook amount, SELL, After: ", orderbookAfter[0].amount.toNumber()); 
        console.log("Orderbook filled, SELL, After: ", orderbookAfter[0].filled.toNumber()); 
 
@@ -361,21 +361,21 @@ describe("Market Test", () => {
       await dex.depositEth({ value: 100 });
       await dex.connect(addr4).depositEth({ value: 10 });
 
-      await dex.addToken(ethers.utils.formatBytes32String("LINK"), link.address);
+      await dex.addToken(ethers.utils.formatBytes32String("RETK"), realToken.address);
 
-      await link.connect(addr1).approve(dex.address, 150);
-      await link.connect(addr2).approve(dex.address, 150);
+      await realToken.connect(addr1).approve(dex.address, 150);
+      await realToken.connect(addr2).approve(dex.address, 150);
 
-      await link.transfer(addr1.address, 10);
-      await link.transfer(addr2.address, 10);
+      await realToken.transfer(addr1.address, 10);
+      await realToken.transfer(addr2.address, 10);
 
-      const depositTx1 = await dex.connect(addr1).deposit(10, ethers.utils.formatBytes32String("LINK"));
+      const depositTx1 = await dex.connect(addr1).deposit(10, ethers.utils.formatBytes32String("RETK"));
       await depositTx1.wait();
 
-      const depositTx2 = await dex.connect(addr2).deposit(10, ethers.utils.formatBytes32String("LINK"));
+      const depositTx2 = await dex.connect(addr2).deposit(10, ethers.utils.formatBytes32String("RETK"));
       await depositTx2.wait();
 
-      const limitOrderTx = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("LINK"), 1, 300);
+      const limitOrderTx = await dex.connect(addr1).createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 1, 300);
       await limitOrderTx.wait();
       console.log("Limit order tx: ", limitOrderTx);
 
@@ -387,11 +387,11 @@ describe("Market Test", () => {
       console.log("Eth balance 2 before trade: ", balanceBefore2.toNumber());
 
       await expect(
-        dex.createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 1)
+        dex.createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 1)
       ).to.be.reverted;
 
       await expect(
-        dex.connect(addr4).createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 1)
+        dex.connect(addr4).createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 1)
       ).to.be.reverted;
 
       //Check buyer ETH balance after trade
