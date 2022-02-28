@@ -56,7 +56,9 @@ https://youtu.be/JJSoEo8JSnc
  }
 
 .container-1 div, .container-2 div{
-  border: 1px #fff solid;
+  /*
+  border: 1px rgb(55, 53, 53) solid;
+  */
   padding: 10px;
 }
 

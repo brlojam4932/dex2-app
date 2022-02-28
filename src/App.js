@@ -2,7 +2,7 @@ import React from 'react';
 import { ethers } from 'ethers';
 import './App.css';
 import { useState, useEffect } from 'react';
-import Link from "./artifacts/contracts/Tokens.sol/Link.json";
+import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/TxList.jsx';
 
@@ -21,6 +21,7 @@ import TxList from './components/TxList.jsx';
 
 
 function App() {
+  
   const [txs, setTxs] = useState([]);
   const [contractListened, setContractListened] = useState();
   const [error, setError] = useState(false);
@@ -35,7 +36,7 @@ function App() {
   const [balanceInfo, setBalanceInfo] = useState({
     address: "-",
     balance: "-"
-  });
+  })
 
   const [isApproved, setIsApproved] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState();
@@ -43,18 +44,19 @@ function App() {
   const [isTransferFrom, setIsTransferFrom] = useState(false);
   const [isTransfer, setIsTransfer] = useState(false);
 
+
   useEffect(() => {
     if (contractInfo.address !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const linkToken = new ethers.Contract(
+      const erc20 = new ethers.Contract(
         contractInfo.address,
-        Link.abi,
+        RealToken.abi,
         provider
       );
 
       //event Transfer(address indexed from, address indexed to, uint256 value);
 
-      linkToken.on("Transfer", (from, to, amount, event) => {
+      erc20.on("Transfer", (from, to, amount, event) => {
         console.log({ from, to, amount, event });
 
         setTxs((currentTxs) => [
@@ -67,7 +69,7 @@ function App() {
           }
         ]);
       });
-      setContractListened(linkToken);
+      setContractListened(erc20);
 
       return () => {
         contractListened.removeAllListeners();
@@ -77,28 +79,26 @@ function App() {
   }, [contractInfo.address]);
 
 
+  // Get token info: name, symbol and totalSupply
   const handleGetTokenInfo = async (e) => {
-    e.preventDeault();
+    e.preventDefault();
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      // construct for key/value pairs from fields...
       const data = new FormData(e.target);
-      // new instance of provider and contract
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // new contract instance and args: address, abi, provider or signer
-      const linkToken = new ethers.Contract(data.get(contractAddress), Link.abi, provider);
-      // create constants for contract info
-      const tokenName = await linkToken.name();
-      const tokenSymbol = await linkToken.symbol();
-      const totalSupply = await linkToken.totalSupply();
-      // set the new constants as a new state for the Contract Info object
+
+      const erc20 = new ethers.Contract(data.get(contractAddress), RealToken.abi, provider);
+
+      const tokenName = await erc20.name();
+      const tokenSymbol = await erc20.symbol();
+      const totalSupply = await erc20.totalSupply();
+
       setContractInfo({
         address: data.get(contractAddress),
         tokenName,
         tokenSymbol,
         totalSupply,
       });
-      // finally set the contract address as a new state
       setContractAddress(data);
     } catch (error) {
       console.log("error", error);
@@ -107,17 +107,16 @@ function App() {
 
 
   // function balanceOf(address account) external view returns (uint256)
+
   const getMyBalance = async () => {
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
-
-      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, provider);
-
+      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
-      const balance = await linkToken.balanceOf(signerAddress);
+      const balance = await erc20.balanceOf(signerAddress);
 
       setBalanceInfo({
         address: signerAddress,
@@ -128,6 +127,10 @@ function App() {
     }
   };
 
+
+
+  //function transfer(address recipient, uint256 amount) external returns (bool);
+
   const handleTransfer = async (e) => {
     e.preventDefault();
     try {
@@ -135,9 +138,9 @@ function App() {
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, signer);
+      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
       await provider.send("eth_requestAccounts", []);
-      const transaction = await linkToken.transfer(data.get("recipient"), data.get("amount"));
+      const transaction = await erc20.transfer(data.get("recipient"), data.get("amount"));
       await transaction.wait();
       console.log('Success! -- recipient recieved amount');
       setIsTransfer(true);
@@ -146,7 +149,9 @@ function App() {
       //if (error) return alert('transfer amount exceeds balance');
       setError(true);
     };
+
   };
+
 
   // function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
   // address a, b & c -> a is the sender, b is the spender, c is the recipient
@@ -159,9 +164,9 @@ function App() {
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, signer);
+      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
       await provider.send("eth_requestAccounts", [])
-      const transactionFrom = await linkToken.transferFrom(data.get("sender"), data.get("recipient"), data.get("amount"));
+      const transactionFrom = await erc20.transferFrom(data.get("sender"), data.get("recipient"), data.get("amount"));
       await transactionFrom.wait();
       console.log("transferFrom -- success");
       setIsTransferFrom(true);
@@ -173,6 +178,7 @@ function App() {
 
   };
 
+
   //function approve(address spender, uint256 amount) external returns (bool);
   // address a, b & c -> address a approves address b, the spender
 
@@ -183,16 +189,17 @@ function App() {
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, signer);
-      const transaction = await linkToken.approve(data.get("spender"), data.get("amount"));
+      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
+      const transaction = await erc20.approve(data.get("spender"), data.get("amount"));
       await transaction.wait();
       //console.log("Success! -- approved");
       setIsApproved(true);
     } catch (error) {
       console.log(error);
       if (error) return alert("error, make sure is a different address other than your own");
-    };
-  };
+    }
+  }
+
 
   // function allowance(address owner, address spender) external view returns (uint256);
   // address a is owner and address b is the spender -> checks the balance owner allows spender to spend
@@ -204,11 +211,11 @@ function App() {
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
-      const linkToken = new ethers.Contract(contractInfo.address, Link.abi, provider);
+      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
       const signer = provider.getSigner();
       const owner = await signer.getAddress();
       console.log(owner);
-      const allowance = await linkToken.allowance(data.get("owner"), data.get("spender"));
+      const allowance = await erc20.allowance(data.get("owner"), data.get("spender"));
       console.log(allowance.toString());
       setIsAllowanceMsg(true);
       setAllowanceAmount(allowance.toString());
@@ -218,9 +225,9 @@ function App() {
     } catch (error) {
       console.log(error);
       if (error) return alert("Input correct address");
-    };
-  };
+    }
 
+  }
 
   return (
     <>
@@ -258,7 +265,7 @@ function App() {
               </footer>
               <div className="px-4">
                 <div className="overflow-x-auto">
-                  <table className="table w-full text-primary">
+                  <table className="table w-full text-info">
                     <thead>
                       <tr>
                         <th>Name</th>
@@ -288,7 +295,7 @@ function App() {
               </div>
               <div className="px-4">
                 <div className="overflow-x-auto">
-                  <table className="table w-full text-primary">
+                  <table className="table w-full text-info">
                     <thead>
                       <tr>
                         <th>Address</th>

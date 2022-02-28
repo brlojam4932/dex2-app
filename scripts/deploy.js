@@ -2,25 +2,26 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const Dex = await hre.ethers.getContractFactory("Dex");
-  const dex = await Dex.deploy();
+  //const Dex = await hre.ethers.getContractFactory("Dex");
+  //const dex = await Dex.deploy();
 
-  await dex.deployed();
+  //await dex.deployed();
 
-  const Link = await hre.ethers.getContractFactory("Link");
-  const link = await Link.deploy();
+  //console.log("dex deployed to:", dex.address);
 
-  await link.deployed();
+  const RealToken = await hre.ethers.getContractFactory("RealToken");
+  const realToken = await RealToken.deploy();
+
+  await realToken.deployed();
+  console.log("Real Token deployed to:", realToken.address);
 
   // deploy to localhost:
   // npx hardhat run scripts/deploy.js --network localhost
 
-  /*
-
   //To interact with the Smart Contract: npx hardhat run scripts/deploy.js
 
-  console.log("dex deployed to:", dex.address);
-
+ 
+ /*
   const Link = await hre.ethers.getContractFactory("Link");
   const link = await Link.deploy();
 
@@ -31,6 +32,7 @@ async function main() {
   console.log("symbol: ", await link.symbol());
   console.log("total supply: ", await link.totalSupply());
 
+  
   // ERC20 transfer args
   //event Transfer(address indexed from, address indexed to, uint256 value);
   const transactionResponse = await link.transfer('0x70997970c51812dc3a010c7d01b50e0d17dc79c8', 200);
@@ -44,6 +46,7 @@ async function main() {
   
   const balance = await link.balanceOf('0x70997970c51812dc3a010c7d01b50e0d17dc79c8');
   console.log("balance of: ", balance.toNumber());
+ 
 
   //event Approval(address indexed owner, address indexed spender, uint256 value);
   const apporveResponse = await link.approve("0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc", 100);
@@ -59,7 +62,7 @@ async function main() {
   const balance2 = await link.balanceOf('0x70997970c51812dc3a010c7d01b50e0d17dc79c8');
   console.log("balance of 0x7099...79cB: ", balance2.toNumber());
 
-  */
+*/
 
 };
 
