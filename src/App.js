@@ -6,6 +6,8 @@ import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/TxList.jsx';
 
+import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
+
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
 
@@ -19,9 +21,14 @@ import TxList from './components/TxList.jsx';
 //practice - Flexbox CSS in 20 minutes
 //https://youtu.be/JJSoEo8JSnc
 
+//dex deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+//Real Token deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+
+const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const myTokenSymbol = ethers.utils.formatBytes32String("RETK");
 
 function App() {
-  
+
   const [txs, setTxs] = useState([]);
   const [contractListened, setContractListened] = useState();
   const [error, setError] = useState(false);
@@ -38,11 +45,18 @@ function App() {
     balance: "-"
   })
 
+  const [dexBalanceInfo, setDexBalanceInfo] = useState({
+    address: "-",
+    ticker: "-"
+  })
+
   const [isApproved, setIsApproved] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState();
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
   const [isTransferFrom, setIsTransferFrom] = useState(false);
   const [isTransfer, setIsTransfer] = useState(false);
+
+  //const [dexContractAddress, setDexContractAddress] = useState("-");
 
 
   useEffect(() => {
@@ -104,6 +118,38 @@ function App() {
       console.log("error", error);
     }
   };
+/*
+  const handleGetDex = async (e) => {
+    e.preventDefault()
+    if (typeof window.ethereum !== 'undefined') {
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      console.log({ provider })
+      const dexContract = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+      console.log(dexContract.address);
+    }    
+  };
+  */
+
+  const getDexBalances = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      //const data = new FormData(e.target);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const dexContract = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+      const signer = provider.getSigner();
+      const signerAddress = await signer.getAddress();
+      const tickerBalance = await dexContract.balances(signerAddress, myTokenSymbol);
+
+      setDexBalanceInfo({
+        address: signerAddress,
+        ticker: String(tickerBalance)
+      });
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
 
 
   // function balanceOf(address account) external view returns (uint256)
@@ -126,7 +172,6 @@ function App() {
       console.log("error", error);
     }
   };
-
 
 
   //function transfer(address recipient, uint256 amount) external returns (bool);
@@ -225,15 +270,17 @@ function App() {
     } catch (error) {
       console.log(error);
       if (error) return alert("Input correct address");
-    }
+    };
 
-  }
+    /////////////// DEX //////////////////
 
+  };
+  //createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 1, 300)
   return (
     <>
       <div className='container-1'>
         <div className='box-1'>
-          <h3>Box One</h3>
+          <h3>TOKENS</h3>
           <form className="m-4" onSubmit={handleGetTokenInfo}>
             <div className="credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
               <main className="mt-4 p-4">
@@ -313,7 +360,7 @@ function App() {
               </div>
             </div>
           </form>
-
+          {/* Transactions */}
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
@@ -540,28 +587,100 @@ function App() {
                   </form>
                 </div>
               </div>
-              {/* Tx List */}
-              <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
-                <div className="mt-4 p-4">
-                  <h3 className="text-xl font-semibold text-info text-left">
-                    Recent Transactions
-                  </h3>
-                  <p>
-                    <TxList txs={txs} />
-                  </p>
+            </div>
+          </div>
+        </div>
+        <div className='box-2'>
+          <h3>Recipts</h3>
+          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+            <div className="mt-4 p-4">
+              <h3 className="text-xl font-semibold text-info text-left">
+                Recent Transactions
+              </h3>
+              <p>
+                <TxList txs={txs} />
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className='container-2'>
+        <div className='box-1'>
+          <h3>DEX</h3>
+          <div className="m-4">
+            <div className="credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+              <main className="mt-4 p-4">
+                <h1 className="text-xl font-semibold text-info text-left">
+                  DEX UI
+                </h1>
+                <p><small className="text-muted">Read from a smart contract, approve, transfer, transfer from and recieve transaction messages from the blockchain.</small> </p>
+                <br />
+              </main>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">dex balances</h6>
+                  {/* get Dex balances */}
+                  <form onSubmit={getDexBalances}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">balances</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name={myTokenSymbol}
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Get Dex Balances
+                      </button>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+              <br />
+     
+              <div className="px-4">
+                <div className="overflow-x-auto">
+                  <table className="table w-full text-info">
+                    <thead>
+                      <tr>
+                        <th>Address</th>
+                        <th>Token Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th>{dexBalanceInfo.address}</th>
+                        <td>{dexBalanceInfo.ticker}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      
 
-        </div>
-        <div className='box-2'>
-          <h3>Box Two</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </div>
       </div>
+    
+
+
     </>
+
+    
   );
+
+
 }
 
 export default App;
+

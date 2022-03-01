@@ -30,25 +30,25 @@ describe("Market Test", () => {
   describe("Transactions", () => {
     it("Should throw an error when creating a sell market order without adequate token balance", async () => {
 
-      const initialTokenBalance = await dex.balances(addr1.address, ethers.utils.formatBytes32String("LINK"));
+      const initialTokenBalance = await dex.balances(addr1.address, ethers.utils.formatBytes32String("RETK"));
       console.log("Init Token Balance: ", initialTokenBalance.toNumber());
 
       await expect(
-        dex.connect(addr1).createMarketOrder(1, ethers.utils.formatBytes32String("LINK"), 10)
+        dex.connect(addr1).createMarketOrder(1, ethers.utils.formatBytes32String("RETK"), 10)
       ).to.be.reverted;
       
     });
     it("Market BUY orders can be submitted even if the order book is empty", async () => {
 
-      const orderBookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 0); // get buy side
+      const orderBookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 0); // get buy side
 
       expect(orderBookBefore.length).to.equal(0);
       console.log("Orderbook length before: ", orderBookBefore.length);
 
-      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("LINK"), 10);
+      const marketOrderTx = await dex.createMarketOrder(0, ethers.utils.formatBytes32String("RETK"), 10);
       await marketOrderTx.wait();
 
-      const orderBookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("LINK"), 0); // get buy side
+      const orderBookAfter = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 0); // get buy side
       console.log("Orderbook length after: ", orderBookAfter.length);
 
       // Should be empty

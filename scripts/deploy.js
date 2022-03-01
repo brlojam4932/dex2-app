@@ -2,12 +2,12 @@ const hre = require("hardhat");
 
 async function main() {
 
-  //const Dex = await hre.ethers.getContractFactory("Dex");
-  //const dex = await Dex.deploy();
+  const Dex = await hre.ethers.getContractFactory("Dex");
+  const dex = await Dex.deploy();
 
-  //await dex.deployed();
+  await dex.deployed();
 
-  //console.log("dex deployed to:", dex.address);
+  console.log("dex deployed to:", dex.address);
 
   const RealToken = await hre.ethers.getContractFactory("RealToken");
   const realToken = await RealToken.deploy();
