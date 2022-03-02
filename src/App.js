@@ -708,15 +708,25 @@ function App() {
 
       <div className='container-2'>
         <div className='box-1'>
-          <div className="m-4">
-            <div>
-              <main className="mt-4 p-4">
+          <div>
+            <div className='m-4'>
+            <main className="mt-4 p-4">
                 <h1 className="text-xl font-semibold text-info text-left">
                   DEX UI
                 </h1>
                 <p><small className="text-muted">Read from a smart contract, approve, transfer, transfer from and recieve transaction messages from the blockchain.</small> </p>
                 <br />
               </main>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+
+      <div className='container-3'>
+        <div className='box-1'>
+          <div className="m-4">
+            <div>
               <div className="card">
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">add tokens</h6>
@@ -746,7 +756,16 @@ function App() {
                 </div>
               </div>
               <br />
-              <div className="card">
+
+          
+            </div>
+          </div>
+        </div>
+
+        <div className='box-2'>
+          <div className='m-4'>
+            <div>
+            <div className="card">
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">dex balances</h6>
                   {/* get Dex balances */}
@@ -774,8 +793,8 @@ function App() {
                   </form>
                 </div>
               </div>
-                {/* return dex balances */}
-                <div className="px-4">
+              {/* return dex balances */}
+              <div className="px-4">
                 <div className="overflow-x-auto">
                   <table className="table w-full text-info">
                     <thead>
@@ -794,50 +813,66 @@ function App() {
                 </div>
               </div>
               <br />
-              <div className="card">
+
+            </div>
+          </div>
+        </div>
+
+        <div className='box-3'>
+          <div className='m-4'>
+            <div>
+            <div className="card">
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">dex deposits</h6>
                   {/* get Dex token deposits */}
                   <form onSubmit={handleDexTokenDeposit}>
-                <div className="my-3">
-                  <div>
-                    <h6 className="card-subtitle mb-2 text-muted">deposit tokens into DEX</h6>
-                  </div>
-                  <input
-                    type="text"
-                    name="amount"
-                    className="input p-1"
-                    placeholder="Amount to deposit"
-                    style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                  />
-                </div>
-                <div className="my-3">
-                  <div>
-                    <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                  </div>
-                  <input
-                    type="text"
-                    name="ticker"
-                    className="input p-1"
-                    placeholder="Token Symbol"
-                    style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                  />
-                </div>
-                <footer className="p-4">
-                  <button
-                    type="submit"
-                    className="btn btn-outline-info"
-                  >
-                    Deposit Tokens
-                  </button>
-                </footer>
-              </form>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">deposit tokens into DEX</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Amount to deposit"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="ticker"
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Deposit Tokens
+                      </button>
+                    </footer>
+                  </form>
                 </div>
               </div>
+      
             </div>
           </div>
         </div>
-        <div className='box-2'>
+
+
+
+
+      </div>
+
+      <div className='container-4'>
+        <div className='box-1'>
           {/* Limit Order Transactions */}
           <div>
             <div className="mt-4 p-4">
@@ -916,8 +951,7 @@ function App() {
             </div>
           </div>
         </div>
-
-        <div className='box-3'>
+        <div className='box-2'>
           {/* Market Order Transactions */}
           <div>
             <div className="mt-4 p-4">
@@ -987,10 +1021,6 @@ function App() {
         </div>
 
       </div>
-
-
-
-
 
     </>
 
