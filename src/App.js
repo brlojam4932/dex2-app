@@ -204,6 +204,7 @@ function App() {
     };
   };
 
+
   const handleMarketOrderBuy = async (e) => {
     e.preventDefault();
     try {
@@ -216,31 +217,28 @@ function App() {
       await provider.send("eth_requestAccounts", []);
 
       const marketOrderTx = await dex.createMarketOrder(
-        0, ethers.utils.formatBytes32String(data.get("ticker")), "amount"
+        0, ethers.utils.formatBytes32String(data.get("ticker")), data.get("amount")
       );
       await marketOrderTx.wait();
       console.log("market BUY order success", marketOrderTx);
 
     } catch (error) {
       console.log("error", error);
+      if(error) return alert("error...check Eth amount");
     };
   };
 
-  //dex.connect(addr1).deposit(50, ethers.utils.formatBytes32String("RETK"));
 
+  //dex.connect(addr1).deposit(50, ethers.utils.formatBytes32String("RETK"));
   const handleDexTokenDeposit = async (e) => {
     e.preventDefault();
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
-      // get provider
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // get signer
       const signer = provider.getSigner();
-      // new instance of contract and send
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
       await provider.send("eth_requestAccounts", []);
-      // execute instance of contract function
       const dexDepositTx = await dex.deposit(
         data.get("amount"), ethers.utils.formatBytes32String(data.get("ticker"))
       );
@@ -253,16 +251,73 @@ function App() {
     };
   };
 
-  // function balanceOf(address account) external view returns (uint256)
-
-  const getMyBalance = async () => {
+  // balance: ethers.utils.formatEther(contractBalance.toString()),
+  //{value: ethers.utils.formatEther(amountETH, "ether")}
+  //const depositEthTx = await dex.depositEth({ value: 3000 })
+  const handleDepositEth = async (e) => {
+    e.preventDefault();
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      //const data = FormData(e.target);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
+      await provider.send("eth_requestAccounts", []);
+      const depositEthTx = await dex.depositEth({ value: 5000 });
+      await depositEthTx.wait();
+      console.log("Deposit ETH: ", depositEthTx);
+      console.log("Deposit ETH: ", depositEthTx.value.toString());
+      
+    } catch (error) {
+      console.log("error", error);
+    };
+  };
+
+    // check order book, SELL side, before trade
+  //const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1)
+  //console.log("Orderbook length, SELL, Before: ", orderbookBefore.length); 
+
+  const handleGetOrderBookSell = async (e) => {
+    e.preventDefault();
+    try {
+      if(!window.ethereum) return alert("Please install or sign-in to Metamask");
+      //const data = FormData(e.target);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      //await provider.send("eth_requestAccounts", []);
+      //const signer = provider.getSigner();
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);  
+      const signer = provider.getSigner();
+      const owner = await signer.getAddress();
+      console.log(owner); 
+
+      const orderBookSell = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
+     // console.log(data);
+      console.log("Orderbook length, SELL: ", orderBookSell.length); 
+
+      for (let i = 0; i < orderBookSell.length; i++){
+        let ticker = orderBookSell[i]["ticker"];
+        let amount = orderBookSell[i]["amount"];
+        let price = ethers.utils.formatEther(orderBookSell[i]["price"]);
+        console.log("Symbol: ", ticker, "Amount: ", amount.toString(), "Price: ", price.toString());
+        }
+      
+      
+    } catch (error) {
+      console.log("error", error);
+    }
+  }
+  // setBuyerBalance(ethers.utils.formatEther(contractBuyerBalance));
+  //ethers.utils.formatUnits(balance, 18)
+  // function balanceOf(address account) external view returns (uint256)
+  const getMyBalance = async () => {
+    if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+    try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
+      // balance: ethers.utils.formatEther(contractBalance.toString()),
       const balance = await erc20.balanceOf(signerAddress);
 
       setBalanceInfo({
@@ -278,9 +333,9 @@ function App() {
   //function transfer(address recipient, uint256 amount) external returns (bool);
 
   const handleTransfer = async (e) => {
+    if (!window.ethereum) return alert("Please install or sign-in to Metamask");
     e.preventDefault();
     try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -305,8 +360,8 @@ function App() {
 
   const handleTransferFrom = async (e) => {
     e.preventDefault();
+    if (!window.ethereum) return alert("Please install or sign-in to Metamask");
     try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -330,8 +385,8 @@ function App() {
 
   const handleApprove = async (e) => {
     e.preventDefault();
+    if (!window.ethereum) return alert("Please install or sign-in to Metamask");
     try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -353,7 +408,6 @@ function App() {
   const handleAllowance = async (e) => {
     e.preventDefault();
     try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
@@ -379,9 +433,9 @@ function App() {
   //createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 1, 300)
   return (
     <>
+      {/* ERC20 token info/get balance/tx/approve/allowance/txfer-from/receipts */}
       <div className='container-1'>
         <div className='box-1'>
-          <h3>TOKENS</h3>
           <form className="m-4" onSubmit={handleGetTokenInfo}>
             <div className="credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
               <main className="mt-4 p-4">
@@ -391,7 +445,7 @@ function App() {
                 <p><small className="text-muted">Read from a smart contract, approve, transfer, transfer from and recieve transaction messages from the blockchain.</small> </p>
                 <br />
                 <div>
-                  <h6 className="card-subtitle mb-2 text-muted">contract</h6>
+                  <h6 className="card-subtitle mb-2 text-muted">ERC20 token contract</h6>
                   <div className="my-3">
                     <input
                       type="text"
@@ -461,11 +515,13 @@ function App() {
               </div>
             </div>
           </form>
+        </div>
+        <div className='box-2'>
           {/* Transactions */}
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Transactions / Transfers
+                Transactions / Approve
               </h3>
               {/* transfer */}
               <div className="card">
@@ -571,6 +627,19 @@ function App() {
                   </form>
                 </div>
               </div>
+              <br />
+            </div>
+          </div>
+
+        </div>
+
+        <div className='box-3'>
+          {/* Transactions */}
+          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+            <div className="mt-4 p-4">
+              <h3 className="text-xl font-semibold text-info text-left">
+                Allowance / Transfer From
+              </h3>
               <br />
               {/* allowance */}
               <div className="card">
@@ -690,9 +759,10 @@ function App() {
               </div>
             </div>
           </div>
+
         </div>
-        <div className='box-2'>
-          <h3>Recipts</h3>
+
+        <div className='box-4'>
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
@@ -705,12 +775,12 @@ function App() {
           </div>
         </div>
       </div>
-
+      {/* DEX Header */}
       <div className='container-2'>
         <div className='box-1'>
           <div>
             <div className='m-4'>
-            <main className="mt-4 p-4">
+              <main className="mt-4 p-4">
                 <h1 className="text-xl font-semibold text-info text-left">
                   DEX UI
                 </h1>
@@ -719,10 +789,10 @@ function App() {
               </main>
             </div>
           </div>
-          
+
         </div>
       </div>
-
+      {/* DEX deposts/balances/add-token, etc...  */}             
       <div className='container-3'>
         <div className='box-1'>
           <div className="m-4">
@@ -755,17 +825,126 @@ function App() {
                   </form>
                 </div>
               </div>
-              <br />
-
-          
             </div>
+            <br />
+            <div>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">deposit Eth</h6>
+                  {/* get Dex deposit Eth */}
+                  <form onSubmit={handleDepositEth}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">deposit ETH to DEX</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="ETH Amount"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Deposit ETH
+                      </button>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <br />
+
+            <div>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">get orderbook sell orders</h6>
+                  {/* get Dex order book sell */}
+                  <form onSubmit={handleGetOrderBookSell}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="ticker"
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Get Orderbook Sell Orders
+                      </button>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+            </div>
+            
           </div>
         </div>
 
         <div className='box-2'>
           <div className='m-4'>
             <div>
-            <div className="card">
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">dex deposits</h6>
+                  {/* get Dex token deposits */}
+                  <form onSubmit={handleDexTokenDeposit}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">deposit tokens into DEX</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Amount to deposit"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="ticker"
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Deposit Tokens
+                      </button>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div className='box-3'>
+          <div className='m-4'>
+            <div>
+              <div className="card">
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">dex balances</h6>
                   {/* get Dex balances */}
@@ -817,60 +996,8 @@ function App() {
             </div>
           </div>
         </div>
-
-        <div className='box-3'>
-          <div className='m-4'>
-            <div>
-            <div className="card">
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">dex deposits</h6>
-                  {/* get Dex token deposits */}
-                  <form onSubmit={handleDexTokenDeposit}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">deposit tokens into DEX</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="Amount to deposit"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-info"
-                      >
-                        Deposit Tokens
-                      </button>
-                    </footer>
-                  </form>
-                </div>
-              </div>
-      
-            </div>
-          </div>
-        </div>
-
-
-
-
       </div>
-
+      {/* DEX market/limit orders  */}               
       <div className='container-4'>
         <div className='box-1'>
           {/* Limit Order Transactions */}
@@ -1019,7 +1146,6 @@ function App() {
             </div>
           </div>
         </div>
-
       </div>
 
     </>
