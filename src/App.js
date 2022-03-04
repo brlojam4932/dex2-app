@@ -56,6 +56,19 @@ function App() {
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
   const [isTransferFrom, setIsTransferFrom] = useState(false);
   const [isTransfer, setIsTransfer] = useState(false);
+/*
+  const [isLimitBookSellInfo, setIsLimitBookSellInfo] = useState({
+    ticker: "-",
+    amount: '-',
+    price: "-"
+  });
+  */
+
+  const [isTicker, setIsTicker] = useState("-");
+  const [isAmount, setIsAmount] = useState("-");
+  const [isPrice, setIsPrice] = useState("-");
+  const [isOrderBookLength, setIsOrderBookLength] = useState("-");
+  
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
 
@@ -117,6 +130,7 @@ function App() {
       setContractAddress(data);
     } catch (error) {
       console.log("error", error);
+      if (error) return alert("not loggein to Metamask");
     }
   };
   /*
@@ -193,7 +207,10 @@ function App() {
       await provider.send("eth_requestAccounts", []);
 
       const limitOrderSellTx = await dex.createLimitOrder(
-        1, ethers.utils.formatBytes32String(data.get("ticker")), data.get("amount"), data.get("price")
+        1, ethers.utils.formatBytes32String(
+          data.get("ticker")), 
+          data.get("amount"), 
+          ethers.utils.parseEther(data.get("price"))
       );
       await limitOrderSellTx.wait();
       console.log('limit SELL order success', limitOrderSellTx);
@@ -224,7 +241,7 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if(error) return alert("error...check Eth amount");
+      if (error) return alert("error...check Eth amount");
     };
   };
 
@@ -240,74 +257,88 @@ function App() {
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
       await provider.send("eth_requestAccounts", []);
       const dexDepositTx = await dex.deposit(
-        data.get("amount"), ethers.utils.formatBytes32String(data.get("ticker"))
+        ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
       );
       await dexDepositTx.wait();
       console.log("Dex deposit tx: ", dexDepositTx);
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...check token balance");
+      if (error) return alert("error...insufficient allowance, token does not exist");
     };
   };
 
-  // balance: ethers.utils.formatEther(contractBalance.toString()),
-  //{value: ethers.utils.formatEther(amountETH, "ether")}
+
   //const depositEthTx = await dex.depositEth({ value: 3000 })
   const handleDepositEth = async (e) => {
     e.preventDefault();
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      //const data = FormData(e.target);
+      const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
       await provider.send("eth_requestAccounts", []);
-      const depositEthTx = await dex.depositEth({ value: 5000 });
+      const depositEthTx = await dex.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
       await depositEthTx.wait();
       console.log("Deposit ETH: ", depositEthTx);
       console.log("Deposit ETH: ", depositEthTx.value.toString());
-      
+
     } catch (error) {
       console.log("error", error);
     };
   };
 
-    // check order book, SELL side, before trade
+  // check order book, SELL side, before trade
   //const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1)
   //console.log("Orderbook length, SELL, Before: ", orderbookBefore.length); 
 
-  const handleGetOrderBookSell = async (e) => {
+  const handleGetLimitBookSell = async (e) => {
     e.preventDefault();
     try {
-      if(!window.ethereum) return alert("Please install or sign-in to Metamask");
-      //const data = FormData(e.target);
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      //await provider.send("eth_requestAccounts", []);
-      //const signer = provider.getSigner();
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);  
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
       const signer = provider.getSigner();
       const owner = await signer.getAddress();
-      console.log(owner); 
+      console.log(owner);
 
-      const orderBookSell = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
-     // console.log(data);
-      console.log("Orderbook length, SELL: ", orderBookSell.length); 
+      const limitOrderBookSell = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 1);
 
-      for (let i = 0; i < orderBookSell.length; i++){
-        let ticker = orderBookSell[i]["ticker"];
-        let amount = orderBookSell[i]["amount"];
-        let price = ethers.utils.formatEther(orderBookSell[i]["price"]);
-        console.log("Symbol: ", ticker, "Amount: ", amount.toString(), "Price: ", price.toString());
-        }
-      
-      
+      for (let i = 0; i < limitOrderBookSell.length; i++) {
+        const ticker = limitOrderBookSell[i]["ticker"];
+        const amount = limitOrderBookSell[i]["amount"];
+        const price = ethers.utils.formatEther(limitOrderBookSell[i]["price"]);
+        
+        console.log("Symbol: ", ticker, "Amount: ", amount.toString(), "Price: ", price);
+
+        setIsTicker(ethers.utils.toUtf8String(ticker));
+        setIsAmount(amount.toString());
+        //1000 * (10 ** 18)
+        //const parsedPrice = ethers.utils.parseEther(price);
+        //const gweiValue = ethers.utils.formatUnits(price, "gwei");
+        setIsPrice(price);
+        /*
+        setIsLimitBookSellInfo({
+          ticker: ticker,
+          amount: amount,
+          price: price
+        });
+        */
+      }
+      setIsOrderBookLength(limitOrderBookSell.length);
+      console.log("Orderbook length, SELL: ", limitOrderBookSell.length);
+      console.log(String(limitOrderBookSell));
+
+
+
     } catch (error) {
       console.log("error", error);
     }
   }
-  // setBuyerBalance(ethers.utils.formatEther(contractBuyerBalance));
-  //ethers.utils.formatUnits(balance, 18)
+
+
   // function balanceOf(address account) external view returns (uint256)
   const getMyBalance = async () => {
     if (!window.ethereum) return alert("Please install or sign-in to Metamask");
@@ -317,15 +348,16 @@ function App() {
       const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
-      // balance: ethers.utils.formatEther(contractBalance.toString()),
       const balance = await erc20.balanceOf(signerAddress);
+      const ethFormatBalance = ethers.utils.formatEther(balance);
 
       setBalanceInfo({
         address: signerAddress,
-        balance: String(balance)
+        balance: String(ethFormatBalance)
       });
     } catch (error) {
       console.log("error", error);
+      if (error) return alert("login with metamask or input contract address");
     }
   };
 
@@ -341,7 +373,7 @@ function App() {
       const signer = provider.getSigner();
       const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
       await provider.send("eth_requestAccounts", []);
-      const transaction = await erc20.transfer(data.get("recipient"), data.get("amount"));
+      const transaction = await erc20.transfer(data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
       await transaction.wait();
       console.log('Success! -- recipient recieved amount');
       setIsTransfer(true);
@@ -367,7 +399,7 @@ function App() {
       const signer = provider.getSigner();
       const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
       await provider.send("eth_requestAccounts", [])
-      const transactionFrom = await erc20.transferFrom(data.get("sender"), data.get("recipient"), data.get("amount"));
+      const transactionFrom = await erc20.transferFrom(data.get("sender"), data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
       await transactionFrom.wait();
       console.log("transferFrom -- success");
       setIsTransferFrom(true);
@@ -391,7 +423,7 @@ function App() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
-      const transaction = await erc20.approve(data.get("spender"), data.get("amount"));
+      const transaction = await erc20.approve(data.get("spender"), ethers.utils.parseEther(data.get("amount")));
       await transaction.wait();
       //console.log("Success! -- approved");
       setIsApproved(true);
@@ -418,7 +450,7 @@ function App() {
       const allowance = await erc20.allowance(data.get("owner"), data.get("spender"));
       console.log(allowance.toString());
       setIsAllowanceMsg(true);
-      setAllowanceAmount(allowance.toString());
+      setAllowanceAmount(ethers.utils.formatEther(allowance));
 
       return allowance;
 
@@ -682,7 +714,7 @@ function App() {
                         {isAllowanceMsg &&
                           <div className="alert alert-dismissible alert-warning">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsAllowanceMsg(false)}></button>
-                            Spender can spend this amount:{" "}{allowanceAmount}{" "}
+                            Spender can spend this ETH amount:{" "}{allowanceAmount}{" "}
                           </div>
                         }
                       </div>
@@ -792,7 +824,7 @@ function App() {
 
         </div>
       </div>
-      {/* DEX deposts/balances/add-token, etc...  */}             
+      {/* DEX deposts/balances/add-token, etc...  */}
       <div className='container-3'>
         <div className='box-1'>
           <div className="m-4">
@@ -838,7 +870,7 @@ function App() {
                         <h6 className="card-subtitle mb-2 text-muted">deposit ETH to DEX</h6>
                       </div>
                       <input
-                        type="text"
+                        type="number"
                         name="amount"
                         className="input p-1"
                         placeholder="ETH Amount"
@@ -864,13 +896,13 @@ function App() {
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">get orderbook sell orders</h6>
                   {/* get Dex order book sell */}
-                  <form onSubmit={handleGetOrderBookSell}>
+                  <form onSubmit={handleGetLimitBookSell}>
                     <div className="my-3">
                       <div>
                         <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
                       </div>
                       <input
-                        type="text"
+                        type="bytes32"
                         name="ticker"
                         className="input p-1"
                         placeholder="Token Symbol"
@@ -885,11 +917,27 @@ function App() {
                         Get Orderbook Sell Orders
                       </button>
                     </footer>
+
+                    <div className="px-4">
+                    <div>
+                        Amount of orders: {isOrderBookLength}
+                      </div>
+                      <div>
+                        Ticker: {isTicker}
+                      </div>
+                      <div>
+                        Amount of Coins: {isAmount}
+                      </div>
+                      <div>
+                        ETH Price: {isPrice}
+                      </div>
+
+                    </div>
                   </form>
                 </div>
               </div>
             </div>
-            
+
           </div>
         </div>
 
@@ -997,7 +1045,7 @@ function App() {
           </div>
         </div>
       </div>
-      {/* DEX market/limit orders  */}               
+      {/* DEX market/limit orders  */}
       <div className='container-4'>
         <div className='box-1'>
           {/* Limit Order Transactions */}
