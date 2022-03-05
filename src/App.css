@@ -75,11 +75,26 @@ https://youtu.be/JJSoEo8JSnc
     */
     justify-content: space-between;   
   }
+
+  .container-5{
+    display: flex;
+    /*
+    justify-content: flex-start;
+    justify-content: flex-end;
+    justify-content: center;
+    justify-content: space-around;
+    */
+    justify-content: space-between;   
+  }
  }
 
  
 
-.container-1 div, .container-2 div, .container-3 div{
+.container-1 div, 
+.container-2 div, 
+.container-3 div,
+.container-4 div,
+.container-5 div{
   /*
   border: 1px rgb(55, 53, 53) solid;
   */
@@ -102,6 +117,14 @@ https://youtu.be/JJSoEo8JSnc
 }
 
 .box-3{
+  flex: 1;
+  /*
+  order: 1;
+  */
+  
+}
+
+.box-4{
   flex: 1;
   /*
   order: 1;

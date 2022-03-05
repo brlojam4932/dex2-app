@@ -56,6 +56,13 @@ function App() {
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
   const [isTransferFrom, setIsTransferFrom] = useState(false);
   const [isTransfer, setIsTransfer] = useState(false);
+
+  const [isLimitSellMsg, setIsLimitSellMsg] = useState(false);
+  const [isLimitBuyMsg, setIsLimitBuyMsg] = useState(false);
+
+  const [isMarketSellMsg, setIsMarketSellMsg] = useState(false);
+  const [isMarketBuyMsg, setIsMarketBuyMsg] = useState(false);
+
   /*
     const [isLimitBookSellInfo, setIsLimitBookSellInfo] = useState({
       ticker: "-",
@@ -68,6 +75,7 @@ function App() {
   const [isAmount, setIsAmount] = useState("-");
   const [isPrice, setIsPrice] = useState("-");
   const [isOrderBookLength, setIsOrderBookLength] = useState("-");
+  const [isOrderBookFilled, setIsOrderBookFilled] = useState("-");
 
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
@@ -195,7 +203,7 @@ function App() {
     }
   };
 
-   /////////////// DEX //////////////////
+  /////////////// DEX //////////////////
 
   const handleLimitOrderSell = async (e) => {
     e.preventDefault();
@@ -215,13 +223,15 @@ function App() {
       );
       await limitOrderSellTx.wait();
       console.log('limit SELL order success', limitOrderSellTx);
-      setIsTransfer(true);
+      setIsLimitSellMsg(true);
 
     } catch (error) {
       console.log("error", error);
       if (error) return alert("error...check token balance");
     };
   };
+
+
 
   const handleLimitOrderBuy = async (e) => {
     e.preventDefault();
@@ -245,7 +255,7 @@ function App() {
       );
       await limitOrderBuyTx.wait();
       console.log("limit BUY order success", limitOrderBuyTx);
-      setIsTransfer(true);
+      setIsLimitBuyMsg(true);
 
     } catch (error) {
       console.log("error", error);
@@ -276,7 +286,7 @@ function App() {
 
       await marketOrderSellTx.wait();
       console.log("market SELL order success", marketOrderSellTx);
-      setIsTransfer(true);
+      setIsMarketSellMsg(true);
 
     } catch (error) {
       console.log("error", error);
@@ -301,7 +311,7 @@ function App() {
       );
       await marketOrderTx.wait();
       console.log("market BUY order success", marketOrderTx);
-      setIsTransfer(true);
+      setIsMarketBuyMsg(true);
 
     } catch (error) {
       console.log("error", error);
@@ -364,9 +374,6 @@ function App() {
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      //const signer = provider.getSigner();
-      //const owner = await signer.getAddress();
-      //console.log(owner);
 
       const limitOrderBookSell = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 1);
 
@@ -374,15 +381,14 @@ function App() {
         const tickerLimitSell = limitOrderBookSell[i]["ticker"];
         const amountLimitSell = limitOrderBookSell[i]["amount"];
         const priceLimitSell = ethers.utils.formatEther(limitOrderBookSell[i]["price"]);
+        const filledLimitSell = limitOrderBookSell[i]["filled"];
 
-        console.log("Symbol: ", tickerLimitSell, "Amount: ", amountLimitSell.toString(), "Price: ", priceLimitSell);
+        console.log("Symbol:", tickerLimitSell, "Amount:", amountLimitSell.toString(), "Price:", priceLimitSell, "Filled:", filledLimitSell.toNumber());
 
         setIsTicker(ethers.utils.toUtf8String(tickerLimitSell));
         setIsAmount(amountLimitSell.toString());
-        //1000 * (10 ** 18)
-        //const parsedPrice = ethers.utils.parseEther(price);
-        //const gweiValue = ethers.utils.formatUnits(price, "gwei");
         setIsPrice(priceLimitSell);
+        //setIsOrderBookFilled(filledLimitSell);
         /*
         setIsLimitBookSellInfo({
           ticker: ticker,
@@ -392,15 +398,17 @@ function App() {
         */
       }
       setIsOrderBookLength(limitOrderBookSell.length);
-      console.log("Orderbook length, SELL: ", limitOrderBookSell.length);
-      console.log(String(limitOrderBookSell));
+      setIsOrderBookFilled(limitOrderBookSell[0].filled.toNumber());
+      //console.log("limit order SELL length: ", limitOrderBookSell.length);
+      //console.log("limit order SELL filled: ", limitOrderBookSell[0].filled.toString());
+      //console.log(String(limitOrderBookSell));
 
-
+      //window.location.reload();
 
     } catch (error) {
       console.log("error", error);
-    }
-  }
+    };
+  };
 
 
   // function balanceOf(address account) external view returns (uint256)
@@ -525,7 +533,7 @@ function App() {
 
   };
 
-  
+
   return (
     <>
       {/* ERC20 token info/get balance/tx/approve/allowance/txfer-from/receipts */}
@@ -952,55 +960,6 @@ function App() {
                 </div>
               </div>
             </div>
-            <br />
-
-            <div>
-              <div className="card">
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">get orderbook limit sell side</h6>
-                  {/* get Dex order book sell */}
-                  <form onSubmit={handleGetLimitBookSell}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="bytes32"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-info"
-                      >
-                        Get Limit Sell Orders
-                      </button>
-                    </footer>
-
-                    <div className="px-4">
-                      <div>
-                        Amount of orders: {isOrderBookLength}
-                      </div>
-                      <div>
-                        Ticker: {isTicker}
-                      </div>
-                      <div>
-                        Amount of Coins: {isAmount}
-                      </div>
-                      <div>
-                        ETH Price: {isPrice}
-                      </div>
-
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
 
@@ -1167,10 +1126,10 @@ function App() {
                         Create a limit SELL order
                       </button>
                       <div className="my-4 mb-2">
-                        {isTransfer &&
+                        {isLimitSellMsg &&
                           <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransfer(false)}></button>
-                            <strong>Well Done!</strong> Your transfer has been completed.
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsLimitSellMsg(false)}></button>
+                            <strong>Well Done!</strong> Your limit sell order has been completed.
                           </div>
                         }
 
@@ -1246,10 +1205,10 @@ function App() {
                         Create a limit BUY order
                       </button>
                       <div className="my-4 mb-2">
-                        {isTransfer &&
+                        {isLimitBuyMsg &&
                           <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransfer(false)}></button>
-                            <strong>Well Done!</strong> Your transfer has been completed.
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsLimitBuyMsg(false)}></button>
+                            <strong>Well Done!</strong> Your limit buy has been completed.
                           </div>
                         }
 
@@ -1312,10 +1271,10 @@ function App() {
                         Create a market SELL order
                       </button>
                       <div className="my-4 mb-2">
-                        {isTransfer &&
+                        {isMarketSellMsg &&
                           <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransfer(false)}></button>
-                            <strong>Well Done!</strong> Your transfer has been completed.
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsMarketSellMsg(false)}></button>
+                            <strong>Well Done!</strong> Your market sell order has been completed.
                           </div>
                         }
 
@@ -1380,10 +1339,10 @@ function App() {
                         Create a market BUY order
                       </button>
                       <div className="my-4 mb-2">
-                        {isTransfer &&
+                        {isMarketBuyMsg &&
                           <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransfer(false)}></button>
-                            <strong>Well Done!</strong> Your transfer has been completed.
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsMarketBuyMsg(false)}></button>
+                            <strong>Well Done!</strong> Your market buy order has been completed.
                           </div>
                         }
 
@@ -1403,6 +1362,65 @@ function App() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className='container-5'>
+        <div className='box-1'>
+          <div>
+            <div className="mt-4 p-4">
+              <h3 className="text-xl font-semibold text-info text-left">
+                Orderbook Limit Sell
+              </h3>
+              <div className="card">
+                  <div className="card-body">
+                    <h6 className="card-subtitle mb-2 text-muted">get orderbook limit sell side</h6>
+                    {/* get Dex order book sell */}
+                    <form onSubmit={handleGetLimitBookSell}>
+                      <div className="my-3">
+                        <div>
+                          <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
+                        </div>
+                        <input
+                          type="bytes32"
+                          name="ticker"
+                          className="input p-1"
+                          placeholder="Token Symbol"
+                          style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                        />
+                      </div>
+                      <footer className="p-4">
+                        <button
+                          type="submit"
+                          className="btn btn-outline-info"
+                        >
+                          Get Limit Sell Orders
+                        </button>
+                      </footer>
+
+                      <div className="px-4">
+                        <div>
+                          Amount of orders: {isOrderBookLength}
+                        </div>
+                        <div>
+                          Filled orders: {isOrderBookFilled}
+                        </div>
+                        <div>
+                          Ticker: {isTicker}
+                        </div>
+                        <div>
+                          Amount of Coins: {isAmount}
+                        </div>
+                        <div>
+                          ETH Price: {isPrice}
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </>
