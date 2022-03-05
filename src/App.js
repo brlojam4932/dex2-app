@@ -56,19 +56,19 @@ function App() {
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
   const [isTransferFrom, setIsTransferFrom] = useState(false);
   const [isTransfer, setIsTransfer] = useState(false);
-/*
-  const [isLimitBookSellInfo, setIsLimitBookSellInfo] = useState({
-    ticker: "-",
-    amount: '-',
-    price: "-"
-  });
-  */
+  /*
+    const [isLimitBookSellInfo, setIsLimitBookSellInfo] = useState({
+      ticker: "-",
+      amount: '-',
+      price: "-"
+    });
+    */
 
   const [isTicker, setIsTicker] = useState("-");
   const [isAmount, setIsAmount] = useState("-");
   const [isPrice, setIsPrice] = useState("-");
   const [isOrderBookLength, setIsOrderBookLength] = useState("-");
-  
+
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
 
@@ -195,6 +195,7 @@ function App() {
     }
   };
 
+   /////////////// DEX //////////////////
 
   const handleLimitOrderSell = async (e) => {
     e.preventDefault();
@@ -207,17 +208,79 @@ function App() {
       await provider.send("eth_requestAccounts", []);
 
       const limitOrderSellTx = await dex.createLimitOrder(
-        1, ethers.utils.formatBytes32String(
-          data.get("ticker")), 
-          data.get("amount"), 
-          ethers.utils.parseEther(data.get("price"))
+        1,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"),
+        ethers.utils.parseEther(data.get("price"))
       );
       await limitOrderSellTx.wait();
       console.log('limit SELL order success', limitOrderSellTx);
+      setIsTransfer(true);
 
     } catch (error) {
       console.log("error", error);
       if (error) return alert("error...check token balance");
+    };
+  };
+
+  const handleLimitOrderBuy = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const data = new FormData(e.target);
+      // add provider
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      // add signer
+      const signer = provider.getSigner();
+      // add instance
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
+      // transact
+      await provider.send("eth_requestAccounts", []);
+
+      const limitOrderBuyTx = await dex.createLimitOrder(
+        0,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"),
+        ethers.utils.parseEther(data.get("price"))
+      );
+      await limitOrderBuyTx.wait();
+      console.log("limit BUY order success", limitOrderBuyTx);
+      setIsTransfer(true);
+
+    } catch (error) {
+      console.log("error", error);
+      if (error) return alert("error...something went wrong");
+    };
+  };
+
+
+  const handleMarketOrderSell = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      // add Form data
+      const data = new FormData(e.target);
+      // add provider
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      // add signer
+      const signer = provider.getSigner();
+      // add new Contract instance
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
+      // create tx
+      await provider.send("eth_requestAccounts");
+
+      const marketOrderSellTx = await dex.createMarketOrder(
+        1,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"));
+
+      await marketOrderSellTx.wait();
+      console.log("market SELL order success", marketOrderSellTx);
+      setIsTransfer(true);
+
+    } catch (error) {
+      console.log("error", error);
+      if (error) return alert("something went wrong");
     };
   };
 
@@ -238,6 +301,7 @@ function App() {
       );
       await marketOrderTx.wait();
       console.log("market BUY order success", marketOrderTx);
+      setIsTransfer(true);
 
     } catch (error) {
       console.log("error", error);
@@ -300,25 +364,25 @@ function App() {
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      const signer = provider.getSigner();
-      const owner = await signer.getAddress();
-      console.log(owner);
+      //const signer = provider.getSigner();
+      //const owner = await signer.getAddress();
+      //console.log(owner);
 
       const limitOrderBookSell = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 1);
 
       for (let i = 0; i < limitOrderBookSell.length; i++) {
-        const ticker = limitOrderBookSell[i]["ticker"];
-        const amount = limitOrderBookSell[i]["amount"];
-        const price = ethers.utils.formatEther(limitOrderBookSell[i]["price"]);
-        
-        console.log("Symbol: ", ticker, "Amount: ", amount.toString(), "Price: ", price);
+        const tickerLimitSell = limitOrderBookSell[i]["ticker"];
+        const amountLimitSell = limitOrderBookSell[i]["amount"];
+        const priceLimitSell = ethers.utils.formatEther(limitOrderBookSell[i]["price"]);
 
-        setIsTicker(ethers.utils.toUtf8String(ticker));
-        setIsAmount(amount.toString());
+        console.log("Symbol: ", tickerLimitSell, "Amount: ", amountLimitSell.toString(), "Price: ", priceLimitSell);
+
+        setIsTicker(ethers.utils.toUtf8String(tickerLimitSell));
+        setIsAmount(amountLimitSell.toString());
         //1000 * (10 ** 18)
         //const parsedPrice = ethers.utils.parseEther(price);
         //const gweiValue = ethers.utils.formatUnits(price, "gwei");
-        setIsPrice(price);
+        setIsPrice(priceLimitSell);
         /*
         setIsLimitBookSellInfo({
           ticker: ticker,
@@ -459,10 +523,9 @@ function App() {
       if (error) return alert("Input correct address");
     };
 
-    /////////////// DEX //////////////////
-
   };
-  //createLimitOrder(1, ethers.utils.formatBytes32String("RETK"), 1, 300)
+
+  
   return (
     <>
       {/* ERC20 token info/get balance/tx/approve/allowance/txfer-from/receipts */}
@@ -894,7 +957,7 @@ function App() {
             <div>
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">get orderbook sell orders</h6>
+                  <h6 className="card-subtitle mb-2 text-muted">get orderbook limit sell side</h6>
                   {/* get Dex order book sell */}
                   <form onSubmit={handleGetLimitBookSell}>
                     <div className="my-3">
@@ -914,12 +977,12 @@ function App() {
                         type="submit"
                         className="btn btn-outline-info"
                       >
-                        Get Orderbook Sell Orders
+                        Get Limit Sell Orders
                       </button>
                     </footer>
 
                     <div className="px-4">
-                    <div>
+                      <div>
                         Amount of orders: {isOrderBookLength}
                       </div>
                       <div>
@@ -1047,17 +1110,17 @@ function App() {
       </div>
       {/* DEX market/limit orders  */}
       <div className='container-4'>
+        {/* limit orders sell */}
         <div className='box-1'>
-          {/* Limit Order Transactions */}
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Limit Orders
+                Limit SELL Orders
               </h3>
-              {/* Limit Orders */}
+              {/* Limit sell Orders */}
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">Limit Order</h6>
+                  <h6 className="card-subtitle mb-2 text-muted">Limit SELL Order</h6>
                   {/* handle submit limt order */}
                   <form onSubmit={handleLimitOrderSell}>
                     <div className="my-3">
@@ -1099,7 +1162,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-success"
                       >
                         Create a limit SELL order
                       </button>
@@ -1114,7 +1177,7 @@ function App() {
                         {error &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Your balance must be sufficient.
+                            <strong>Oh snap!</strong> and try submitting again.  Your balance may be insufficient.
                           </div>
                         }
                       </div>
@@ -1126,17 +1189,163 @@ function App() {
             </div>
           </div>
         </div>
+        {/* limit orders buy */}
         <div className='box-2'>
-          {/* Market Order Transactions */}
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Market Orders
+                Limit BUY Orders
+              </h3>
+              {/* Limit BUY Orders */}
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">Limit BUY Order</h6>
+                  {/* handle submit limt order */}
+                  <form onSubmit={handleLimitOrderBuy}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">ticker example: BTC </h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="ticker"
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">amount of tokens to buy</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Amount to buy"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">Price per token</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="price"
+                        className="input p-1"
+                        placeholder="Token Price"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-warning"
+                      >
+                        Create a limit BUY order
+                      </button>
+                      <div className="my-4 mb-2">
+                        {isTransfer &&
+                          <div className="alert alert-dismissible alert-success">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransfer(false)}></button>
+                            <strong>Well Done!</strong> Your transfer has been completed.
+                          </div>
+                        }
+
+                        {error &&
+                          <div className="alert alert-dismissible alert-danger">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+              <br />
+            </div>
+          </div>
+        </div>
+        {/* market orders sell */}
+        <div className='box-3'>
+          <div>
+            <div className="mt-4 p-4">
+              <h3 className="text-xl font-semibold text-info text-left">
+                Market SELL Orders
               </h3>
               {/* Market Orders */}
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">Market Order</h6>
+                  <h6 className="card-subtitle mb-2 text-muted">Market SELL Order</h6>
+                  <form onSubmit={handleMarketOrderSell}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">ticker example: BTC</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="ticker"
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">amount of tokens to sell</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Amount to sell"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-success"
+                      >
+                        Create a market SELL order
+                      </button>
+                      <div className="my-4 mb-2">
+                        {isTransfer &&
+                          <div className="alert alert-dismissible alert-success">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransfer(false)}></button>
+                            <strong>Well Done!</strong> Your transfer has been completed.
+                          </div>
+                        }
+
+                        {error &&
+                          <div className="alert alert-dismissible alert-danger">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+              <br />
+
+            </div>
+          </div>
+        </div>
+        {/* market orders buy */}
+        <div className='box-4'>
+          <div>
+            <div className="mt-4 p-4">
+              <h3 className="text-xl font-semibold text-info text-left">
+                Market BUY Orders
+              </h3>
+              {/* Market Orders */}
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">Market BUY Order</h6>
                   {/* handle submit limt order */}
                   <form onSubmit={handleMarketOrderBuy}>
                     <div className="my-3">
@@ -1166,7 +1375,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-warning"
                       >
                         Create a market BUY order
                       </button>
@@ -1181,7 +1390,7 @@ function App() {
                         {error &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Your balance must be sufficient.
+                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
                           </div>
                         }
                       </div>
