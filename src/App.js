@@ -6,6 +6,7 @@ import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/TxList.jsx';
 import LimitOrderTxList from "./components/LimitOrderTxList.jsx";
+import MarketOrderTxList from './components/MarketOrderTxList.jsx';
 
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
 
@@ -32,9 +33,11 @@ function App() {
 
   const [txs, setTxs] = useState([]);
   const [limitOrderTxs, setLimitOrderTxs] = useState([]);
+  const [marketOrderTxs, setMarketOrderTxs] = useState([]);
 
   const [contractListened, setContractListened] = useState();
   const [limitOrderContractListened, setLimitOrderContractListened] = useState();
+  const [marketOrderContractListened, setMarketOrderContractListened] = useState();
 
   const [error, setError] = useState(false);
   const [contractAddress, setContractAddress] = useState("-");
@@ -119,11 +122,10 @@ function App() {
   useEffect(() => {
     if(dexContractAddress !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+      const dexLimitOrder = new ethers.Contract(dexContractAddress, Dex.abi, provider);
       //event LimitOrder(Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
-      //const filter = dex.filters.LimitOrder(null, dexContractAddress)
 
-      dex.on("LimitOrder", (side, ticker, amount, price, event) => {
+      dexLimitOrder.on("LimitOrder", (side, ticker, amount, price, event) => {
         console.log({ side, ticker, amount, price, event });
 
         setLimitOrderTxs((currentLimitOrderTxs) => [
@@ -137,10 +139,37 @@ function App() {
           }
         ]);
       });
-      setLimitOrderContractListened(dex);
+      setLimitOrderContractListened(dexLimitOrder);
 
       return () => {
         limitOrderContractListened.removeAllListeners();
+      }
+    };
+  }, [dexContractAddress]);
+
+
+  useEffect(() => {
+    if(dexContractAddress !== "-") {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const dexMarketOrder = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+
+      dexMarketOrder.on("MarketOrder", (side, ticker, amount, event) => {
+        console.log({ side, ticker, amount, event });
+
+        setMarketOrderTxs((currentMarketOrderTxs) => [
+          ...currentMarketOrderTxs,
+          {
+            txHash: event.transactionHash,
+            side,
+            ticker: ethers.utils.toUtf8String(ticker),
+            amount: String(amount),
+          }
+        ]);
+      });
+      setMarketOrderContractListened(dexMarketOrder);
+
+      return () => {
+        marketOrderContractListened.removeAllListeners();
       }
     };
   }, [dexContractAddress]);
@@ -572,7 +601,7 @@ function App() {
             <div className="credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
               <main className="mt-4 p-4">
                 <h1 className="text-xl font-semibold text-info text-left">
-                  Smart Contract UI
+                  ERC20 Smart Contract Token UI
                 </h1>
                 <p><small className="text-muted">Read from a smart contract, approve, transfer, transfer from and recieve transaction messages from the blockchain.</small> </p>
                 <br />
@@ -1463,6 +1492,20 @@ function App() {
               <p>Side: 0 = BUY | Side: 1 = SELL</p>
               <div>
                 <LimitOrderTxList limitOrderTxs={limitOrderTxs}/>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className='box-3'>
+          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+            <div className="mt-4 p-4">
+              <h3 className="text-xl font-semibold text-info text-left">
+                Recent Limit Orders Transactions
+              </h3>
+              <p>Side: 0 = BUY | Side: 1 = SELL</p>
+              <div>
+                <MarketOrderTxList marketOrderTxs={marketOrderTxs}/>
               </div>
             </div>
           </div>

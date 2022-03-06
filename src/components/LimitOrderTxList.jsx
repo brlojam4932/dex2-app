@@ -8,7 +8,6 @@ function limitOrderTxList({ limitOrderTxs } ) {
     <>
         {limitOrderTxs.map((orders, index) => (
       <div key={index} className="alert alert-dismissible alert-secondary">
-        <button type="button" className="btn-close" data-bs-dismiss="alert"></button>
         <div>
           <strong>Side:</strong>{" "}{orders.side}
         </div>

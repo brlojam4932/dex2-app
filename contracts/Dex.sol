@@ -229,8 +229,6 @@ contract Dex is Wallet {
       }
       orders.pop();
 
-      emit MarketOrder(side, ticker, amount);
-
        /*
         [ Order(amount=10, filled=10), // order is replaced by the next
           orders[i + 1]
@@ -245,6 +243,8 @@ contract Dex is Wallet {
       */
 
     }
+    
+    emit MarketOrder(side, ticker, amount);
 
   }
   
