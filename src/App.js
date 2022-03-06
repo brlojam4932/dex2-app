@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/TxList.jsx';
+import LimitOrderTxList from "./components/LimitOrderTxList.jsx";
 
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
 
@@ -30,7 +31,11 @@ const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 function App() {
 
   const [txs, setTxs] = useState([]);
+  const [limitOrderTxs, setLimitOrderTxs] = useState([]);
+
   const [contractListened, setContractListened] = useState();
+  const [limitOrderContractListened, setLimitOrderContractListened] = useState();
+
   const [error, setError] = useState(false);
   const [contractAddress, setContractAddress] = useState("-");
   const [contractInfo, setContractInfo] = useState({
@@ -63,23 +68,19 @@ function App() {
   const [isMarketSellMsg, setIsMarketSellMsg] = useState(false);
   const [isMarketBuyMsg, setIsMarketBuyMsg] = useState(false);
 
-  /*
-    const [isLimitBookSellInfo, setIsLimitBookSellInfo] = useState({
+  
+  /*const [isLimitBookSellInfo, setIsLimitBookSellInfo] = useState({
       ticker: "-",
       amount: '-',
       price: "-"
     });
     */
+  
 
-  const [isTicker, setIsTicker] = useState("-");
-  const [isAmount, setIsAmount] = useState("-");
-  const [isPrice, setIsPrice] = useState("-");
-  const [isOrderBookLength, setIsOrderBookLength] = useState("-");
-  const [isOrderBookFilled, setIsOrderBookFilled] = useState("-");
-
+  const [isOrderBookSellLength, setIsOrderBookSellLength] = useState("-");
+  const [isOrderBookSellFilled, setIsOrderBookSellFilled] = useState("-");
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
-
 
   useEffect(() => {
     if (contractInfo.address !== "-") {
@@ -113,6 +114,36 @@ function App() {
 
     }
   }, [contractInfo.address]);
+
+
+  useEffect(() => {
+    if(dexContractAddress !== "-") {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+      //event LimitOrder(Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
+      //const filter = dex.filters.LimitOrder(null, dexContractAddress)
+
+      dex.on("LimitOrder", (side, ticker, amount, price, event) => {
+        console.log({ side, ticker, amount, price, event });
+
+        setLimitOrderTxs((currentLimitOrderTxs) => [
+          ...currentLimitOrderTxs,
+          {
+            txHash: event.transactionHash,
+            side,
+            ticker: ethers.utils.toUtf8String(ticker),
+            amount: String(amount),
+            price: ethers.utils.formatEther(price)
+          }
+        ]);
+      });
+      setLimitOrderContractListened(dex);
+
+      return () => {
+        limitOrderContractListened.removeAllListeners();
+      }
+    };
+  }, [dexContractAddress]);
 
 
   // Get token info: name, symbol and totalSupply
@@ -259,7 +290,8 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...something went wrong");
+      if (error) return alert("error...ETH balance may be too low");
+      setError(true);
     };
   };
 
@@ -384,21 +416,18 @@ function App() {
         const filledLimitSell = limitOrderBookSell[i]["filled"];
 
         console.log("Symbol:", tickerLimitSell, "Amount:", amountLimitSell.toString(), "Price:", priceLimitSell, "Filled:", filledLimitSell.toNumber());
-
-        setIsTicker(ethers.utils.toUtf8String(tickerLimitSell));
-        setIsAmount(amountLimitSell.toString());
-        setIsPrice(priceLimitSell);
-        //setIsOrderBookFilled(filledLimitSell);
+        
         /*
         setIsLimitBookSellInfo({
-          ticker: ticker,
-          amount: amount,
-          price: price
+          ticker: ethers.utils.toUtf8String(tickerLimitSell),
+          amount: amountLimitSell.toString(),
+          price: priceLimitSell
         });
         */
+      
       }
-      setIsOrderBookLength(limitOrderBookSell.length);
-      setIsOrderBookFilled(limitOrderBookSell[0].filled.toNumber());
+      setIsOrderBookSellLength(limitOrderBookSell.length);
+      setIsOrderBookSellFilled(limitOrderBookSell[0].filled.toNumber());
       //console.log("limit order SELL length: ", limitOrderBookSell.length);
       //console.log("limit order SELL filled: ", limitOrderBookSell[0].filled.toString());
       //console.log(String(limitOrderBookSell));
@@ -501,7 +530,7 @@ function App() {
       setIsApproved(true);
     } catch (error) {
       console.log(error);
-      if (error) return alert("error, make sure is a different address other than your own");
+      if (error) return alert("error, check address or re-set Metamask");
     }
   }
 
@@ -1215,7 +1244,7 @@ function App() {
                         {error &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
+                            <strong>Oh snap!</strong> and try submitting again. Your ETH balance may be insufficient.
                           </div>
                         }
                       </div>
@@ -1399,24 +1428,42 @@ function App() {
 
                       <div className="px-4">
                         <div>
-                          Amount of orders: {isOrderBookLength}
+                          Amount of orders: {isOrderBookSellLength}
                         </div>
                         <div>
-                          Filled orders: {isOrderBookFilled}
+                          Filled orders: {isOrderBookSellFilled}
+                        </div>
+                        {/*
+                          <div>
+                          Ticker: {isLimitBookSellInfo.ticker}
                         </div>
                         <div>
-                          Ticker: {isTicker}
+                          Amount of Coins: {isLimitBookSellInfo.amount}
                         </div>
                         <div>
-                          Amount of Coins: {isAmount}
+                          ETH Price: {isLimitBookSellInfo.price}
                         </div>
-                        <div>
-                          ETH Price: {isPrice}
-                        </div>
+                        
+                         */}
+                      
                       </div>
                     </form>
                   </div>
                 </div>
+            </div>
+          </div>
+        </div>
+
+        <div className='box-2'>
+          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+            <div className="mt-4 p-4">
+              <h3 className="text-xl font-semibold text-info text-left">
+                Recent Limit Orders Transactions
+              </h3>
+              <p>Side: 0 = BUY | Side: 1 = SELL</p>
+              <div>
+                <LimitOrderTxList limitOrderTxs={limitOrderTxs}/>
+              </div>
             </div>
           </div>
         </div>

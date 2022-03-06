@@ -30,6 +30,9 @@ contract Dex is Wallet {
 
   mapping(bytes32 => mapping(uint256 => Order[])) public OrderBook;
 
+  event LimitOrder(Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
+  event MarketOrder(Side side, bytes32 indexed ticker, uint256 amount);
+
   function getOrderBook(bytes32 ticker, Side side) public view returns(Order[] memory) {
     return OrderBook[ticker][uint(side)];
     //getOrderBook(bytes32("LINK"), Side.BUY); Filip converts it here but says it's not
@@ -116,6 +119,8 @@ contract Dex is Wallet {
         
       }
       nextOrderId++;
+
+      emit LimitOrder(side, ticker, amount, price);
       
   }
 
@@ -223,6 +228,8 @@ contract Dex is Wallet {
         orders[i] = orders[i + 1];
       }
       orders.pop();
+
+      emit MarketOrder(side, ticker, amount);
 
        /*
         [ Order(amount=10, filled=10), // order is replaced by the next
