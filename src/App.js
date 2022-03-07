@@ -115,7 +115,7 @@ function App() {
             txHash: event.transactionHash,
             from,
             to,
-            amount: String(amount)
+            amount: ethers.utils.formatEther(amount) //amount: String(amount)
           }
         ]);
       });
@@ -129,7 +129,7 @@ function App() {
   }, [contractInfo.address]);
 
 
-  // DEX TRANSACTIONS
+  // DEX LIMIT ORDERS TX
   useEffect(() => {
     if (dexContractAddress !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -159,6 +159,7 @@ function App() {
   }, [dexContractAddress]);
 
 
+  // DEX MARKET ORDERS TX
   useEffect(() => {
     if (dexContractAddress !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -204,7 +205,7 @@ function App() {
         address: data.get(contractAddress),
         tokenName,
         tokenSymbol,
-        totalSupply,
+        totalSupply: ethers.utils.formatEther(totalSupply)
       });
       setContractAddress(data);
     } catch (error) {
@@ -268,7 +269,7 @@ function App() {
 
       setDexBalanceInfo({
         address: signerAddress,
-        ticker: String(tickerBalance)
+        ticker: ethers.utils.formatEther(tickerBalance)
       });
     } catch (error) {
       console.log("error", error);
@@ -488,8 +489,8 @@ function App() {
 
   // function balanceOf(address account) external view returns (uint256)
   const getMyBalance = async () => {
-    if (!window.ethereum) return alert("Please install or sign-in to Metamask");
     try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
@@ -512,9 +513,9 @@ function App() {
   //function transfer(address recipient, uint256 amount) external returns (bool);
 
   const handleTransfer = async (e) => {
-    if (!window.ethereum) return alert("Please install or sign-in to Metamask");
     e.preventDefault();
     try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -540,8 +541,8 @@ function App() {
 
   const handleTransferFrom = async (e) => {
     e.preventDefault();
-    if (!window.ethereum) return alert("Please install or sign-in to Metamask");
     try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -565,8 +566,8 @@ function App() {
 
   const handleApprove = async (e) => {
     e.preventDefault();
-    if (!window.ethereum) return alert("Please install or sign-in to Metamask");
     try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -1225,14 +1226,13 @@ function App() {
             </div>
           </div>
         </div>
-
+          {/* get Dex balances */}             
         <div className='box-3'>
           <div className='m-4'>
             <div>
               <div className="card">
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">dex balances</h6>
-                  {/* get Dex balances */}
                   <form onSubmit={getDexBalances}>
                     <div className="my-3">
                       <div>
