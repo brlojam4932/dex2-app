@@ -13,7 +13,7 @@ import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
 
-//https://youtu.be/38WUVVoMZKM
+// https://youtu.be/38WUVVoMZKM
 // read/write/events
 
 // ERC20 functions explained
@@ -40,6 +40,8 @@ function App() {
   const [marketOrderContractListened, setMarketOrderContractListened] = useState();
 
   const [error, setError] = useState(false);
+
+  //////////////TOKEN STATES/////////////////
   const [contractAddress, setContractAddress] = useState("-");
   const [contractInfo, setContractInfo] = useState({
     address: "-",
@@ -51,20 +53,22 @@ function App() {
   const [balanceInfo, setBalanceInfo] = useState({
     address: "-",
     balance: "-"
-  })
-
-  const [dexBalanceInfo, setDexBalanceInfo] = useState({
-    address: "-",
-    ticker: "-"
   });
-  
-  const [withDrawSuccessMsg, setWithDrawSuccessMsg] = useState(false);
-  const [withDrawAmountInfo, setWithDrawAmountInfo] = useState("-");
 
   const [isApproved, setIsApproved] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState();
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
   const [isTransferFrom, setIsTransferFrom] = useState(false);
+
+  const [dexBalanceInfo, setDexBalanceInfo] = useState({
+    address: "-",
+    ticker: "-"
+  });
+
+  //////////////DEX STATES/////////////////
+
+  const [withDrawSuccessMsg, setWithDrawSuccessMsg] = useState(false);
+  const [withDrawAmountInfo, setWithDrawAmountInfo] = useState("-");
 
   const [isTransferMsg, setIsTransferMsg] = useState(false);
   const [transfer, setTransfer] = useState("-");
@@ -90,8 +94,8 @@ function App() {
     */
 
 
-  const [isOrderBookSellLength, setIsOrderBookSellLength] = useState("-");
-  const [isOrderBookSellFilled, setIsOrderBookSellFilled] = useState("-");
+  const [isOrderBookLength, setIsOrderBookLength] = useState("-");
+  const [isOrderBookFilled, setIsOrderBookFilled] = useState("-");
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
   // TOKEN TRANSACTIONS
@@ -108,7 +112,7 @@ function App() {
 
       erc20.on("Transfer", (from, to, amount, event) => {
         console.log({ from, to, amount, event });
-
+        // the transaction result gets copied over to a state
         setTxs((currentTxs) => [
           ...currentTxs,
           {
@@ -226,7 +230,7 @@ function App() {
     */
 
 
-  // dex.addToken(ethers.utils.formatBytes32String("RETK"), realToken.address)
+  /////////////// DEX //////////////////
   const handleAddToken = async (e) => {
     e.preventDefault();
     try {
@@ -276,7 +280,6 @@ function App() {
     }
   };
 
-  /////////////// DEX //////////////////
 
   const handleLimitOrderSell = async (e) => {
     e.preventDefault();
@@ -332,7 +335,7 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...ETH balance may be too low");
+      if (error) return alert("error...Not enough ETH balancance");
       setError(true);
     };
   };
@@ -446,7 +449,7 @@ function App() {
   //const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1)
   //console.log("Orderbook length, SELL, Before: ", orderbookBefore.length); 
 
-  const handleGetLimitBookSell = async (e) => {
+  const handleGetOrderBook = async (e) => {
     e.preventDefault();
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
@@ -454,15 +457,15 @@ function App() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
 
-      const limitOrderBookSell = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 1);
+      const orderbookTx = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 1);
 
-      for (let i = 0; i < limitOrderBookSell.length; i++) {
-        const tickerLimitSell = limitOrderBookSell[i]["ticker"];
-        const amountLimitSell = limitOrderBookSell[i]["amount"];
-        const priceLimitSell = ethers.utils.formatEther(limitOrderBookSell[i]["price"]);
-        const filledLimitSell = limitOrderBookSell[i]["filled"];
+      for (let i = 0; i < orderbookTx.length; i++) {
+        const tickerOrderBook = orderbookTx[i]["ticker"];
+        const amountOrderBook = orderbookTx[i]["amount"];
+        const priceOrderBook = ethers.utils.formatEther(orderbookTx[i]["price"]);
+        const filledOrderBook = orderbookTx[i]["filled"];
 
-        console.log("Symbol:", tickerLimitSell, "Amount:", amountLimitSell.toString(), "Price:", priceLimitSell, "Filled:", filledLimitSell.toNumber());
+        console.log("Symbol:", tickerOrderBook, "Amount:", amountOrderBook.toString(), "Price:", priceOrderBook, "Filled:", filledOrderBook.toNumber());
 
         /*
         setIsLimitBookSellInfo({
@@ -473,21 +476,24 @@ function App() {
         */
 
       }
-      setIsOrderBookSellLength(limitOrderBookSell.length);
-      setIsOrderBookSellFilled(limitOrderBookSell[0].filled.toNumber());
-      //console.log("limit order SELL length: ", limitOrderBookSell.length);
-      //console.log("limit order SELL filled: ", limitOrderBookSell[0].filled.toString());
-      //console.log(String(limitOrderBookSell));
+      setIsOrderBookLength(orderbookTx.length);
+      setIsOrderBookFilled(orderbookTx[0].filled.toNumber());
+      //console.log("limit order SELL length: ", orderbookTx.length);
+      //console.log("limit order SELL filled: ", orderbookTx[0].filled.toString());
+      //console.log(String(orderbookTx));
 
       //window.location.reload();
 
     } catch (error) {
       console.log("error", error);
+      if (error) return alert("error...orderbook may be empty");
     };
   };
 
 
-  // function balanceOf(address account) external view returns (uint256)
+
+  /////////////// TOKEN //////////////////
+
   const getMyBalance = async () => {
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
@@ -736,7 +742,7 @@ function App() {
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Transactions / Approve
+                Transactions | Approve DEX
               </h3>
               {/* transfer */}
               <div className="card">
@@ -797,17 +803,17 @@ function App() {
               {/* approve */}
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">approve</h6>
+                  <h6 className="card-subtitle mb-2 text-muted">approve DEX</h6>
                   <form onSubmit={handleApprove}>
                     <div className="my-3">
                       <div>
-                        <h6 className="card-subtitle mb-2 text-muted">spender</h6>
+                        <h6 className="card-subtitle mb-2 text-muted">approve the spender, this DEX</h6>
                       </div>
                       <input
                         type="text"
                         name="spender"
                         className="input p-1"
-                        placeholder="Spender address"
+                        placeholder="DEX address"
                         style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
                       />
                     </div>
@@ -828,13 +834,13 @@ function App() {
                         type="submit"
                         className="btn btn-outline-info"
                       >
-                        Approve
+                        Approve DEX
                       </button>
                       <div className="my-4 mb-2">
                         {isApproved &&
                           <div className="alert alert-dismissible alert-success">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <strong>Well Done!</strong> You have successfully approved spender.
+                            <strong>Well Done!</strong> You have successfully approved this DEX as spender.
                           </div>
                         }
                       </div>
@@ -853,7 +859,7 @@ function App() {
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Allowance / Transfer From
+                Allowance | Transfer From
               </h3>
               <br />
               {/* allowance */}
@@ -1047,7 +1053,7 @@ function App() {
                         {error &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Must be an ERC20 token.
+                            <strong>Oh snap!</strong> and try submitting again. Add an ERC20 token and you must be the owner.
                           </div>
                         }
                       </div>
@@ -1226,7 +1232,7 @@ function App() {
             </div>
           </div>
         </div>
-          {/* get Dex balances */}             
+        {/* get Dex balances */}
         <div className='box-3'>
           <div className='m-4'>
             <div>
@@ -1584,13 +1590,13 @@ function App() {
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Orderbook Limit Sell
+                Orderbook Orders and Fills
               </h3>
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">get orderbook limit sell side</h6>
+                  <h6 className="card-subtitle mb-2 text-muted">get orderbook</h6>
                   {/* get Dex order book sell */}
-                  <form onSubmit={handleGetLimitBookSell}>
+                  <form onSubmit={handleGetOrderBook}>
                     <div className="my-3">
                       <div>
                         <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
@@ -1608,16 +1614,16 @@ function App() {
                         type="submit"
                         className="btn btn-outline-info"
                       >
-                        Get Limit Sell Orders
+                        Get Orderbook
                       </button>
                     </footer>
 
                     <div className="px-4">
                       <div>
-                        Amount of orders: {isOrderBookSellLength}
+                        Orders in orderbook: {isOrderBookLength}
                       </div>
                       <div>
-                        Filled orders: {isOrderBookSellFilled}
+                        Filled orders: {isOrderBookFilled}
                       </div>
                       {/*
                           <div>
@@ -1644,7 +1650,7 @@ function App() {
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Recent Limit Orders Transactions
+                Recent Limit Orders. Prices in ETH
               </h3>
               <p>Side: 0 = BUY | Side: 1 = SELL</p>
               <div>
@@ -1658,7 +1664,7 @@ function App() {
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Recent Limit Orders Transactions
+                Recent Market Orders. Prices in ETH
               </h3>
               <p>Side: 0 = BUY | Side: 1 = SELL</p>
               <div>
@@ -1679,4 +1685,3 @@ function App() {
 }
 
 export default App;
-
