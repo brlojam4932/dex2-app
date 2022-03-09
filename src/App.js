@@ -7,8 +7,9 @@ import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
 //import NameList from './components/NameList';
-import SellOrders from "./components/SellOrders";
-import BuyOrders from './components/BuyOrders';
+import SellLimitOrders from './components/SellLimitOrders';
+import BuyLimitOrders from './components/BuyLimitOrders';
+import ApproveList from './components/ApproveList';
 
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
@@ -34,6 +35,9 @@ function App() {
   const [txs, setTxs] = useState([]);
   const [contractListened, setContractListened] = useState();
   const [error, setError] = useState(false);
+
+  const [approveTx, setApproveTx] = useState([]);
+  const [approveContractListened, setApproveContractListened] = useState();
 
   //////////////TOKEN STATES/////////////////
   const [contractAddress, setContractAddress] = useState("-");
@@ -121,6 +125,33 @@ function App() {
 
     }
   }, [contractInfo.address]);
+
+
+  useEffect(() => {
+    if (contractInfo.address !== "-") {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const token = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
+
+      token.on("Approve", (spender, amount, event) => {
+        console.log({ spender, amount, event });
+
+        setApproveTx((currentApprove) => [
+          ...currentApprove,
+          {
+            txHash: event.transactionHash,
+            spender,
+            amount: ethers.utils.formatEther(amount)
+          }
+        ]);
+      });
+      setApproveContractListened(token);
+
+      return () => {
+        approveContractListened.removeAllListeners();
+      };
+    }
+    
+}, [contractInfo.address]);
 
 
   // Get token info: name, symbol and totalSupply
@@ -407,9 +438,10 @@ function App() {
         ]);
       };
 
+
       // Buy orders
       for (let i = 0; orderbookBuyTx.length; i++) {
-        
+
         const idOrderBookBuy = orderbookBuyTx[i]["id"];
         const traderOrderBookBuy = orderbookBuyTx[i]["trader"];
         const sideOrderBookBuy = orderbookBuyTx[i]["side"];
@@ -433,10 +465,11 @@ function App() {
         ]);
       };
 
+
       setIsOrderBookLength(orderbookSellTx.length);
       console.log("limit order SELL length: ", orderbookSellTx.length);
       console.log("limit order SELL filled: ", orderbookSellTx[0].filled.toString());
-      console.log(String(orderbookSellTx));
+      //console.log(String(orderbookSellTx));
 
       //window.location.reload();
 
@@ -446,13 +479,13 @@ function App() {
     };
   };
 
-  const sellOrderList = isOrderBookSellInfo.map(sellOrders => (
-    <SellOrders key={sellOrders.id} sellOrders={sellOrders} />
+  const sellLimitOrderList = isOrderBookSellInfo.map((orders, index) => (
+    <SellLimitOrders key={index} orders={orders} />
   ));
 
-  const buyOrderList = isOrderBookBuyInfo.map(order => (
-    <BuyOrders key={order.id} order={order} />
-  ))
+  const buyLimitOrderList = isOrderBookBuyInfo.map((orders, index) => (
+    <BuyLimitOrders key={index} orders={orders} />
+  ));
 
 
   /////////////// TOKEN //////////////////
@@ -795,7 +828,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-warning"
                       >
                         Approve DEX
                       </button>
@@ -803,7 +836,7 @@ function App() {
                         {isApproved &&
                           <div className="alert alert-dismissible alert-success">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <strong>Well Done!</strong> You have successfully approved this DEX as spender.
+                            <ApproveList approveTx={approveTx}/>
                           </div>
                         }
                       </div>
@@ -1584,7 +1617,7 @@ function App() {
                   </footer>
                   <div className="px-4">
                     <div>
-                      Orders in orderbook: {isOrderBookLength}
+                      Number of orders: {isOrderBookLength}
                     </div>
                   </div>
                 </form>
@@ -1597,13 +1630,13 @@ function App() {
       <div className='container-6'>
         <div className='box-sell'>
           <div className="px-4">
-          {sellOrderList}
+            {sellLimitOrderList}
           </div>
         </div>
 
         <div className='box-buy'>
           <div className="px-4">
-          {buyOrderList}          
+            {buyLimitOrderList}
           </div>
         </div>
       </div>
