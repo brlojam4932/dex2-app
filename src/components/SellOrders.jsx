@@ -1,25 +1,25 @@
 import React from 'react';
 
-function SellOrders({ order }) {
+function SellOrders({ sellOrders }) {
   return (
     <div className="alert alert-dismissible alert-success">
       <div>
-        <strong>Trader:</strong>{" "}{order.trader}
+        <strong>Trader:</strong>{" "}{sellOrders.trader}
       </div>
       <div>
-        <strong>Side:</strong>{" "}{order.side}
+        <strong>Side:</strong>{" "}{sellOrders.side}
       </div>
       <div>
-        <strong>Ticker:</strong>{" "}{order.ticker}
+        <strong>Ticker:</strong>{" "}{sellOrders.ticker}
       </div>
       <div>
-        <strong>Amount:</strong>{" "}{order.amount}
+        <strong>Amount:</strong>{" "}{sellOrders.amount}
       </div>
       <div>
-        <strong>Price:</strong>{" "}{order.price}
+        <strong>Price:</strong>{" "}{sellOrders.price}
       </div>
       <div>
-        <strong>Filled:</strong>{" "}{order.filled}
+        <strong>Filled:</strong>{" "}{sellOrders.filled}
       </div>
     </div>
   )

@@ -466,7 +466,7 @@ function App() {
         const amountOrderBookSell = orderbookSellTx[i]["amount"];
         const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
         const filledOrderBookSell = orderbookSellTx[i]["filled"];
-        //console.log("Side:", sideOrderBookSell, "Symbol:", tickerOrderBookSell, "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
+        console.log("Side:", sideOrderBookSell, "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
 
         setIsOrderBookSellInfo((ordersSellTx) => [
           ...ordersSellTx,
@@ -496,7 +496,7 @@ function App() {
             trader: traderOrderBookBuy,
             side: sideOrderBookBuy,
             ticker: ethers.utils.parseBytes32String(tickerOrderBookBuy),
-            amount: amountOrderBookBuy.toString,
+            amount: amountOrderBookBuy.toString(),
             price: priceOrderBookBuy,
             filled: filledOrderBookBuy.toNumber()
           }
@@ -506,11 +506,11 @@ function App() {
 
       setIsOrderBookLength(orderbookSellTx.length);
       setIsOrderBookFilled(orderbookSellTx[0].filled.toNumber());
-      //console.log("limit order SELL length: ", orderbookTx.length);
-      //console.log("limit order SELL filled: ", orderbookTx[0].filled.toString());
-      //console.log(String(orderbookTx));
+      console.log("limit order SELL length: ", orderbookSellTx.length);
+      console.log("limit order SELL filled: ", orderbookSellTx[0].filled.toString());
+      console.log(String(orderbookSellTx));
 
-      //window.location.reload();
+      window.location.reload();
 
     } catch (error) {
       console.log("error", error);
@@ -518,8 +518,8 @@ function App() {
     };
   };
 
-  const sellOrderList = isOrderBookSellInfo.map(order => (
-    <SellOrders key={order.id} order={order} />
+  const sellOrderList = isOrderBookSellInfo.map(sellOrders => (
+    <SellOrders key={sellOrders.id} sellOrders={sellOrders} />
   ));
 
   const buyOrderList = isOrderBookBuyInfo.map(order => (
