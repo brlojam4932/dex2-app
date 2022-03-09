@@ -1,5 +1,5 @@
 import React from 'react';
-import { ethers } from "ethers";
+import { ethers, utils } from "ethers";
 import './App.css';
 import { useState, useEffect } from 'react';
 import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
@@ -9,6 +9,9 @@ import LimitOrderTxList from "./components/LimitOrderTxList.jsx";
 import MarketOrderTxList from './components/MarketOrderTxList.jsx';
 
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
+import NameList from './components/NameList';
+import SellOrders from "./components/SellOrders";
+import BuyOrders from './components/BuyOrders';
 
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
@@ -60,10 +63,14 @@ function App() {
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
   const [isTransferFrom, setIsTransferFrom] = useState(false);
 
+  /*
   const [dexBalanceInfo, setDexBalanceInfo] = useState({
     address: "-",
     ticker: "-"
   });
+  */
+
+  const [dexBalanceInfo, setDexBalanceInfo] = useState([]);
 
   //////////////DEX STATES/////////////////
 
@@ -85,14 +92,17 @@ function App() {
 
   const [depositEthAmount, setDepositEthAmount] = useState("-")
 
+  /*
+  const [isOrderBookInfo, setIsOrderBookInfo] = useState({
+    ticker: "-",
+    amount: '-',
+    price: "-"
+  });
+  */
 
-  /*const [isLimitBookSellInfo, setIsLimitBookSellInfo] = useState({
-      ticker: "-",
-      amount: '-',
-      price: "-"
-    });
-    */
 
+  const [isOrderBookSellInfo, setIsOrderBookSellInfo] = useState([]);
+  const [isOrderBookBuyInfo, setIsOrderBookBuyInfo] = useState([]);
 
   const [isOrderBookLength, setIsOrderBookLength] = useState("-");
   const [isOrderBookFilled, setIsOrderBookFilled] = useState("-");
@@ -217,17 +227,6 @@ function App() {
       if (error) return alert("not loggein to Metamask");
     }
   };
-  /*
-    const handleGetDex = async (e) => {
-      e.preventDefault()
-      if (typeof window.ethereum !== 'undefined') {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        console.log({ provider })
-        const dexContract = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-        console.log(dexContract.address);
-      }    
-    };
-    */
 
 
   /////////////// DEX //////////////////
@@ -457,27 +456,56 @@ function App() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
 
-      const orderbookTx = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 1);
+      const orderbookBuyTx = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 0);
+      const orderbookSellTx = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 1);
 
-      for (let i = 0; i < orderbookTx.length; i++) {
-        const tickerOrderBook = orderbookTx[i]["ticker"];
-        const amountOrderBook = orderbookTx[i]["amount"];
-        const priceOrderBook = ethers.utils.formatEther(orderbookTx[i]["price"]);
-        const filledOrderBook = orderbookTx[i]["filled"];
+      for (let i = 0; i < orderbookSellTx.length; i++) {
+        const traderOrderBookSell = orderbookSellTx[i]["trader"];
+        const sideOrderBookSell = orderbookSellTx[i]["side"];
+        const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
+        const amountOrderBookSell = orderbookSellTx[i]["amount"];
+        const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
+        const filledOrderBookSell = orderbookSellTx[i]["filled"];
+        //console.log("Side:", sideOrderBookSell, "Symbol:", tickerOrderBookSell, "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
 
-        console.log("Symbol:", tickerOrderBook, "Amount:", amountOrderBook.toString(), "Price:", priceOrderBook, "Filled:", filledOrderBook.toNumber());
+        setIsOrderBookSellInfo((ordersSellTx) => [
+          ...ordersSellTx,
+          {
+            trader: traderOrderBookSell,
+            side: sideOrderBookSell,
+            ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
+            amount: amountOrderBookSell.toString(),
+            price: priceOrderBookSell,
+            filled: filledOrderBookSell.toNumber()
+          }
+        ]);
+      };
 
-        /*
-        setIsLimitBookSellInfo({
-          ticker: ethers.utils.toUtf8String(tickerLimitSell),
-          amount: amountLimitSell.toString(),
-          price: priceLimitSell
-        });
-        */
 
-      }
-      setIsOrderBookLength(orderbookTx.length);
-      setIsOrderBookFilled(orderbookTx[0].filled.toNumber());
+      for (let i = 0; orderbookBuyTx.length; i++) {
+        const traderOrderBookBuy = orderbookBuyTx[i]["trader"];
+        const sideOrderBookBuy = orderbookBuyTx[i]["side"];
+        const tickerOrderBookBuy = orderbookBuyTx[i]["ticker"];
+        const amountOrderBookBuy = orderbookBuyTx[i]["amount"];
+        const priceOrderBookBuy = ethers.utils.formatEther(orderbookBuyTx[i]["price"]);
+        const filledOrderBookBuy = orderbookBuyTx[i]["filled"];
+
+        setIsOrderBookBuyInfo((ordersBuyTx) => [
+          ...ordersBuyTx,
+          {
+            trader: traderOrderBookBuy,
+            side: sideOrderBookBuy,
+            ticker: ethers.utils.parseBytes32String(tickerOrderBookBuy),
+            amount: amountOrderBookBuy.toString,
+            price: priceOrderBookBuy,
+            filled: filledOrderBookBuy.toNumber()
+          }
+
+        ]);
+      };
+
+      setIsOrderBookLength(orderbookSellTx.length);
+      setIsOrderBookFilled(orderbookSellTx[0].filled.toNumber());
       //console.log("limit order SELL length: ", orderbookTx.length);
       //console.log("limit order SELL filled: ", orderbookTx[0].filled.toString());
       //console.log(String(orderbookTx));
@@ -490,6 +518,13 @@ function App() {
     };
   };
 
+  const sellOrderList = isOrderBookSellInfo.map(order => (
+    <SellOrders key={order.id} order={order} />
+  ));
+
+  const buyOrderList = isOrderBookBuyInfo.map(order => (
+    <BuyOrders key={order.id} order={order} />
+  ))
 
 
   /////////////// TOKEN //////////////////
@@ -1590,90 +1625,62 @@ function App() {
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Orderbook Orders and Fills
+                Orderbook Bids and Asks
               </h3>
-              <div className="card">
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">get orderbook</h6>
-                  {/* get Dex order book sell */}
-                  <form onSubmit={handleGetOrderBook}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="bytes32"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
+            </div>
+
+            <div className="card">
+              <div className="card-body">
+                <h6 className="card-subtitle mb-2 text-muted">get orderbook</h6>
+                {/* get Dex order book sell */}
+                <form onSubmit={handleGetOrderBook}>
+                  <div className="my-3">
+                    <div>
+                      <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
                     </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-info"
-                      >
-                        Get Orderbook
-                      </button>
-                    </footer>
-
-                    <div className="px-4">
-                      <div>
-                        Orders in orderbook: {isOrderBookLength}
-                      </div>
-                      <div>
-                        Filled orders: {isOrderBookFilled}
-                      </div>
-                      {/*
-                          <div>
-                          Ticker: {isLimitBookSellInfo.ticker}
-                        </div>
-                        <div>
-                          Amount of Coins: {isLimitBookSellInfo.amount}
-                        </div>
-                        <div>
-                          ETH Price: {isLimitBookSellInfo.price}
-                        </div>
-                        
-                         */}
-
+                    <input
+                      type="bytes32"
+                      name="ticker"
+                      className="input p-1"
+                      placeholder="Token Symbol"
+                      style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                    />
+                  </div>
+                  <footer className="p-4">
+                    <button
+                      type="submit"
+                      className="btn btn-outline-info"
+                    >
+                      Get Orderbook
+                    </button>
+                  </footer>
+                  <div className="px-4">
+                    <div>
+                      Orders in orderbook: {isOrderBookLength}
                     </div>
-                  </form>
-                </div>
+                    <div>
+                      Filled orders: {isOrderBookFilled}
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
         </div>
 
-        <div className='box-2'>
-          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Recent Limit Orders. Prices in ETH
-              </h3>
-              <p>Side: 0 = BUY | Side: 1 = SELL</p>
-              <div>
-                <LimitOrderTxList limitOrderTxs={limitOrderTxs} />
-              </div>
-            </div>
+      </div>
+      <div className='container-6'>
+        <div className='box-sell'>
+          <div className="px-4">
+          {sellOrderList}
           </div>
         </div>
 
-        <div className='box-3'>
-          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Recent Market Orders. Prices in ETH
-              </h3>
-              <p>Side: 0 = BUY | Side: 1 = SELL</p>
-              <div>
-                <MarketOrderTxList marketOrderTxs={marketOrderTxs} />
-              </div>
-            </div>
+        <div className='box-buy'>
+          <div className="px-4">
+          {buyOrderList}          
           </div>
         </div>
-
       </div>
 
     </>
