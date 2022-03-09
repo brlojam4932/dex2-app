@@ -3,6 +3,9 @@ import React from 'react';
 function SellOrders({ sellOrders }) {
   return (
     <div className="alert alert-dismissible alert-success">
+       <div>
+        <strong>Id:</strong>{" "}{sellOrders.id}
+      </div>
       <div>
         <strong>Trader:</strong>{" "}{sellOrders.trader}
       </div>

@@ -1,15 +1,12 @@
 import React from 'react';
-import { ethers, utils } from "ethers";
+import { ethers } from "ethers";
 import './App.css';
 import { useState, useEffect } from 'react';
 import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/TxList.jsx';
-import LimitOrderTxList from "./components/LimitOrderTxList.jsx";
-import MarketOrderTxList from './components/MarketOrderTxList.jsx';
-
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
-import NameList from './components/NameList';
+//import NameList from './components/NameList';
 import SellOrders from "./components/SellOrders";
 import BuyOrders from './components/BuyOrders';
 
@@ -35,13 +32,7 @@ const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 function App() {
 
   const [txs, setTxs] = useState([]);
-  const [limitOrderTxs, setLimitOrderTxs] = useState([]);
-  const [marketOrderTxs, setMarketOrderTxs] = useState([]);
-
   const [contractListened, setContractListened] = useState();
-  const [limitOrderContractListened, setLimitOrderContractListened] = useState();
-  const [marketOrderContractListened, setMarketOrderContractListened] = useState();
-
   const [error, setError] = useState(false);
 
   //////////////TOKEN STATES/////////////////
@@ -89,23 +80,12 @@ function App() {
   const [addTokenSuccessMsg, setAddTokenSuccessMsg] = useState(false);
   const [depositSuccessMsg, setDepositSuccessMsg] = useState(false);
   const [depositEthSuccessMsg, setDepositEthSuccessMsg] = useState(false);
-
   const [depositEthAmount, setDepositEthAmount] = useState("-")
-
-  /*
-  const [isOrderBookInfo, setIsOrderBookInfo] = useState({
-    ticker: "-",
-    amount: '-',
-    price: "-"
-  });
-  */
-
 
   const [isOrderBookSellInfo, setIsOrderBookSellInfo] = useState([]);
   const [isOrderBookBuyInfo, setIsOrderBookBuyInfo] = useState([]);
 
   const [isOrderBookLength, setIsOrderBookLength] = useState("-");
-  const [isOrderBookFilled, setIsOrderBookFilled] = useState("-");
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
   // TOKEN TRANSACTIONS
@@ -141,64 +121,6 @@ function App() {
 
     }
   }, [contractInfo.address]);
-
-
-  // DEX LIMIT ORDERS TX
-  useEffect(() => {
-    if (dexContractAddress !== "-") {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const dexLimitOrder = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      //event LimitOrder(Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
-
-      dexLimitOrder.on("LimitOrder", (side, ticker, amount, price, event) => {
-        console.log({ side, ticker, amount, price, event });
-
-        setLimitOrderTxs((currentLimitOrderTxs) => [
-          ...currentLimitOrderTxs,
-          {
-            txHash: event.transactionHash,
-            side,
-            ticker: ethers.utils.toUtf8String(ticker),
-            amount: String(amount),
-            price: ethers.utils.formatEther(price)
-          }
-        ]);
-      });
-      setLimitOrderContractListened(dexLimitOrder);
-
-      return () => {
-        limitOrderContractListened.removeAllListeners();
-      }
-    };
-  }, [dexContractAddress]);
-
-
-  // DEX MARKET ORDERS TX
-  useEffect(() => {
-    if (dexContractAddress !== "-") {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const dexMarketOrder = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-
-      dexMarketOrder.on("MarketOrder", (side, ticker, amount, event) => {
-        console.log({ side, ticker, amount, event });
-
-        setMarketOrderTxs((currentMarketOrderTxs) => [
-          ...currentMarketOrderTxs,
-          {
-            txHash: event.transactionHash,
-            side,
-            ticker: ethers.utils.toUtf8String(ticker),
-            amount: String(amount),
-          }
-        ]);
-      });
-      setMarketOrderContractListened(dexMarketOrder);
-
-      return () => {
-        marketOrderContractListened.removeAllListeners();
-      }
-    };
-  }, [dexContractAddress]);
 
 
   // Get token info: name, symbol and totalSupply
@@ -459,18 +381,22 @@ function App() {
       const orderbookBuyTx = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 0);
       const orderbookSellTx = await dex.getOrderBook(ethers.utils.formatBytes32String(data.get("ticker")), 1);
 
+      // Sell orders
       for (let i = 0; i < orderbookSellTx.length; i++) {
+
+        const idOrderBookSell = orderbookSellTx[i]["id"];
         const traderOrderBookSell = orderbookSellTx[i]["trader"];
         const sideOrderBookSell = orderbookSellTx[i]["side"];
         const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
         const amountOrderBookSell = orderbookSellTx[i]["amount"];
         const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
         const filledOrderBookSell = orderbookSellTx[i]["filled"];
-        console.log("Side:", sideOrderBookSell, "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
+        console.log("Id:", idOrderBookSell.toNumber(), "Side:", sideOrderBookSell, "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
 
         setIsOrderBookSellInfo((ordersSellTx) => [
           ...ordersSellTx,
           {
+            id: idOrderBookSell.toNumber(),
             trader: traderOrderBookSell,
             side: sideOrderBookSell,
             ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
@@ -481,8 +407,10 @@ function App() {
         ]);
       };
 
-
+      // Buy orders
       for (let i = 0; orderbookBuyTx.length; i++) {
+        
+        const idOrderBookBuy = orderbookBuyTx[i]["id"];
         const traderOrderBookBuy = orderbookBuyTx[i]["trader"];
         const sideOrderBookBuy = orderbookBuyTx[i]["side"];
         const tickerOrderBookBuy = orderbookBuyTx[i]["ticker"];
@@ -493,6 +421,7 @@ function App() {
         setIsOrderBookBuyInfo((ordersBuyTx) => [
           ...ordersBuyTx,
           {
+            id: idOrderBookBuy.toNumber(),
             trader: traderOrderBookBuy,
             side: sideOrderBookBuy,
             ticker: ethers.utils.parseBytes32String(tickerOrderBookBuy),
@@ -505,12 +434,11 @@ function App() {
       };
 
       setIsOrderBookLength(orderbookSellTx.length);
-      setIsOrderBookFilled(orderbookSellTx[0].filled.toNumber());
       console.log("limit order SELL length: ", orderbookSellTx.length);
       console.log("limit order SELL filled: ", orderbookSellTx[0].filled.toString());
       console.log(String(orderbookSellTx));
 
-      window.location.reload();
+      //window.location.reload();
 
     } catch (error) {
       console.log("error", error);
@@ -1193,7 +1121,7 @@ function App() {
                         {error &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Token balance may be insufficient.
+                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
                           </div>
                         }
                       </div>
@@ -1657,9 +1585,6 @@ function App() {
                   <div className="px-4">
                     <div>
                       Orders in orderbook: {isOrderBookLength}
-                    </div>
-                    <div>
-                      Filled orders: {isOrderBookFilled}
                     </div>
                   </div>
                 </form>
