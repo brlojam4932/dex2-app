@@ -1,16 +1,13 @@
-import React from 'react';
+import React from 'react'
 
-function SellLimitOrders({ orders }) {
+function BuyOrders({ orders }) {
   return (
-    <div className="alert alert-dismissible alert-success">
-       <div>
+    <div className="alert alert-dismissible alert-primary text-secondary">
+      <div>
         <strong>Id:</strong>{" "}{orders.id}
       </div>
-      <div>
+      <div> 
         <strong>Trader:</strong>{" "}{orders.trader}
-      </div>
-      <div>
-        <strong>Side:</strong>{" "}{orders.side}
       </div>
       <div>
         <strong>Ticker:</strong>{" "}{orders.ticker}
@@ -18,7 +15,7 @@ function SellLimitOrders({ orders }) {
       <div>
         <strong>Amount:</strong>{" "}{orders.amount}
       </div>
-      <div>
+      <div className='text-success'>
         <strong>Price:</strong>{" "}{orders.price}
       </div>
       <div>
@@ -28,4 +25,4 @@ function SellLimitOrders({ orders }) {
   )
 }
 
-export default SellLimitOrders
+export default BuyOrders;

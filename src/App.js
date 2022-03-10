@@ -1,15 +1,16 @@
 import React from 'react';
 import { ethers } from "ethers";
+import { v4 as uuidv4 } from 'uuid';
 import './App.css';
 import { useState, useEffect } from 'react';
 import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
-//import NameList from './components/NameList';
-import SellLimitOrders from './components/SellLimitOrders';
-import BuyLimitOrders from './components/BuyLimitOrders';
+import BuyOrders from './components/BuyOrders';
+import SellOrders from './components/SellOrders';
 import ApproveList from './components/ApproveList';
+//import NameList from './components/NameList';
 
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
@@ -91,6 +92,7 @@ function App() {
 
   const [isOrderBookLength, setIsOrderBookLength] = useState("-");
 
+
   //const [dexContractAddress, setDexContractAddress] = useState("-");
   // TOKEN TRANSACTIONS
   useEffect(() => {
@@ -150,8 +152,13 @@ function App() {
         approveContractListened.removeAllListeners();
       };
     }
-    
-}, [contractInfo.address]);
+
+  }, [contractInfo.address]);
+
+
+  const refresh = () => {
+    window.location.reload();
+  }
 
 
   // Get token info: name, symbol and totalSupply
@@ -415,21 +422,22 @@ function App() {
       // Sell orders
       for (let i = 0; i < orderbookSellTx.length; i++) {
 
-        const idOrderBookSell = orderbookSellTx[i]["id"];
+        //const idOrderBookSell = orderbookSellTx[i]["id"];
         const traderOrderBookSell = orderbookSellTx[i]["trader"];
-        const sideOrderBookSell = orderbookSellTx[i]["side"];
+        //const sideOrderBookSell = orderbookSellTx[i]["side"];
         const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
         const amountOrderBookSell = orderbookSellTx[i]["amount"];
         const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
         const filledOrderBookSell = orderbookSellTx[i]["filled"];
-        console.log("Id:", idOrderBookSell.toNumber(), "Side:", sideOrderBookSell, "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
+        //console.log("Id:", idOrderBookSell.toNumber(), "Side:", sideOrderBookSell, "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
 
-        setIsOrderBookSellInfo((ordersSellTx) => [
-          ...ordersSellTx,
+        setIsOrderBookSellInfo(prev => [
+           ...prev,
           {
-            id: idOrderBookSell.toNumber(),
+            //id: idOrderBookSell.toNumber(),
+            id: uuidv4(),
             trader: traderOrderBookSell,
-            side: sideOrderBookSell,
+            //side: sideOrderBookSell,
             ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
             amount: amountOrderBookSell.toString(),
             price: priceOrderBookSell,
@@ -442,20 +450,21 @@ function App() {
       // Buy orders
       for (let i = 0; orderbookBuyTx.length; i++) {
 
-        const idOrderBookBuy = orderbookBuyTx[i]["id"];
+        //const idOrderBookBuy = orderbookBuyTx[i]["id"];
         const traderOrderBookBuy = orderbookBuyTx[i]["trader"];
-        const sideOrderBookBuy = orderbookBuyTx[i]["side"];
+        //const sideOrderBookBuy = orderbookBuyTx[i]["side"];
         const tickerOrderBookBuy = orderbookBuyTx[i]["ticker"];
         const amountOrderBookBuy = orderbookBuyTx[i]["amount"];
         const priceOrderBookBuy = ethers.utils.formatEther(orderbookBuyTx[i]["price"]);
         const filledOrderBookBuy = orderbookBuyTx[i]["filled"];
 
-        setIsOrderBookBuyInfo((ordersBuyTx) => [
-          ...ordersBuyTx,
+        setIsOrderBookBuyInfo(prev => [
+          ...prev,
           {
-            id: idOrderBookBuy.toNumber(),
+            //id: idOrderBookBuy.toNumber(),
+            id: uuidv4(),
             trader: traderOrderBookBuy,
-            side: sideOrderBookBuy,
+            //side: sideOrderBookBuy,
             ticker: ethers.utils.parseBytes32String(tickerOrderBookBuy),
             amount: amountOrderBookBuy.toString(),
             price: priceOrderBookBuy,
@@ -477,14 +486,16 @@ function App() {
       console.log("error", error);
       if (error) return alert("error...orderbook may be empty");
     };
+    
   };
 
-  const sellLimitOrderList = isOrderBookSellInfo.map((orders, index) => (
-    <SellLimitOrders key={index} orders={orders} />
+
+  const sellOrderList = isOrderBookSellInfo.map((orders) => (
+    <SellOrders key={orders.id} orders={orders} />
   ));
 
-  const buyLimitOrderList = isOrderBookBuyInfo.map((orders, index) => (
-    <BuyLimitOrders key={index} orders={orders} />
+  const buyOrderList = isOrderBookBuyInfo.map((orders) => (
+    <BuyOrders key={orders.id} orders={orders} />
   ));
 
 
@@ -836,7 +847,7 @@ function App() {
                         {isApproved &&
                           <div className="alert alert-dismissible alert-success">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <ApproveList approveTx={approveTx}/>
+                            <ApproveList approveTx={approveTx} />
                           </div>
                         }
                       </div>
@@ -1338,7 +1349,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-success"
+                        className="btn btn-outline-warning"
                       >
                         Create a limit SELL order
                       </button>
@@ -1417,7 +1428,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-warning"
+                        className="btn btn-outline-success"
                       >
                         Create a limit BUY order
                       </button>
@@ -1483,7 +1494,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-success"
+                        className="btn btn-outline-warning"
                       >
                         Create a market SELL order
                       </button>
@@ -1551,7 +1562,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-warning"
+                        className="btn btn-outline-success"
                       >
                         Create a market BUY order
                       </button>
@@ -1586,7 +1597,7 @@ function App() {
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Orderbook Bids and Asks
+                Orderbook
               </h3>
             </div>
 
@@ -1614,33 +1625,51 @@ function App() {
                     >
                       Get Orderbook
                     </button>
+
+                    <button className="btn btn-outline-info" onClick={refresh}>Refresh Trades</button>
                   </footer>
-                  <div className="px-4">
+                </form>
+               
+                <div className="px-4 text-info">
                     <div>
                       Number of orders: {isOrderBookLength}
                     </div>
                   </div>
-                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className='container-6'>
+      <div className='box-1'>
+          <div className='box-buy'>
+          <div className="card">
+              <div className="card-body">
+                <h6 className="card-subtitle mb-2 text-success">BUY ORDERS</h6>
+                <div className="px-4" >
+                  {buyOrderList}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-      </div>
-      <div className='container-6'>
-        <div className='box-sell'>
-          <div className="px-4">
-            {sellLimitOrderList}
+        <div className='box-2'>
+          <div className='box-sell'>
+            <div className="card">
+              <div className="card-body">
+                <h6 className="card-subtitle mb-2 text-warning">SELL ORDERS</h6>
+                <div className="px-4">
+                  {sellOrderList}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className='box-buy'>
-          <div className="px-4">
-            {buyLimitOrderList}
-          </div>
-        </div>
       </div>
-
+{/* <NameList /> */}
+      
     </>
 
 
