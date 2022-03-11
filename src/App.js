@@ -655,7 +655,7 @@ function App() {
     } catch (error) {
       console.log(error);
       if (error) return alert("error, check address or re-set Metamask");
-      
+
     }
   }
 
@@ -847,7 +847,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-warning"
                       >
                         Transfer
                       </button>
@@ -1027,7 +1027,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-warning"
                       >
                         Transfer from
                       </button>
@@ -1110,7 +1110,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-warning"
                       >
                         Add Token
                       </button>
@@ -1193,7 +1193,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-warning"
                       >
                         Deposit Tokens
                       </button>
@@ -1239,7 +1239,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-warning"
                       >
                         Deposit ETH
                       </button>
@@ -1353,7 +1353,7 @@ function App() {
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-outline-warning"
                       >
                         Withdraw Tokens
                       </button>
@@ -1386,7 +1386,7 @@ function App() {
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Limit SELL Orders
+                Limit SELL
               </h3>
               {/* Limit sell Orders */}
               <div className="card">
@@ -1446,7 +1446,7 @@ function App() {
                         }
 
                         {errorLimitSell &&
-                          <div className="alert alert-dismissible alert-danger">
+                          <div className="alert alert-dismissible alert-warning">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorLimitSell(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again.  Your balance may be insufficient.
                           </div>
@@ -1465,7 +1465,7 @@ function App() {
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Limit BUY Orders
+                Limit BUY
               </h3>
               {/* Limit BUY Orders */}
               <div className="card">
@@ -1525,7 +1525,7 @@ function App() {
                         }
 
                         {errorLimitBuy &&
-                          <div className="alert alert-dismissible alert-danger">
+                          <div className="alert alert-dismissible alert-warning">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorLimitBuy(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Your ETH balance may be insufficient.
                           </div>
@@ -1544,7 +1544,7 @@ function App() {
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Market SELL Orders
+                Market SELL
               </h3>
               {/* Market Orders */}
               <div className="card">
@@ -1591,7 +1591,7 @@ function App() {
                         }
 
                         {errorMarketSell &&
-                          <div className="alert alert-dismissible alert-danger">
+                          <div className="alert alert-dismissible alert-warning">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorMarketSell(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
                           </div>
@@ -1611,7 +1611,7 @@ function App() {
           <div>
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Market BUY Orders
+                Market BUY
               </h3>
               {/* Market Orders */}
               <div className="card">
@@ -1679,79 +1679,92 @@ function App() {
       <div className='container-5'>
         <div className='box-1'>
           <div>
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Orderbook
-              </h3>
-            </div>
-
-            <div className="card">
-              <div className="card-body">
-                <h6 className="card-subtitle mb-2 text-muted">get orderbook</h6>
-                {/* get Dex order book sell */}
-                <form onSubmit={handleGetOrderBook}>
-                  <div className="my-3">
-                    <div>
-                      <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                    </div>
-                    <input
-                      type="bytes32"
-                      name="ticker"
-                      className="input p-1"
-                      placeholder="Token Symbol"
-                      style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                    />
-                  </div>
-                  <footer className="p-4">
-                    <button
-                      type="submit"
-                      className="btn btn-outline-info"
-                    >
-                      Get Orderbook
-                    </button>
-
-                    <button className="btn btn-outline-info" onClick={refresh}>Refresh Trades</button>
-                  </footer>
-                </form>
-
-                <div className="px-4 text-info">
-                  <div>
-                    Number of orders: {isOrderBookLength}
-                  </div>
-                </div>
-              </div>
+            <div className='m-4'>
+              <main className="mt-4 p-4">
+                <h1 className="text-xl font-semibold text-info text-left">
+                  Orderbook
+                </h1>
+                <p><small className="text-muted">Read from a smart contract, approve, transfer, transfer from and recieve transaction messages from the blockchain.</small> </p>
+                <br />
+              </main>
             </div>
           </div>
+
         </div>
       </div>
-
       <div className='container-6'>
         <div className='box-1'>
-          <div className='box-buy'>
-            <div className="card">
-              <div className="card-body">
-                <h6 className="card-subtitle mb-2 text-success">BUY ORDERS</h6>
-                <div className="px-4" >
-                  {buyOrderList}
+          <div>
+            <div className='m-4'>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">get orderbook</h6>
+                  {/* get Dex order book sell */}
+                  <form onSubmit={handleGetOrderBook}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
+                      </div>
+                      <input
+                        type="bytes32"
+                        name="ticker"
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Get Orderbook
+                      </button>
+
+                      <button className="btn btn-outline-info" onClick={refresh}>Refresh Trades</button>
+                    </footer>
+                  </form>
+
+                  <div className="px-4 text-info">
+                    <div>
+                      Number of orders: {isOrderBookLength}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div className='box-2'>
+
+          <div className='m-4'>
+          <div className='box-sell'>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-warning">SELL ORDERS</h6>
+                  <div className="px-4">
+                    {sellOrderList}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className='box-buy'>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-success">BUY ORDERS</h6>
+                  <div className="px-4" >
+                    {buyOrderList}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className='box-2'>
-          <div className='box-sell'>
-            <div className="card">
-              <div className="card-body">
-                <h6 className="card-subtitle mb-2 text-warning">SELL ORDERS</h6>
-                <div className="px-4">
-                  {sellOrderList}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+   
       </div>
+
       {/* <NameList /> */}
 
     </>
