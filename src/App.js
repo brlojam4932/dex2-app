@@ -35,10 +35,25 @@ function App() {
 
   const [txs, setTxs] = useState([]);
   const [contractListened, setContractListened] = useState();
-  const [error, setError] = useState(false);
 
   const [approveTx, setApproveTx] = useState([]);
   const [approveContractListened, setApproveContractListened] = useState();
+
+  const [errorTransfer, setErrorTransfer] = useState(false);
+  const [errorTransferFrom, setErrorTransferFrom] = useState(false);
+
+  //const [errorGetTokens, setErrorGetTokens] = useState(false);
+  const [errorAddToken, setErrorAddToken] = useState(false);
+  const [errorDexDeposit, setErrorDexDeposit] = useState(false);
+  //const [errorDexBal, setErrorDexBal] = useState(false);
+  const [errorDepositEth, setErrorDepositEth] = useState(false);
+  const [errorDexWithdraw, setErrorDexWithdraw] = useState(false);
+
+  const [errorLimitSell, setErrorLimitSell] = useState(false);
+  const [errorLimitBuy, setErrorLimitBuy] = useState(false);
+
+  const [errorMarketSell, setErrorMarketSell] = useState(false);
+  const [errorMarketBuy, setErrorMarketBuy] = useState(false);
 
   //////////////TOKEN STATES/////////////////
   const [contractAddress, setContractAddress] = useState("-");
@@ -211,7 +226,8 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...check correct address or you may need to approve DEX");
+      //if (error) return alert("error...check correct address or you may need to approve DEX");
+      setErrorAddToken(true);
     };
   };
 
@@ -276,6 +292,8 @@ function App() {
       });
     } catch (error) {
       console.log("error", error);
+      if (error) return alert("error...initialize Dex or Token contract");
+      //setErrorDexBal(true);
     }
   };
 
@@ -302,7 +320,8 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...check token balance");
+      //if (error) return alert("error...check token balance");
+      setErrorLimitSell(true)
     };
   };
 
@@ -334,8 +353,8 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...Not enough ETH balancance");
-      setError(true);
+      //if (error) return alert("error...Not enough ETH balancance");
+      setErrorLimitBuy(true);
     };
   };
 
@@ -366,7 +385,8 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("something went wrong");
+      //if (error) return alert("something went wrong");
+      setErrorMarketSell(true);
     };
   };
 
@@ -391,7 +411,8 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...check Eth amount");
+      //if (error) return alert("error...check Eth amount");
+      setErrorMarketBuy(true);
     };
   };
 
@@ -415,7 +436,8 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...insufficient allowance, token does not exist");
+      //if (error) return alert("error...insufficient allowance, token does not exist");
+      setErrorDexDeposit(true);
     };
   };
 
@@ -440,7 +462,8 @@ function App() {
 
 
     } catch (error) {
-      console.log("error", error);
+      //console.log("error", error);
+      setErrorDepositEth(true);
     };
   };
 
@@ -582,7 +605,7 @@ function App() {
     } catch (error) {
       console.log(error);
       //if (error) return alert('transfer amount exceeds balance');
-      setError(true);
+      setErrorTransfer(true);
     };
 
   };
@@ -607,8 +630,8 @@ function App() {
       setIsTransferFrom(true);
     } catch (error) {
       console.log(error);
-      setError(true);
-      //if (error) return alert("transfer from amount exceeds balance");
+      //setError(true);
+      if (error) return alert("transfer from amount exceeds balance");
     };
 
   };
@@ -632,6 +655,7 @@ function App() {
     } catch (error) {
       console.log(error);
       if (error) return alert("error, check address or re-set Metamask");
+      
     }
   }
 
@@ -694,7 +718,7 @@ function App() {
     } catch (error) {
       console.log("error", error);
       //if (error) return alert("balance may be insufficient");
-      setError(true);
+      setErrorDexWithdraw(true);
     }
   }
 
@@ -835,9 +859,9 @@ function App() {
                           </div>
                         }
 
-                        {error &&
+                        {errorTransfer &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorTransfer(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
                           </div>
                         }
@@ -1014,9 +1038,9 @@ function App() {
                             <strong>Well Done!</strong> Your transfer has been completed.
                           </div>
                         }
-                        {error &&
+                        {errorTransferFrom &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorTransferFrom(false)}></button>
                             <strong>Error!</strong> Transfer amount exceeds balance.
                           </div>
                         }
@@ -1099,9 +1123,9 @@ function App() {
                           </div>
                         }
 
-                        {error &&
+                        {errorAddToken &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorAddToken(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Add an ERC20 token and you must be the owner.
                           </div>
                         }
@@ -1180,9 +1204,9 @@ function App() {
                             <strong>Success!</strong> Your deposit was executed.
                           </div>
                         }
-                        {error &&
+                        {errorDexDeposit &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexDeposit(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Must be an ERC20 token.
                           </div>
                         }
@@ -1227,9 +1251,9 @@ function App() {
                           </div>
                         }
 
-                        {error &&
+                        {errorDepositEth &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDepositEth(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Token balance may be insufficient.
                           </div>
                         }
@@ -1340,9 +1364,9 @@ function App() {
                             <strong>Success!</strong> Your widthrawl of {withDrawAmountInfo} tokens was executed.
                           </div>
                         }
-                        {error &&
+                        {errorDexWithdraw &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexWithdraw(false)}></button>
                             <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
                           </div>
                         }
@@ -1421,9 +1445,9 @@ function App() {
                           </div>
                         }
 
-                        {error &&
+                        {errorLimitSell &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorLimitSell(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again.  Your balance may be insufficient.
                           </div>
                         }
@@ -1500,9 +1524,9 @@ function App() {
                           </div>
                         }
 
-                        {error &&
+                        {errorLimitBuy &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorLimitBuy(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Your ETH balance may be insufficient.
                           </div>
                         }
@@ -1566,9 +1590,9 @@ function App() {
                           </div>
                         }
 
-                        {error &&
+                        {errorMarketSell &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorMarketSell(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
                           </div>
                         }
@@ -1634,9 +1658,9 @@ function App() {
                           </div>
                         }
 
-                        {error &&
+                        {errorMarketBuy &&
                           <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorMarketBuy(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
                           </div>
                         }
