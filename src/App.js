@@ -91,10 +91,11 @@ function App() {
   const [isOrderBookBuyInfo, setIsOrderBookBuyInfo] = useState([]);
 
   const [isOrderBookLength, setIsOrderBookLength] = useState("-");
+  const [listOfTokens, setListOfTokens] = useState([])
 
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
-  // TOKEN TRANSACTIONS
+  // token events
   useEffect(() => {
     if (contractInfo.address !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -107,10 +108,11 @@ function App() {
       //event Transfer(address indexed from, address indexed to, uint256 value);
 
       erc20.on("Transfer", (from, to, amount, event) => {
+        event.removeListener(); // Solve memory leak with this.
         console.log({ from, to, amount, event });
         // the transaction result gets copied over to a state
-        setTxs((currentTxs) => [
-          ...currentTxs,
+        setTxs(prev => [
+          ...prev,
           {
             txHash: event.transactionHash,
             from,
@@ -120,15 +122,12 @@ function App() {
         ]);
       });
       setContractListened(erc20);
-
-      return () => {
-        contractListened.removeAllListeners();
-      };
-
+      console.log(contractListened)
     }
   }, [contractInfo.address]);
 
 
+  // approve events
   useEffect(() => {
     if (contractInfo.address !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -137,8 +136,8 @@ function App() {
       token.on("Approve", (spender, amount, event) => {
         console.log({ spender, amount, event });
 
-        setApproveTx((currentApprove) => [
-          ...currentApprove,
+        setApproveTx(prev => [
+          ...prev,
           {
             txHash: event.transactionHash,
             spender,
@@ -212,9 +211,50 @@ function App() {
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...check correct address");
+      if (error) return alert("error...check correct address or you may need to approve DEX");
     };
   };
+
+
+  const getAllTokensList = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+      const allTokenList = await dex.getTokenListLength();
+      //console.log("token list length:", allTokenList.toNumber());
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dex.tokenList(i);
+        //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+        setListOfTokens(prev => [
+          ...prev,
+          {
+            id: uuidv4(),
+            ticker: ethers.utils.parseBytes32String(tokenList)
+          }
+        ])
+      }
+
+    } catch (error) {
+      console.log('error', error);
+      if (error) return alert("tokenlist error");
+    }
+  };
+
+
+  const myTokenList = listOfTokens.map((lists) => (
+    <div key={lists.id} className="alert alert-dismissible alert-primary text-secondary">
+      <div>
+        <strong>Id:</strong>{" "}{lists.id}
+      </div>
+      <div className='text-success'>
+        <strong>Token:</strong>{" "}{lists.ticker}
+      </div>
+    </div>
+
+  ));
 
 
   const getDexBalances = async (e) => {
@@ -432,7 +472,7 @@ function App() {
         //console.log("Id:", idOrderBookSell.toNumber(), "Side:", sideOrderBookSell, "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
 
         setIsOrderBookSellInfo(prev => [
-           ...prev,
+          ...prev,
           {
             //id: idOrderBookSell.toNumber(),
             id: uuidv4(),
@@ -486,7 +526,7 @@ function App() {
       console.log("error", error);
       if (error) return alert("error...orderbook may be empty");
     };
-    
+
   };
 
 
@@ -1022,6 +1062,7 @@ function App() {
       </div>
       {/* DEX deposts/balances/add-token, etc...  */}
       <div className='container-3'>
+        {/* add tokens */}
         <div className='box-1'>
           <div className="m-4">
             <div>
@@ -1052,7 +1093,8 @@ function App() {
                       <div className="my-4 mb-2">
                         {addTokenSuccessMsg &&
                           <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setAddTokenSuccessMsg(false)}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="alert"
+                              onClick={() => setAddTokenSuccessMsg(false)}></button>
                             <strong>Success!</strong> Your you added a token.
                           </div>
                         }
@@ -1068,106 +1110,21 @@ function App() {
                   </form>
                 </div>
               </div>
-            </div>
-            <br />
-            <div>
+
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">deposit Eth</h6>
-                  {/* get Dex deposit Eth */}
-                  <form onSubmit={handleDepositEth}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">deposit ETH to DEX</h6>
-                      </div>
-                      <input
-                        type="number"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="ETH Amount"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
+                  <h6 className="card-subtitle mb-2 text-muted">list tokens</h6>
+                  {/* get Dex add token */}
+                  <form onSubmit={getAllTokensList}>
                     <footer className="p-4">
                       <button
                         type="submit"
                         className="btn btn-outline-info"
                       >
-                        Deposit ETH
+                        List All Tokens
                       </button>
                       <div className="my-4 mb-2">
-                        {depositEthSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setDepositEthSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your deposit of {depositEthAmount} Ether was executed.
-                          </div>
-                        }
-
-                        {error &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Token balance may be insufficient.
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div className="card">
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">Dex withdrawls</h6>
-                  {/* get Dex deposit Eth */}
-                  <form onSubmit={handleWithDraw}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">widthraw tokens from DEX</h6>
-                      </div>
-                      <input
-                        type="number"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="Token Amount"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="bytes32"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-info"
-                      >
-                        Withdraw Tokens
-                      </button>
-                      <div className="my-4 mb-2">
-                        {withDrawSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setWithDrawSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your widthrawl of {withDrawAmountInfo} tokens was executed.
-                          </div>
-                        }
-
-                        {error &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
-                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
-                          </div>
-                        }
+                        {myTokenList}
                       </div>
                     </footer>
                   </form>
@@ -1176,7 +1133,7 @@ function App() {
             </div>
           </div>
         </div>
-
+        {/* Dex deposits */}
         <div className='box-2'>
           <div className='m-4'>
             <div>
@@ -1223,7 +1180,6 @@ function App() {
                             <strong>Success!</strong> Your deposit was executed.
                           </div>
                         }
-
                         {error &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
@@ -1235,7 +1191,53 @@ function App() {
                   </form>
                 </div>
               </div>
+            </div>
+          </div>
+          {/* deposit Eth */}
+          <div className='m-4'>
+            <div>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">deposit Eth</h6>
+                  <form onSubmit={handleDepositEth}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">deposit ETH to DEX</h6>
+                      </div>
+                      <input
+                        type="number"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="ETH Amount"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Deposit ETH
+                      </button>
+                      <div className="my-4 mb-2">
+                        {depositEthSuccessMsg &&
+                          <div className="alert alert-dismissible alert-success">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setDepositEthSuccessMsg(false)}></button>
+                            <strong>Success!</strong> Your deposit of {depositEthAmount} Ether was executed.
+                          </div>
+                        }
 
+                        {error &&
+                          <div className="alert alert-dismissible alert-danger">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <strong>Oh snap!</strong> and try submitting again. Token balance may be insufficient.
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1291,6 +1293,64 @@ function App() {
               </div>
               <br />
 
+            </div>
+
+            <div>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">Dex withdrawls</h6>
+                  {/* get Dex deposit Eth */}
+                  <form onSubmit={handleWithDraw}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">widthraw tokens from DEX</h6>
+                      </div>
+                      <input
+                        type="number"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Token Amount"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
+                      </div>
+                      <input
+                        type="bytes32"
+                        name="ticker"
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-info"
+                      >
+                        Withdraw Tokens
+                      </button>
+                      <div className="my-4 mb-2">
+                        {withDrawSuccessMsg &&
+                          <div className="alert alert-dismissible alert-success">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setWithDrawSuccessMsg(false)}></button>
+                            <strong>Success!</strong> Your widthrawl of {withDrawAmountInfo} tokens was executed.
+                          </div>
+                        }
+                        {error &&
+                          <div className="alert alert-dismissible alert-danger">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(false)}></button>
+                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1629,12 +1689,12 @@ function App() {
                     <button className="btn btn-outline-info" onClick={refresh}>Refresh Trades</button>
                   </footer>
                 </form>
-               
+
                 <div className="px-4 text-info">
-                    <div>
-                      Number of orders: {isOrderBookLength}
-                    </div>
+                  <div>
+                    Number of orders: {isOrderBookLength}
                   </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1642,9 +1702,9 @@ function App() {
       </div>
 
       <div className='container-6'>
-      <div className='box-1'>
+        <div className='box-1'>
           <div className='box-buy'>
-          <div className="card">
+            <div className="card">
               <div className="card-body">
                 <h6 className="card-subtitle mb-2 text-success">BUY ORDERS</h6>
                 <div className="px-4" >
@@ -1668,14 +1728,12 @@ function App() {
           </div>
         </div>
       </div>
-{/* <NameList /> */}
-      
-    </>
+      {/* <NameList /> */}
 
+    </>
 
   );
 
-
-}
+};
 
 export default App;
