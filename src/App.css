@@ -184,7 +184,8 @@ https://youtu.be/JJSoEo8JSnc
 }
 
 .active-tabs  {
-  background: white;
+  background: #1d1f21;
+  color: #636366;
   border-bottom: 1px solid transparent;
 }
 
@@ -197,7 +198,7 @@ https://youtu.be/JJSoEo8JSnc
   transform: translateX(-50%);
   width: calc(100% + 2px);
   height: 5px;
-  background: rgb(88, 147, 241);
+  background: rgb(53, 171, 235);
 }
 
 button {
@@ -208,7 +209,7 @@ button {
 }
 
 .content {
-  background: white;
+  background: #1d1f21;
   padding: 20px;
   width: 100%;
   height: 100%;
@@ -230,7 +231,6 @@ button {
   width: 100%;
   height: 100%;
 }
-
 .active-content {
   display: block;
 }

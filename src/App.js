@@ -1050,45 +1050,18 @@ function App() {
           <div className='container'>
             <div className='bloc-tabs'>
 
-              <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Tab 1</button>
-              <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Tab 2</button>
-              <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Tab 3</button>
+              <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Transfer</button>
+              <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Approve</button>
+              <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Allowance</button>
+              <button className={toggleTabState === 4 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(4)}>Tranfer From</button>
             </div>
 
             <div className='content-tabs'>
 
               <div className={toggleTabState === 1 ? 'content active-content' : "content"}>
-                <h2>Content 1</h2>
+                <h2 className='text-muted'>Transfer</h2>
                 <hr />
-                <p>some text 1</p>
-              </div>
-
-              <div className={toggleTabState === 2 ? 'content active-content' : "content"}>
-                <h2>Content 2</h2>
-                <hr />
-                <p>some text 2</p>
-              </div>
-
-              <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
-                <h2>Content 3</h2>
-                <hr />
-                <p>some text 3</p>
-              </div>
-            </div>
-
-          </div>
-
-
-
-          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Transactions | Approve DEX
-              </h3>
-              {/* transfer */}
-              <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">transfer</h6>
                   <form onSubmit={handleTransfer}>
                     <div className="my-3">
                       <div>
@@ -1140,11 +1113,11 @@ function App() {
                   </form>
                 </div>
               </div>
-              <br />
-              {/* approve */}
-              <div className="card">
+
+              <div className={toggleTabState === 2 ? 'content active-content' : "content"}>
+                <h2 className='text-muted'>Approve DEX</h2>
+                <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">approve DEX</h6>
                   <form onSubmit={handleApprove}>
                     <div className="my-3">
                       <div>
@@ -1189,24 +1162,11 @@ function App() {
                   </form>
                 </div>
               </div>
-              <br />
-            </div>
-          </div>
 
-        </div>
-
-        <div className='box-3'>
-          {/* Transactions */}
-          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Allowance | Transfer From
-              </h3>
-              <br />
-              {/* allowance */}
-              <div className="card">
+              <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
+                <h2 className='text-muted'>Allowance</h2>
+                <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">allowance</h6>
                   <form onSubmit={handleAllowance}>
                     <div className="my-3">
                       <div>
@@ -1252,9 +1212,10 @@ function App() {
                   </form>
                 </div>
               </div>
-              <br />
-              {/* transfer from */}
-              <div className="card">
+
+              <div className={toggleTabState === 4 ? 'content active-content' : "content"}>
+                <h2 className='text-muted'>Tranfer From</h2>
+                <hr />
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">transfer from</h6>
                   <form onSubmit={handleTransferFrom}>
@@ -1319,10 +1280,13 @@ function App() {
                   </form>
                 </div>
               </div>
-            </div>
-          </div>
 
+            </div>
+
+          </div>
         </div>
+
+
 
         <div className='box-4'>
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
