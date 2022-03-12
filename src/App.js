@@ -9,7 +9,7 @@ import TxList from './components/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
 import LimitOrderTxList from './components/LimitOrderTxList';
 import MarketOrderTxList from './components/MarketOrderTxList';
-//import BuyOrders from './components/BuyOrders';
+import BuyOrders from './components/BuyOrders';
 import SellOrders from './components/SellOrders';
 import ApproveList from './components/ApproveList';
 //import NameList from './components/NameList';
@@ -111,7 +111,7 @@ function App() {
   const [depositEthAmount, setDepositEthAmount] = useState("-")
 
   const [isOrderBookSellInfo, setIsOrderBookSellInfo] = useState([]);
-  //const [isOrderBookBuyInfo, setIsOrderBookBuyInfo] = useState([]);
+  const [isOrderBookBuyInfo, setIsOrderBookBuyInfo] = useState([]);
 
   //const [isOrderBookSellLength, setIsOrderBookSellLength] = useState("-");
   //const [isOrderBookBuyLength, setIsOrderBookBuyLength] = useState("-");
@@ -148,11 +148,13 @@ function App() {
       });
       setContractListened(erc20);
 
-    }
+      return () => {
+        contractListened.removeAllListeners();
+      }
 
-    return () => {
-      contractListened.removeAllListeners();
-    }
+    };
+
+
   }, [contractInfo.address]);
 
 
@@ -176,49 +178,53 @@ function App() {
       });
       setApproveContractListened(token);
 
-    }
+      return () => {
+        approveContractListened.removeAllListeners();
+      };
 
-    return () => {
-      approveContractListened.removeAllListeners();
     };
+
+
 
   }, [contractInfo.address]);
 
+  /*
+    // DEX LIMIT ORDERS TX
+    useEffect(() => {
+      if (dexContractAddress !== "-") {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const dexLimitOrder = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+        //event LimitOrder(Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
+  
+        dexLimitOrder.on("LimitOrder", (address, side, ticker, amount, price, event) => {
+          console.log({ address, side, ticker, amount, price, event });
+  
+          setLimitOrderTxs((prevOrders) => [
+            ...prevOrders,
+            {
+              txHash: event.transactionHash,
+              address,
+              side,
+              ticker: ethers.utils.toUtf8String(ticker),
+              amount: String(amount),
+              price: ethers.utils.formatEther(price)
+  
+            }
+          ]);
+  
+        });
+        setLimitOrderContractListened(dexLimitOrder);
+  
+      };
+  
+      return () => {
+        limitOrderContractListened.removeAllListeners();
+      }
+  
+    }, []);
+    */
 
-  // DEX LIMIT ORDERS TX
-  useEffect(() => {
-    if (dexContractAddress !== "-") {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const dexLimitOrder = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      //event LimitOrder(Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
-
-      dexLimitOrder.on("LimitOrder", (address, side, ticker, amount, price, event) => {
-        console.log({ address, side, ticker, amount, price, event });
-
-        setLimitOrderTxs((prevOrders) => [
-          ...prevOrders,
-          {
-            txHash: event.transactionHash,
-            address,
-            side,
-            ticker: ethers.utils.toUtf8String(ticker),
-            amount: String(amount),
-            price: ethers.utils.formatEther(price)
-
-          }
-        ]);
-
-      });
-      setLimitOrderContractListened(dexLimitOrder);
-
-    };
-
-    return () => {
-      limitOrderContractListened.removeAllListeners();
-    }
-
-  }, []);
-
+ 
   const handleLimitSellOrders = async () => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -267,6 +273,54 @@ function App() {
   ));
 
 
+  const handleLimitBuyOrders = async () => {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+
+    const orderbookSellTx = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 0);
+
+    // Sell orders
+    for (let i = 0; i < orderbookSellTx.length; i++) {
+
+      const traderOrderBookSell = orderbookSellTx[i]["trader"];
+      const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
+      const amountOrderBookSell = orderbookSellTx[i]["amount"];
+      const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
+      const filledOrderBookSell = orderbookSellTx[i]["filled"];
+      //console.log("orderbook sell:", "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
+
+      setIsOrderBookBuyInfo(prev => [
+        ...prev,
+        {
+          id: uuidv4(),
+          trader: traderOrderBookSell,
+          ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
+          amount: amountOrderBookSell.toString(),
+          price: priceOrderBookSell,
+          filled: filledOrderBookSell.toNumber()
+        }
+      ]);
+    };
+      
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
+  useEffect(() => {
+    if (isOrderBookBuyInfo.length === 0) {
+       handleLimitBuyOrders();
+    }
+     
+   }, []);
+ 
+   const buyOrderList = isOrderBookBuyInfo.map((orders) => (
+     <BuyOrders key={orders.id} orders={orders} />
+   ));
+
+
 
   // DEX MARKET ORDERS TX
   useEffect(() => {
@@ -289,14 +343,13 @@ function App() {
         ]);
       });
       setMarketOrderContractListened(dexMarketOrder);
-
+      // return function cleanup
+      return () => {
+        marketOrderContractListened.removeAllListeners();
+      }
 
     };
 
-    // return function cleanup
-    return () => {
-      marketOrderContractListened.removeAllListeners();
-    }
   }, []);
 
   //window.location.reload(false);
@@ -1888,6 +1941,7 @@ function App() {
                   </div>
                   <div>
                     {sellOrderList}
+
                   </div>
                 </div>
               </div>
@@ -1898,6 +1952,9 @@ function App() {
                   <h6 className="card-subtitle mb-2 text-info">MARKET ORDERS -- prices in ETH</h6>
                   <div className="px-4" >
                     <MarketOrderTxList marketOrderTxs={marketOrderTxs} />
+                  </div>
+                  <div>
+                    {buyOrderList}
                   </div>
                 </div>
               </div>
