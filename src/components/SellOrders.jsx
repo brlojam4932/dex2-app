@@ -15,7 +15,7 @@ function SellOrders({ orders }) {
       <div>
         <strong>Amount:</strong>{" "}{orders.amount}
       </div>
-      <div className='text-warning'>
+      <div className='text-danger'>
         <strong>Price:</strong>{" "}{orders.price}
       </div>
       <div>
