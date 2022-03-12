@@ -26,8 +26,8 @@ contract Dex is Wallet {
 
   mapping(bytes32 => mapping(uint256 => Order[])) public OrderBook;
 
-  event LimitOrder(Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
-  event MarketOrder(Side side, bytes32 indexed ticker, uint256 amount);
+  event LimitOrder(address indexed trader, Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
+  event MarketOrder(address indexed trader, Side side, bytes32 indexed ticker, uint256 amount);
 
   function getOrderBook(bytes32 ticker, Side side) public view returns(Order[] memory) {
     return OrderBook[ticker][uint(side)];
@@ -79,7 +79,7 @@ contract Dex is Wallet {
       }
       nextOrderId++;
 
-      emit LimitOrder(side, ticker, amount, price);
+      emit LimitOrder(msg.sender, side, ticker, amount, price);
       
   }
 
@@ -161,7 +161,7 @@ contract Dex is Wallet {
 
     }
 
-    emit MarketOrder(side, ticker, amount);
+    emit MarketOrder(msg.sender, side, ticker, amount);
 
   }
 

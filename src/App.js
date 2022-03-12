@@ -7,8 +7,10 @@ import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
-import BuyOrders from './components/BuyOrders';
-import SellOrders from './components/SellOrders';
+import LimitOrderTxList from './components/LimitOrderTxList';
+import MarketOrderTxList from './components/MarketOrderTxList';
+//import BuyOrders from './components/BuyOrders';
+//import SellOrders from './components/SellOrders';
 import ApproveList from './components/ApproveList';
 //import NameList from './components/NameList';
 
@@ -34,7 +36,13 @@ const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 function App() {
 
   const [txs, setTxs] = useState([]);
+  const [limitOrderTxs, setLimitOrderTxs] = useState([]);
+  const [marketOrderTxs, setMarketOrderTxs] = useState([]);
+  //const [isSide, setIsSide] = useState();
+
   const [contractListened, setContractListened] = useState();
+  const [limitOrderContractListened, setLimitOrderContractListened] = useState();
+  const [marketOrderContractListened,setMarketOrderContractListened] = useState();
 
   const [approveTx, setApproveTx] = useState([]);
   const [approveContractListened, setApproveContractListened] = useState();
@@ -102,15 +110,17 @@ function App() {
   const [depositEthSuccessMsg, setDepositEthSuccessMsg] = useState(false);
   const [depositEthAmount, setDepositEthAmount] = useState("-")
 
-  const [isOrderBookSellInfo, setIsOrderBookSellInfo] = useState([]);
-  const [isOrderBookBuyInfo, setIsOrderBookBuyInfo] = useState([]);
+  //const [isOrderBookSellInfo, setIsOrderBookSellInfo] = useState([]);
+  //const [isOrderBookBuyInfo, setIsOrderBookBuyInfo] = useState([]);
 
-  const [isOrderBookLength, setIsOrderBookLength] = useState("-");
+  //const [isOrderBookSellLength, setIsOrderBookSellLength] = useState("-");
+  //const [isOrderBookBuyLength, setIsOrderBookBuyLength] = useState("-");
   const [listOfTokens, setListOfTokens] = useState([])
 
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
-  // token events
+
+  // TOKEN EVENTS
   useEffect(() => {
     if (contractInfo.address !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -123,11 +133,11 @@ function App() {
       //event Transfer(address indexed from, address indexed to, uint256 value);
 
       erc20.on("Transfer", (from, to, amount, event) => {
-        event.removeListener(); // Solve memory leak with this.
+        //event.removeListener(); // Solve memory leak with this.
         console.log({ from, to, amount, event });
         // the transaction result gets copied over to a state
-        setTxs(prev => [
-          ...prev,
+        setTxs((prevTx) => [
+          ...prevTx,
           {
             txHash: event.transactionHash,
             from,
@@ -137,12 +147,16 @@ function App() {
         ]);
       });
       setContractListened(erc20);
-      console.log(contractListened)
+      
+    }
+
+    return () => {
+      contractListened.removeAllListeners();
     }
   }, [contractInfo.address]);
 
 
-  // approve events
+  // APPROVE EVENTS
   useEffect(() => {
     if (contractInfo.address !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -162,17 +176,90 @@ function App() {
       });
       setApproveContractListened(token);
 
-      return () => {
-        approveContractListened.removeAllListeners();
-      };
     }
+
+    return () => {
+      approveContractListened.removeAllListeners();
+    };
 
   }, [contractInfo.address]);
 
 
-  const refresh = () => {
+     // DEX LIMIT ORDERS TX
+     useEffect(() => {
+      if (dexContractAddress !== "-") {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const dexLimitOrder = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+        //event LimitOrder(Side side, bytes32 indexed ticker, uint256 amount, uint256 price);
+  
+        dexLimitOrder.on("LimitOrder", (address, side, ticker, amount, price, event) => {
+          console.log({address, side, ticker, amount, price, event });
+  
+          setLimitOrderTxs((prevOrders) => [
+            ...prevOrders,
+            {
+              txHash: event.transactionHash,
+              address,
+              side,
+              ticker: ethers.utils.toUtf8String(ticker),
+              amount: String(amount),
+              price: ethers.utils.formatEther(price)
+             
+            }
+          ]);
+          
+        });
+        setLimitOrderContractListened(dexLimitOrder);
+  
+      };
+  
+      return () => {
+        limitOrderContractListened.removeAllListeners();
+      }
+      
+    }, []);
+
+
+
+  // DEX MARKET ORDERS TX
+  useEffect(() => {
+    if (dexContractAddress !== "-") {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const dexMarketOrder = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+
+      dexMarketOrder.on("MarketOrder", (address, side, ticker, amount, event) => {
+        console.log({address, side, ticker, amount, event });
+
+        setMarketOrderTxs((currentMarketOrderTxs) => [
+          ...currentMarketOrderTxs,
+          {
+            txHash: event.transactionHash,
+            address,
+            side,
+            ticker: ethers.utils.toUtf8String(ticker),
+            amount: String(amount),
+          }
+        ]);
+      });
+      setMarketOrderContractListened(dexMarketOrder);
+
+    
+    };
+
+      // return function cleanup
+      return () => {
+        marketOrderContractListened.removeAllListeners();
+      }
+  }, []);
+
+  //window.location.reload(false);
+
+  const refresh = (e) => {
+    e.preventDefault();
     window.location.reload();
+    //e.preventDefault();
   }
+
 
 
   // Get token info: name, symbol and totalSupply
@@ -326,7 +413,6 @@ function App() {
   };
 
 
-
   const handleLimitOrderBuy = async (e) => {
     e.preventDefault();
     try {
@@ -470,7 +556,7 @@ function App() {
   // check order book, SELL side, before trade
   //const orderbookBefore = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1)
   //console.log("Orderbook length, SELL, Before: ", orderbookBefore.length); 
-
+/*
   const handleGetOrderBook = async (e) => {
     e.preventDefault();
     try {
@@ -485,22 +571,18 @@ function App() {
       // Sell orders
       for (let i = 0; i < orderbookSellTx.length; i++) {
 
-        //const idOrderBookSell = orderbookSellTx[i]["id"];
         const traderOrderBookSell = orderbookSellTx[i]["trader"];
-        //const sideOrderBookSell = orderbookSellTx[i]["side"];
         const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
         const amountOrderBookSell = orderbookSellTx[i]["amount"];
         const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
         const filledOrderBookSell = orderbookSellTx[i]["filled"];
-        //console.log("Id:", idOrderBookSell.toNumber(), "Side:", sideOrderBookSell, "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
+        console.log("orderbook sell:", "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
 
         setIsOrderBookSellInfo(prev => [
           ...prev,
           {
-            //id: idOrderBookSell.toNumber(),
             id: uuidv4(),
             trader: traderOrderBookSell,
-            //side: sideOrderBookSell,
             ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
             amount: amountOrderBookSell.toString(),
             price: priceOrderBookSell,
@@ -513,9 +595,7 @@ function App() {
       // Buy orders
       for (let i = 0; orderbookBuyTx.length; i++) {
 
-        //const idOrderBookBuy = orderbookBuyTx[i]["id"];
         const traderOrderBookBuy = orderbookBuyTx[i]["trader"];
-        //const sideOrderBookBuy = orderbookBuyTx[i]["side"];
         const tickerOrderBookBuy = orderbookBuyTx[i]["ticker"];
         const amountOrderBookBuy = orderbookBuyTx[i]["amount"];
         const priceOrderBookBuy = ethers.utils.formatEther(orderbookBuyTx[i]["price"]);
@@ -524,10 +604,8 @@ function App() {
         setIsOrderBookBuyInfo(prev => [
           ...prev,
           {
-            //id: idOrderBookBuy.toNumber(),
             id: uuidv4(),
             trader: traderOrderBookBuy,
-            //side: sideOrderBookBuy,
             ticker: ethers.utils.parseBytes32String(tickerOrderBookBuy),
             amount: amountOrderBookBuy.toString(),
             price: priceOrderBookBuy,
@@ -538,16 +616,19 @@ function App() {
       };
 
 
-      setIsOrderBookLength(orderbookSellTx.length);
+      setIsOrderBookSellLength(orderbookSellTx.length);
       console.log("limit order SELL length: ", orderbookSellTx.length);
       console.log("limit order SELL filled: ", orderbookSellTx[0].filled.toString());
+      //console.log("limit order SELL filled: ", orderbookSellTx[0].leftToFill.toString());
       //console.log(String(orderbookSellTx));
 
-      //window.location.reload();
+      setIsOrderBookBuyLength(orderbookBuyTx.length);
+      console.log("limit order Buy length: ", orderbookBuyTx.length);
+      console.log("limit order Buy filled: ", orderbookBuyTx[0].filled.toString());
 
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...orderbook may be empty");
+      //if (error) return alert("error...orderbook may be empty");
     };
 
   };
@@ -560,6 +641,8 @@ function App() {
   const buyOrderList = isOrderBookBuyInfo.map((orders) => (
     <BuyOrders key={orders.id} orders={orders} />
   ));
+
+  */
 
 
   /////////////// TOKEN //////////////////
@@ -1207,7 +1290,7 @@ function App() {
                         {errorDexDeposit &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexDeposit(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Must be an ERC20 token.
+                            <strong>Oh snap!</strong> and try submitting again. Must be an ERC20 token or check allowance.
                           </div>
                         }
                       </div>
@@ -1396,7 +1479,7 @@ function App() {
                   <form onSubmit={handleLimitOrderSell}>
                     <div className="my-3">
                       <div>
-                        <h6 className="card-subtitle mb-2 text-muted">ticker example: BTC </h6>
+                        <h6 className="card-subtitle mb-2 text-muted">ticker example: LINK, ETH, etc </h6>
                       </div>
                       <input
                         type="text"
@@ -1426,7 +1509,7 @@ function App() {
                         type="text"
                         name="price"
                         className="input p-1"
-                        placeholder="Token Price"
+                        placeholder="Token Price in ETH"
                         style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
                       />
                     </div>
@@ -1475,7 +1558,7 @@ function App() {
                   <form onSubmit={handleLimitOrderBuy}>
                     <div className="my-3">
                       <div>
-                        <h6 className="card-subtitle mb-2 text-muted">ticker example: BTC </h6>
+                        <h6 className="card-subtitle mb-2 text-muted">ticker example: LINK, ETH, etc </h6>
                       </div>
                       <input
                         type="text"
@@ -1553,7 +1636,7 @@ function App() {
                   <form onSubmit={handleMarketOrderSell}>
                     <div className="my-3">
                       <div>
-                        <h6 className="card-subtitle mb-2 text-muted">ticker example: BTC</h6>
+                        <h6 className="card-subtitle mb-2 text-muted">ticker example: LINK, ETH, etc</h6>
                       </div>
                       <input
                         type="text"
@@ -1621,7 +1704,7 @@ function App() {
                   <form onSubmit={handleMarketOrderBuy}>
                     <div className="my-3">
                       <div>
-                        <h6 className="card-subtitle mb-2 text-muted">ticker example: BTC</h6>
+                        <h6 className="card-subtitle mb-2 text-muted">ticker example: LINK, ETH, etc</h6>
                       </div>
                       <input
                         type="text"
@@ -1661,7 +1744,7 @@ function App() {
                         {errorMarketBuy &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorMarketBuy(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
+                            <strong>Oh snap!</strong> and try submitting again. Your ETH balance may be insufficient.
                           </div>
                         }
                       </div>
@@ -1675,7 +1758,7 @@ function App() {
           </div>
         </div>
       </div>
-      {/* order transaction receipts */}
+      {/* transaction receipts */}
       <div className='container-5'>
         <div className='box-1'>
           <div>
@@ -1684,7 +1767,7 @@ function App() {
                 <h1 className="text-xl font-semibold text-info text-left">
                   Orderbook
                 </h1>
-                <p><small className="text-muted">Read from a smart contract, approve, transfer, transfer from and recieve transaction messages from the blockchain.</small> </p>
+                <p><small className="text-muted">Import ERC20 tokens and trade.</small> </p>
                 <br />
               </main>
             </div>
@@ -1699,8 +1782,8 @@ function App() {
               <div className="card">
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">get orderbook</h6>
-                  {/* get Dex order book sell */}
-                  <form onSubmit={handleGetOrderBook}>
+                  {/* get Dex order book sell 
+                   <form onSubmit={handleGetOrderBook}>
                     <div className="my-3">
                       <div>
                         <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
@@ -1725,11 +1808,20 @@ function App() {
                     </footer>
                   </form>
 
-                  <div className="px-4 text-info">
+                     <div className="px-4 text-info">
                     <div>
-                      Number of orders: {isOrderBookLength}
+                      Number of Sell orders: {isOrderBookSellLength}
                     </div>
                   </div>
+
+                  <div className="px-4 text-info">
+                    <div>
+                      Number of Buy orders: {isOrderBookBuyLength}
+                    </div>
+                  </div>
+                  */}
+              
+
                 </div>
               </div>
 
@@ -1741,10 +1833,11 @@ function App() {
           <div className='m-4'>
           <div className='box-sell'>
               <div className="card">
+              <button className="btn btn-outline-info" onClick={refresh}>Refresh Trades</button>
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-warning">SELL ORDERS</h6>
+                  <h6 className="card-subtitle mb-2 text-info">LIMIT ORDERS -- prices in ETH </h6>
                   <div className="px-4">
-                    {sellOrderList}
+                  <LimitOrderTxList limitOrderTxs={limitOrderTxs} />
                   </div>
                 </div>
               </div>
@@ -1752,17 +1845,15 @@ function App() {
             <div className='box-buy'>
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-success">BUY ORDERS</h6>
+                  <h6 className="card-subtitle mb-2 text-info">MARKET ORDERS -- prices in ETH</h6>
                   <div className="px-4" >
-                    {buyOrderList}
+                  <MarketOrderTxList marketOrderTxs={marketOrderTxs} />
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-   
       </div>
 
       {/* <NameList /> */}
