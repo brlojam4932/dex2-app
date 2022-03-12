@@ -1,11 +1,22 @@
 import React from 'react';
 //import { useEffect } from "react";
 
-function limitOrderTxList({ limitOrderTxs}) {
+function limitOrderTxList({ limitOrderTxs }) {
 
   if (limitOrderTxs.length === 0) return null;
 
+  const [isSide, setIsSide] = (false);
   const side2 = limitOrderTxs[0].side;
+  const sideFunction = () => {
+    for (let i = 0; i < side2.length; i++) {
+      if (side2.side === 0) {
+        setIsSide(false);
+      }
+      setIsSide(true);
+    }
+  }
+  sideFunction();
+
   return (
     <>
       {limitOrderTxs.map((orders, index) => (
@@ -23,17 +34,14 @@ function limitOrderTxList({ limitOrderTxs}) {
             <strong>Amount:</strong>{" "}{orders.amount}
           </div>
           <div>
-            <strong>Price:</strong>{" "}{side2 ? 
-            (<p className='text-danger'>{orders.price}</p>) 
-            : 
-            (<p className='text-success'>{orders.price}</p>) }
+            <strong>Price:</strong>{" "}{isSide ?
+              (<p className='text-danger'>{orders.price}</p>)
+              :
+              (<p className='text-success'>{orders.price}</p>)}
           </div>
         </div>
       ))}
-     
-      
-              
-    
+
     </>
 
   )

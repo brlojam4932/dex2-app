@@ -41,7 +41,8 @@ function App() {
   //const [isSide, setIsSide] = useState();
 
   const [contractListened, setContractListened] = useState();
-  const [limitOrderContractListened, setLimitOrderContractListened] = useState();
+  //const [limitOrderContractListened, setLimitOrderContractListened] = useState();
+  const [limitOrdersListen, setLitmitOrdersListen] = useState();
   const [marketOrderContractListened, setMarketOrderContractListened] = useState();
 
   const [approveTx, setApproveTx] = useState([]);
@@ -115,20 +116,25 @@ function App() {
 
   //const [isOrderBookSellLength, setIsOrderBookSellLength] = useState("-");
   //const [isOrderBookBuyLength, setIsOrderBookBuyLength] = useState("-");
-  const [listOfTokens, setListOfTokens] = useState([])
+  const [listOfTokens, setListOfTokens] = useState([]);
+
+  //tabs
+  const [toggleTabState, setToggleTabState] = useState(1);
+
+  const toggleTabs = (index) => {
+    setToggleTabState(index);
+  }
 
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
+
+  // ethers js /// provider is read only; signer is write to contract
 
   // TOKEN EVENTS
   useEffect(() => {
     if (contractInfo.address !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const erc20 = new ethers.Contract(
-        contractInfo.address,
-        RealToken.abi,
-        provider
-      );
+      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
 
       //event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -153,7 +159,6 @@ function App() {
       }
 
     };
-
 
   }, [contractInfo.address]);
 
@@ -183,8 +188,6 @@ function App() {
       };
 
     };
-
-
 
   }, [contractInfo.address]);
 
@@ -224,48 +227,96 @@ function App() {
     }, []);
     */
 
- 
+
+  // ORDER BOOK LIMIT SELL ORDERS
   const handleLimitSellOrders = async () => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
 
-    const orderbookSellTx = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
+      const orderbookSellTx = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
 
-    // Sell orders
-    for (let i = 0; i < orderbookSellTx.length; i++) {
+      // Sell orders
+      for (let i = 0; i < orderbookSellTx.length; i++) {
 
-      const traderOrderBookSell = orderbookSellTx[i]["trader"];
-      const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
-      const amountOrderBookSell = orderbookSellTx[i]["amount"];
-      const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
-      const filledOrderBookSell = orderbookSellTx[i]["filled"];
-      console.log("orderbook sell:", "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
+        const traderOrderBookSell = orderbookSellTx[i]["trader"];
+        const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
+        const amountOrderBookSell = orderbookSellTx[i]["amount"];
+        const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
+        const filledOrderBookSell = orderbookSellTx[i]["filled"];
+        console.log("orderbook sell:", "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
 
-      setIsOrderBookSellInfo(prev => [
-        ...prev,
-        {
-          id: uuidv4(),
-          trader: traderOrderBookSell,
-          ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
-          amount: amountOrderBookSell.toString(),
-          price: priceOrderBookSell,
-          filled: filledOrderBookSell.toNumber()
-        }
-      ]);
-    };
-      
+        setIsOrderBookSellInfo(prev => [
+          ...prev,
+          {
+            id: uuidv4(),
+            trader: traderOrderBookSell,
+            ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
+            amount: amountOrderBookSell.toString(),
+            price: priceOrderBookSell,
+            filled: filledOrderBookSell.toNumber()
+          }
+        ]);
+        setLitmitOrdersListen(dex);
+      };
+
+      //console.log(limitOrdersListen);
+
     } catch (error) {
-      console.log(error);
+      console.log("error..limitOrders:", error);
+    }
+  };
+
+  /*
+  useEffect(() => {
+    if (isOrderBookSellInfo.length === 0) {
+      handleLimitSellOrders();  
     }
 
-  }
+  }, []);
+  */
+
+
 
   useEffect(() => {
-   if (isOrderBookSellInfo.length === 0) {
+    if (dexContractAddress !== "-") {
+      const handleLimitSellOrders = async () => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+
+        const orderbookSellTx = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
+
+        // Sell orders
+        for (let i = 0; i < orderbookSellTx.length; i++) {
+
+          const traderOrderBookSell = orderbookSellTx[i]["trader"];
+          const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
+          const amountOrderBookSell = orderbookSellTx[i]["amount"];
+          const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
+          const filledOrderBookSell = orderbookSellTx[i]["filled"];
+          console.log("orderbook sell:", "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
+
+          setIsOrderBookSellInfo(prev => [
+            ...prev,
+            {
+              id: uuidv4(),
+              trader: traderOrderBookSell,
+              ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
+              amount: amountOrderBookSell.toString(),
+              price: priceOrderBookSell,
+              filled: filledOrderBookSell.toNumber()
+            }
+          ]);
+          setLitmitOrdersListen(dex);
+        };
+        return () => {
+          limitOrdersListen.removeAllListeners();
+        }
+      };
       handleLimitSellOrders();
-   }
-    
+
+    }
+
   }, []);
 
   const sellOrderList = isOrderBookSellInfo.map((orders) => (
@@ -273,52 +324,55 @@ function App() {
   ));
 
 
+  // ORDER BOOK BUY ORDERS
   const handleLimitBuyOrders = async () => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
+      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
 
-    const orderbookSellTx = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 0);
+      const orderbookBuyTx = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 0);
 
-    // Sell orders
-    for (let i = 0; i < orderbookSellTx.length; i++) {
+      // Sell orders
+      for (let i = 0; i < orderbookBuyTx.length; i++) {
 
-      const traderOrderBookSell = orderbookSellTx[i]["trader"];
-      const tickerOrderBookSell = orderbookSellTx[i]["ticker"];
-      const amountOrderBookSell = orderbookSellTx[i]["amount"];
-      const priceOrderBookSell = ethers.utils.formatEther(orderbookSellTx[i]["price"]);
-      const filledOrderBookSell = orderbookSellTx[i]["filled"];
-      //console.log("orderbook sell:", "Trader:", traderOrderBookSell, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookSell), "Amount:", amountOrderBookSell.toString(), "Price:", priceOrderBookSell, "Filled:", filledOrderBookSell.toNumber());
+        const traderOrderBookBuy = orderbookBuyTx[i]["trader"];
+        const tickerOrderBookBuy = orderbookBuyTx[i]["ticker"];
+        const amountOrderBookBuy = orderbookBuyTx[i]["amount"];
+        const priceOrderBookBuy = ethers.utils.formatEther(orderbookBuyTx[i]["price"]);
+        const filledOrderBookBuy = orderbookBuyTx[i]["filled"];
+        //console.log("orderbook Buy:", "Trader:", traderOrderBookBuy, "Symbol:", ethers.utils.parseBytes32String(tickerOrderBookBuy), "Amount:", amountOrderBookBuy.toString(), "Price:", priceOrderBookBuy, "Filled:", filledOrderBookBuy.toNumber());
 
-      setIsOrderBookBuyInfo(prev => [
-        ...prev,
-        {
-          id: uuidv4(),
-          trader: traderOrderBookSell,
-          ticker: ethers.utils.parseBytes32String(tickerOrderBookSell),
-          amount: amountOrderBookSell.toString(),
-          price: priceOrderBookSell,
-          filled: filledOrderBookSell.toNumber()
-        }
-      ]);
-    };
-      
+        setIsOrderBookBuyInfo(prevBuy => [
+          ...prevBuy,
+          {
+            id: uuidv4(),
+            trader: traderOrderBookBuy,
+            ticker: ethers.utils.parseBytes32String(tickerOrderBookBuy),
+            amount: amountOrderBookBuy.toString(),
+            price: priceOrderBookBuy,
+            filled: filledOrderBookBuy.toNumber()
+          }
+        ]);
+      };
+
     } catch (error) {
       console.log(error);
     }
 
-  }
+  };
+
 
   useEffect(() => {
     if (isOrderBookBuyInfo.length === 0) {
-       handleLimitBuyOrders();
+      handleLimitBuyOrders();
     }
-     
-   }, []);
- 
-   const buyOrderList = isOrderBookBuyInfo.map((orders) => (
-     <BuyOrders key={orders.id} orders={orders} />
-   ));
+
+  }, []);
+
+
+  const buyOrderList = isOrderBookBuyInfo.map((orders) => (
+    <BuyOrders key={orders.id} orders={orders} />
+  ));
 
 
 
@@ -352,12 +406,11 @@ function App() {
 
   }, []);
 
-  //window.location.reload(false);
 
   const refresh = (e) => {
     e.preventDefault();
     window.location.reload();
-    //e.preventDefault();
+
   }
 
 
@@ -993,6 +1046,40 @@ function App() {
         </div>
         <div className='box-2'>
           {/* Transactions */}
+
+          <div className='container'>
+            <div className='bloc-tabs'>
+
+              <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Tab 1</button>
+              <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Tab 2</button>
+              <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Tab 3</button>
+            </div>
+
+            <div className='content-tabs'>
+
+              <div className={toggleTabState === 1 ? 'content active-content' : "content"}>
+                <h2>Content 1</h2>
+                <hr />
+                <p>some text 1</p>
+              </div>
+
+              <div className={toggleTabState === 2 ? 'content active-content' : "content"}>
+                <h2>Content 2</h2>
+                <hr />
+                <p>some text 2</p>
+              </div>
+
+              <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
+                <h2>Content 3</h2>
+                <hr />
+                <p>some text 3</p>
+              </div>
+            </div>
+
+          </div>
+
+
+
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
