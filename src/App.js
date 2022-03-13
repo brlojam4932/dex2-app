@@ -109,7 +109,7 @@ function App() {
   const [addTokenSuccessMsg, setAddTokenSuccessMsg] = useState(false);
   const [depositSuccessMsg, setDepositSuccessMsg] = useState(false);
   const [depositEthSuccessMsg, setDepositEthSuccessMsg] = useState(false);
-  const [depositEthAmount, setDepositEthAmount] = useState("-")
+  const [depositEthAmount, setDepositEthAmount] = useState("-");
 
   const [isOrderBookSellInfo, setIsOrderBookSellInfo] = useState([]);
   const [isOrderBookBuyInfo, setIsOrderBookBuyInfo] = useState([]);
@@ -121,6 +121,7 @@ function App() {
   //tabs
   const [toggleTabState, setToggleTabState] = useState(1);
   const [toggleTabState2, setToggleTabState2] = useState(5);
+  const [toggleTabState3, setToggleTabState3] = useState(9);
 
   const toggleTabs = (index) => {
     setToggleTabState(index);
@@ -128,7 +129,11 @@ function App() {
 
   const toggleTabs2 = (index) => {
     setToggleTabState2(index);
-  }
+  };
+
+  const toggleTabs3 = (index) => {
+    setToggleTabState3(index);
+  };
 
 
   //const [dexContractAddress, setDexContractAddress] = useState("-");
@@ -1049,13 +1054,11 @@ function App() {
             </div>
           </form>
         </div>
-         {/* Token Tabs */}
+        {/* Token Tabs */}
         <div className='box-2'>
           {/* Transactions */}
-
           <div className='container'>
             <div className='bloc-tabs'>
-
               <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Transfer</button>
               <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Approve</button>
               <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Allowance</button>
@@ -1063,7 +1066,6 @@ function App() {
             </div>
 
             <div className='content-tabs'>
-
               <div className={toggleTabState === 1 ? 'content active-content' : "content"}>
                 <h3 className='text-muted'>Transfer</h3>
                 <hr />
@@ -1292,7 +1294,7 @@ function App() {
           </div>
         </div>
 
-         {/* Token Tx */}
+        {/* Token Tx */}
         <div className='box-4'>
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
@@ -1328,9 +1330,8 @@ function App() {
       <div className='container-3'>
         {/* add tokens */}
         <div className='box-1'>
-        <div className='container'>
+          <div className='container'>
             <div className='bloc-tabs'>
-
               <button className={toggleTabState2 === 5 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(5)}>Add Tokens</button>
               <button className={toggleTabState2 === 6 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(6)}>Dex deposits</button>
               <button className={toggleTabState2 === 7 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(7)}>Deposit ETH</button>
@@ -1338,7 +1339,6 @@ function App() {
             </div>
 
             <div className='content-tabs'>
-
               <div className={toggleTabState2 === 5 ? 'content active-content' : "content"}>
                 <h3 className='text-muted'>Add tokens to trade</h3>
                 <hr />
@@ -1383,7 +1383,7 @@ function App() {
                     </footer>
                   </form>
                 </div>
- 
+
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">list tokens</h6>
                   {/* get Dex add token */}
@@ -1502,7 +1502,7 @@ function App() {
                     </footer>
                   </form>
                 </div>
-           
+
               </div>
 
               <div className={toggleTabState2 === 8 ? 'content active-content' : "content"}>
@@ -1559,15 +1559,13 @@ function App() {
                     </footer>
                   </form>
                 </div>
-             
+
               </div>
 
             </div>
 
           </div>
 
-     
-         
         </div>
         {/* get Dex balances */}
         <div className='box-3'>
@@ -1625,7 +1623,7 @@ function App() {
 
             <div>
               <div className="card">
-              
+
               </div>
             </div>
           </div>
@@ -1635,15 +1633,19 @@ function App() {
       <div className='container-4'>
         {/* limit orders sell */}
         <div className='box-1'>
-          <div>
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Limit SELL
-              </h3>
-              {/* Limit sell Orders */}
-              <div className="card">
+          <div className='container'>
+            <div className='bloc-tabs'>
+              <button className={toggleTabState3 === 9 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs3(9)}>Limit Sell</button>
+              <button className={toggleTabState3 === 10 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs3(10)}>Limit Buy</button>
+              <button className={toggleTabState3 === 11 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs3(11)}>Market Sell</button>
+              <button className={toggleTabState3 === 12 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs3(12)}>Market Buy</button>
+            </div>
+
+            <div className='content-tabs'>
+              <div className={toggleTabState3 === 9 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Limit SELL Orders</h3>
+                <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">Limit SELL Order</h6>
                   {/* handle submit limt order */}
                   <form onSubmit={handleLimitOrderSell}>
                     <div className="my-3">
@@ -1707,22 +1709,13 @@ function App() {
                     </footer>
                   </form>
                 </div>
+
               </div>
-              <br />
-            </div>
-          </div>
-        </div>
-        {/* limit orders buy */}
-        <div className='box-2'>
-          <div>
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Limit BUY
-              </h3>
-              {/* Limit BUY Orders */}
-              <div className="card">
+
+              <div className={toggleTabState3 === 10 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Limit BUY Orders</h3>
+                <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">Limit BUY Order</h6>
                   {/* handle submit limt order */}
                   <form onSubmit={handleLimitOrderBuy}>
                     <div className="my-3">
@@ -1786,22 +1779,13 @@ function App() {
                     </footer>
                   </form>
                 </div>
+
               </div>
-              <br />
-            </div>
-          </div>
-        </div>
-        {/* market orders sell */}
-        <div className='box-3'>
-          <div>
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Market SELL
-              </h3>
-              {/* Market Orders */}
-              <div className="card">
+
+              <div className={toggleTabState3 === 11 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Market SELL Orders</h3>
+                <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">Market SELL Order</h6>
                   <form onSubmit={handleMarketOrderSell}>
                     <div className="my-3">
                       <div>
@@ -1852,23 +1836,13 @@ function App() {
                     </footer>
                   </form>
                 </div>
-              </div>
-              <br />
 
-            </div>
-          </div>
-        </div>
-        {/* market orders buy */}
-        <div className='box-4'>
-          <div>
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Market BUY
-              </h3>
-              {/* Market Orders */}
-              <div className="card">
+              </div>
+
+              <div className={toggleTabState3 === 12 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Market BUY Order</h3>
+                <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">Market BUY Order</h6>
                   {/* handle submit limt order */}
                   <form onSubmit={handleMarketOrderBuy}>
                     <div className="my-3">
@@ -1920,12 +1894,14 @@ function App() {
                     </footer>
                   </form>
                 </div>
-              </div>
-              <br />
 
+              </div>
             </div>
           </div>
         </div>
+
+
+
       </div>
       {/* transaction receipts */}
       <div className='container-5'>
