@@ -120,9 +120,14 @@ function App() {
 
   //tabs
   const [toggleTabState, setToggleTabState] = useState(1);
+  const [toggleTabState2, setToggleTabState2] = useState(5);
 
   const toggleTabs = (index) => {
     setToggleTabState(index);
+  };
+
+  const toggleTabs2 = (index) => {
+    setToggleTabState2(index);
   }
 
 
@@ -1044,6 +1049,7 @@ function App() {
             </div>
           </form>
         </div>
+         {/* Token Tabs */}
         <div className='box-2'>
           {/* Transactions */}
 
@@ -1059,7 +1065,7 @@ function App() {
             <div className='content-tabs'>
 
               <div className={toggleTabState === 1 ? 'content active-content' : "content"}>
-                <h2 className='text-muted'>Transfer</h2>
+                <h3 className='text-muted'>Transfer</h3>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleTransfer}>
@@ -1115,7 +1121,7 @@ function App() {
               </div>
 
               <div className={toggleTabState === 2 ? 'content active-content' : "content"}>
-                <h2 className='text-muted'>Approve DEX</h2>
+                <h3 className='text-muted'>Approve DEX</h3>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleApprove}>
@@ -1164,7 +1170,7 @@ function App() {
               </div>
 
               <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
-                <h2 className='text-muted'>Allowance</h2>
+                <h3 className='text-muted'>Allowance</h3>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleAllowance}>
@@ -1214,7 +1220,7 @@ function App() {
               </div>
 
               <div className={toggleTabState === 4 ? 'content active-content' : "content"}>
-                <h2 className='text-muted'>Tranfer From</h2>
+                <h3 className='text-muted'>Tranfer From</h3>
                 <hr />
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">transfer from</h6>
@@ -1286,8 +1292,7 @@ function App() {
           </div>
         </div>
 
-
-
+         {/* Token Tx */}
         <div className='box-4'>
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
@@ -1301,6 +1306,7 @@ function App() {
           </div>
         </div>
       </div>
+
       {/* DEX Wallet Header */}
       <div className='container-2'>
         <div className='box-1'>
@@ -1322,11 +1328,21 @@ function App() {
       <div className='container-3'>
         {/* add tokens */}
         <div className='box-1'>
-          <div className="m-4">
-            <div>
-              <div className="card">
+        <div className='container'>
+            <div className='bloc-tabs'>
+
+              <button className={toggleTabState2 === 5 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(5)}>Add Tokens</button>
+              <button className={toggleTabState2 === 6 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(6)}>Dex deposits</button>
+              <button className={toggleTabState2 === 7 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(7)}>Deposit ETH</button>
+              <button className={toggleTabState2 === 8 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(8)}>Withdraw</button>
+            </div>
+
+            <div className='content-tabs'>
+
+              <div className={toggleTabState2 === 5 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Add tokens to trade</h3>
+                <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">add tokens</h6>
                   {/* get Dex add token */}
                   <form onSubmit={handleAddToken}>
                     <div className="my-3">
@@ -1367,9 +1383,7 @@ function App() {
                     </footer>
                   </form>
                 </div>
-              </div>
-
-              <div className="card">
+ 
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">list tokens</h6>
                   {/* get Dex add token */}
@@ -1388,14 +1402,10 @@ function App() {
                   </form>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        {/* Dex deposits */}
-        <div className='box-2'>
-          <div className='m-4'>
-            <div>
-              <div className="card">
+
+              <div className={toggleTabState2 === 6 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Deposit tokens to DEX</h3>
+                <hr />
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">dex deposits</h6>
                   {/* get Dex token deposits */}
@@ -1449,14 +1459,11 @@ function App() {
                   </form>
                 </div>
               </div>
-            </div>
-          </div>
-          {/* deposit Eth */}
-          <div className='m-4'>
-            <div>
-              <div className="card">
+
+              <div className={toggleTabState2 === 7 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Deposit ETH</h3>
+                <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">deposit Eth</h6>
                   <form onSubmit={handleDepositEth}>
                     <div className="my-3">
                       <div>
@@ -1495,9 +1502,72 @@ function App() {
                     </footer>
                   </form>
                 </div>
+           
               </div>
+
+              <div className={toggleTabState2 === 8 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Withdraw from DEX</h3>
+                <hr />
+                <div className="card-body">
+                  <form onSubmit={handleWithDraw}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">widthraw tokens from DEX</h6>
+                      </div>
+                      <input
+                        type="number"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Token Amount"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
+                      </div>
+                      <input
+                        type="bytes32"
+                        name="ticker"
+                        className="input p-1"
+                        placeholder="Token Symbol"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-warning"
+                      >
+                        Withdraw Tokens
+                      </button>
+                      <div className="my-4 mb-2">
+                        {withDrawSuccessMsg &&
+                          <div className="alert alert-dismissible alert-success">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setWithDrawSuccessMsg(false)}></button>
+                            <strong>Success!</strong> Your widthrawl of {withDrawAmountInfo} tokens was executed.
+                          </div>
+                        }
+                        {errorDexWithdraw &&
+                          <div className="alert alert-dismissible alert-danger">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexWithdraw(false)}></button>
+                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+             
+              </div>
+
             </div>
+
           </div>
+
+     
+         
         </div>
         {/* get Dex balances */}
         <div className='box-3'>
@@ -1555,59 +1625,7 @@ function App() {
 
             <div>
               <div className="card">
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">Dex withdrawls</h6>
-                  {/* get Dex deposit Eth */}
-                  <form onSubmit={handleWithDraw}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">widthraw tokens from DEX</h6>
-                      </div>
-                      <input
-                        type="number"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="Token Amount"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="bytes32"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-warning"
-                      >
-                        Withdraw Tokens
-                      </button>
-                      <div className="my-4 mb-2">
-                        {withDrawSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setWithDrawSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your widthrawl of {withDrawAmountInfo} tokens was executed.
-                          </div>
-                        }
-                        {errorDexWithdraw &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexWithdraw(false)}></button>
-                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
+              
               </div>
             </div>
           </div>
