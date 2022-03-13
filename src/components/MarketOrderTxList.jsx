@@ -4,6 +4,20 @@ function MarketOrderTxList({ marketOrderTxs }) {
 
   if (marketOrderTxs.length === 0) return null;
 
+  //const [isSide, setIsSide] = (1);
+
+  const side2 = marketOrderTxs[0].side;
+  
+  /*
+  const sideFunction = () => {
+    if (side2.side !== 0) {
+      console.log("side2:", side2);
+    }
+    setIsSide(1);
+  }
+  sideFunction();
+*/
+
   return (
     <>
       {marketOrderTxs.map((orders, index) => (
@@ -17,8 +31,11 @@ function MarketOrderTxList({ marketOrderTxs }) {
           <div>
             <strong>Ticker:</strong>{" "}{orders.ticker}
           </div>
-          <div className='text-info'>
-            <strong>Amount:</strong>{" "}{orders.amount}
+          <div>
+            <strong>Price:</strong>{side2 === 1 ?
+              (<p className='text-danger'>{orders.amount}</p>)
+              :
+              (<p className='text-success'>{orders.amount}</p>)}
           </div>
 
         </div>

@@ -334,7 +334,7 @@ function App() {
   ));
 
 
-  // ORDER BOOK BUY ORDERS
+  // ORDER BOOK BUY ORDERS, FOR LOOP VERSION
   const handleLimitBuyOrders = async () => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -386,7 +386,7 @@ function App() {
 
 
 
-  // DEX MARKET ORDERS TX
+  // DEX MARKET ORDERS EVENTS 
   useEffect(() => {
     if (dexContractAddress !== "-") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -394,7 +394,7 @@ function App() {
 
       dexMarketOrder.on("MarketOrder", (address, side, ticker, amount, event) => {
         console.log({ address, side, ticker, amount, event });
-
+       
         setMarketOrderTxs((currentMarketOrderTxs) => [
           ...currentMarketOrderTxs,
           {
@@ -405,8 +405,10 @@ function App() {
             amount: String(amount),
           }
         ]);
+        //console.log("side:", side);
       });
       setMarketOrderContractListened(dexMarketOrder);
+      //console.log("side:", dexMarketOrder.side);
       // return function cleanup
       return () => {
         marketOrderContractListened.removeAllListeners();
@@ -1980,7 +1982,7 @@ function App() {
               <div className="card">
                 <button className="btn btn-outline-info" onClick={refresh}>Refresh Trades</button>
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-info">LIMIT ORDERS -- prices in ETH </h6>
+                  <h6 className="card-subtitle mb-2 text-info">LIMIT </h6>
                   <div className="px-4">
                     <LimitOrderTxList limitOrderTxs={limitOrderTxs} />
                   </div>
@@ -1994,7 +1996,7 @@ function App() {
             <div className='box-buy'>
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-info">MARKET ORDERS -- prices in ETH</h6>
+                  <h6 className="card-subtitle mb-2 text-info">MARKET</h6>
                   <div className="px-4" >
                     <MarketOrderTxList marketOrderTxs={marketOrderTxs} />
                   </div>

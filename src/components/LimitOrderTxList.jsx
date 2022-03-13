@@ -6,7 +6,9 @@ function limitOrderTxList({ limitOrderTxs }) {
   if (limitOrderTxs.length === 0) return null;
 
   const [isSide, setIsSide] = (false);
+
   const side2 = limitOrderTxs[0].side;
+  
   const sideFunction = () => {
     for (let i = 0; i < side2.length; i++) {
       if (side2.side === 0) {
