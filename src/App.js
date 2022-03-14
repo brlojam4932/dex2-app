@@ -127,8 +127,6 @@ function App() {
   };
 
 
-  //const [dexContractAddress, setDexContractAddress] = useState("-");
-
   // ethers js /// provider is read only; signer is write to contract
 
   // TOKEN EVENTS
@@ -191,22 +189,32 @@ function App() {
   }, [contractInfo.address]);
 
 
-  // SELL ORDERS
+  // GET SELL ORDERS
   const handleGetSellOrders = async () => {
     try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      const sellTx = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 1);
 
+      // get token list
+      const allTokenList = await dex.getTokenListLength();
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dex.tokenList(i);
+      // add tokenList result to ticker argument - tokenList is parsed but it's also formatted
+      const sellTx = await dex.getOrderBook(
+        ethers.utils.formatBytes32String(
+        ethers.utils.parseBytes32String(tokenList)), 1);
+
+      // loop through the sellTx instance of getOrderBook
       for (let i = 0; i < sellTx.length; i++) {
-
         const traderSell = sellTx[i]["trader"];
         const tickerSell = sellTx[i]["ticker"];
         const amountSell = sellTx[i]["amount"];
         const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
         const filledSell = sellTx[i]["filled"];
-        console.log("sell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
+        console.log("Sell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
 
+        // spread operator to create a new object
         setIsSellInfo(prev => [
           ...prev,
           {
@@ -219,9 +227,10 @@ function App() {
           }
         ]);
       };
+    }
 
     } catch (error) {
-      console.log("error", error);
+      console.log("error...from get sell orderbook", error);
     }
   };
 
@@ -236,36 +245,43 @@ function App() {
     <SellOrders key={orders.id} orders={orders} />
   ));
 
-  //  BUY ORDERS
+  // GET BUY ORDERS
   const handleGetBuyOrders = async () => {
     try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      const buyTx = await dex.getOrderBook(ethers.utils.formatBytes32String("RETK"), 0);
+      const allTokenList = await dex.getTokenListLength();
 
-      for (let i = 0; i < buyTx.length; i++) {
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dex.tokenList(i);
 
-        const traderBuy = buyTx[i]["trader"];
-        const tickerBuy = buyTx[i]["ticker"];
-        const amountBuy = buyTx[i]["amount"];
-        const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
-        const filledBuy = buyTx[i]["filled"];
-        console.log(" Buy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:", filledBuy.toNumber());
+        const buyTx = await dex.getOrderBook(
+          ethers.utils.formatBytes32String(
+          ethers.utils.parseBytes32String(tokenList)), 0);
 
-        setIsBuyInfo(prev => [
-          ...prev,
-          {
-            id: uuidv4(),
-            trader: traderBuy,
-            ticker: ethers.utils.parseBytes32String(tickerBuy),
-            amount: amountBuy.toString(),
-            price: priceBuy,
-            filled: filledBuy.toNumber()
-          }
-        ]);
-    
+        for (let i = 0; i < buyTx.length; i++) {
+          const traderBuy = buyTx[i]["trader"];
+          const tickerBuy = buyTx[i]["ticker"];
+          const amountBuy = buyTx[i]["amount"];
+          const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
+          const filledBuy = buyTx[i]["filled"];
+          console.log("Buy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:", filledBuy.toNumber());
+  
+          setIsBuyInfo(prev => [
+            ...prev,
+            {
+              id: uuidv4(),
+              trader: traderBuy,
+              ticker: ethers.utils.parseBytes32String(tickerBuy),
+              amount: amountBuy.toString(),
+              price: priceBuy,
+              filled: filledBuy.toNumber()
+            }
+          ]);    
+        };   
       };
-
+    
     } catch (error) {
       console.log("error", error);
     }
@@ -365,9 +381,9 @@ function App() {
             id: uuidv4(),
             ticker: ethers.utils.parseBytes32String(tokenList)
           }
-        ])
-      }
-
+        ]);
+       
+      };
     } catch (error) {
       console.log('error', error);
       if (error) return alert("tokenlist error");
@@ -407,7 +423,7 @@ function App() {
       });
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("error...initialize Dex or Token contract");
+      if (error) return alert("error...login to Metamask or Coinbase Link Wallet");
       //setErrorDexBal(true);
     }
   };
@@ -555,7 +571,7 @@ function App() {
     };
   };
 
-
+  ////////////////// TOKEN CONT //////////////////////
   //const depositEthTx = await dex.depositEth({ value: 3000 })
   const handleDepositEth = async (e) => {
     e.preventDefault();
@@ -1073,7 +1089,7 @@ function App() {
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Recent Transactions
+                Recent ERC20 Token Transactions
               </h3>
               <div>
                 <TxList txs={txs} />
@@ -1090,10 +1106,10 @@ function App() {
             <div className='m-4'>
               <main className="mt-4 p-4">
                 <h1 className="text-xl font-semibold text-info text-left">
-                  DEX Wallet UI
+                  DEX UI
                 </h1>
                 <p><small className="text-muted">Add ERC20 tokens into DEX, to trade. Deposit the amount tokens, deposit ETH to make transactions and withdraw tokens.</small> </p>
-                <br />
+                <p><small className='text-secondary'>You must be login to Metamask or Coinbase Link Wallet.</small></p>
               </main>
             </div>
           </div>
@@ -1150,7 +1166,7 @@ function App() {
                         {errorAddToken &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorAddToken(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Add an ERC20 token and you must be the owner.
+                            <strong>Oh snap!</strong> Token must be ERC20 and you must be the owner or log into Metamask or Coinbase Link Wallet. Also, make sure the token smart contract is logged in as well.
                           </div>
                         }
                       </div>
@@ -1347,7 +1363,7 @@ function App() {
             <div>
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">dex balances</h6>
+                  <h6 className="card-subtitle mb-2 text-muted">ERC20 Token balances in DEX</h6>
                   <form onSubmit={getDexBalances}>
                     <div className="my-3">
                       <div>
@@ -1402,7 +1418,7 @@ function App() {
             <div className='m-4'>
               <main className="mt-4 p-4">
                 <h1 className="text-xl font-semibold text-info text-left">
-                  TRADING
+                  DEX TRADING
                 </h1>
                 <p><small className="text-muted">Limit sell and buy. Market sell and buy.</small> </p>
                 <br />
