@@ -200,34 +200,34 @@ function App() {
       const allTokenList = await dex.getTokenListLength();
       for (let i = 0; i < allTokenList; i++) {
         let tokenList = await dex.tokenList(i);
-      // add tokenList result to ticker argument - tokenList is parsed but it's also formatted
-      const sellTx = await dex.getOrderBook(
-        ethers.utils.formatBytes32String(
-        ethers.utils.parseBytes32String(tokenList)), 1);
+        // add tokenList result to ticker argument - tokenList is parsed but it's also formatted
+        const sellTx = await dex.getOrderBook(
+          ethers.utils.formatBytes32String(
+            ethers.utils.parseBytes32String(tokenList)), 1);
 
-      // loop through the sellTx instance of getOrderBook
-      for (let i = 0; i < sellTx.length; i++) {
-        const traderSell = sellTx[i]["trader"];
-        const tickerSell = sellTx[i]["ticker"];
-        const amountSell = sellTx[i]["amount"];
-        const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
-        const filledSell = sellTx[i]["filled"];
-        console.log("Sell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
+        // loop through the sellTx instance of getOrderBook
+        for (let i = 0; i < sellTx.length; i++) {
+          const traderSell = sellTx[i]["trader"];
+          const tickerSell = sellTx[i]["ticker"];
+          const amountSell = sellTx[i]["amount"];
+          const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
+          const filledSell = sellTx[i]["filled"];
+          console.log("Sell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
 
-        // spread operator to create a new object
-        setIsSellInfo(prev => [
-          ...prev,
-          {
-            id: uuidv4(),
-            trader: traderSell,
-            ticker: ethers.utils.parseBytes32String(tickerSell),
-            amount: amountSell.toString(),
-            price: priceSell,
-            filled: filledSell.toNumber()
-          }
-        ]);
-      };
-    }
+          // spread operator to create a new object
+          setIsSellInfo(prev => [
+            ...prev,
+            {
+              id: uuidv4(),
+              trader: traderSell,
+              ticker: ethers.utils.parseBytes32String(tickerSell),
+              amount: amountSell.toString(),
+              price: priceSell,
+              filled: filledSell.toNumber()
+            }
+          ]);
+        };
+      }
 
     } catch (error) {
       console.log("error...from get sell orderbook", error);
@@ -241,6 +241,7 @@ function App() {
 
   }, []);
 
+  // MAP THROUGH OBJECT -> SEND TO PRINT
   const sellList = isSellInfo.map((orders) => (
     <SellOrders key={orders.id} orders={orders} />
   ));
@@ -258,7 +259,7 @@ function App() {
 
         const buyTx = await dex.getOrderBook(
           ethers.utils.formatBytes32String(
-          ethers.utils.parseBytes32String(tokenList)), 0);
+            ethers.utils.parseBytes32String(tokenList)), 0);
 
         for (let i = 0; i < buyTx.length; i++) {
           const traderBuy = buyTx[i]["trader"];
@@ -267,7 +268,7 @@ function App() {
           const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
           const filledBuy = buyTx[i]["filled"];
           console.log("Buy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:", filledBuy.toNumber());
-  
+
           setIsBuyInfo(prev => [
             ...prev,
             {
@@ -278,10 +279,10 @@ function App() {
               price: priceBuy,
               filled: filledBuy.toNumber()
             }
-          ]);    
-        };   
+          ]);
+        };
       };
-    
+
     } catch (error) {
       console.log("error", error);
     }
@@ -294,6 +295,7 @@ function App() {
 
   }, []);
 
+  // MAP THROUGH OBJECT -> SEND TO PRINT
   const buyList = isBuyInfo.map((orders) => (
     <BuyOrders key={orders.id} orders={orders} />
   ));
@@ -306,7 +308,7 @@ function App() {
   };
 
 
-  // Get token info: name, symbol and totalSupply
+  // GET ERC20 TOKEN CONTRACT
   const handleGetTokenInfo = async (e) => {
     e.preventDefault();
     try {
@@ -363,6 +365,7 @@ function App() {
   };
 
 
+  // GET ALL TOKENS
   const getAllTokensList = async (e) => {
     e.preventDefault();
     try {
@@ -382,7 +385,7 @@ function App() {
             ticker: ethers.utils.parseBytes32String(tokenList)
           }
         ]);
-       
+
       };
     } catch (error) {
       console.log('error', error);
@@ -390,7 +393,7 @@ function App() {
     }
   };
 
-
+  // PRINT TOKEN LIST
   const myTokenList = listOfTokens.map((lists) => (
     <div key={lists.id} className="alert alert-dismissible alert-primary text-secondary">
       <div>
@@ -424,7 +427,6 @@ function App() {
     } catch (error) {
       console.log("error", error);
       if (error) return alert("error...login to Metamask or Coinbase Link Wallet");
-      //setErrorDexBal(true);
     }
   };
 
@@ -512,7 +514,7 @@ function App() {
       await marketOrderSellTx.wait();
       console.log("market SELL order success", marketOrderSellTx);
       setIsMarketSellMsg(true);
- 
+
     } catch (error) {
       console.log("error", error);
       //if (error) return alert("something went wrong");
@@ -547,7 +549,7 @@ function App() {
   };
 
 
-  //dex.connect(addr1).deposit(50, ethers.utils.formatBytes32String("RETK"));
+  // DEPOSIT ERC20 TOKENS INTO DEX
   const handleDexTokenDeposit = async (e) => {
     e.preventDefault();
     try {
@@ -571,8 +573,8 @@ function App() {
     };
   };
 
-  ////////////////// TOKEN CONT //////////////////////
-  //const depositEthTx = await dex.depositEth({ value: 3000 })
+  ////////////////// TOKEN CONT... //////////////////////
+
   const handleDepositEth = async (e) => {
     e.preventDefault();
     try {
@@ -598,8 +600,6 @@ function App() {
   };
 
 
-  /////////////// TOKEN //////////////////
-
   const getMyBalance = async () => {
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
@@ -621,8 +621,6 @@ function App() {
     }
   };
 
-
-  //function transfer(address recipient, uint256 amount) external returns (bool);
 
   const handleTransfer = async (e) => {
     e.preventDefault();
@@ -724,7 +722,8 @@ function App() {
 
   };
 
-  //function withdraw(uint256 amount, bytes32 ticker)
+  // WITHDRAW ERC20 TOKENS FROM DEX
+
   const handleWithDraw = async (e) => {
     e.preventDefault();
     try {
@@ -1698,38 +1697,46 @@ function App() {
             </div>
           </div>
         </div>
-
         <div className='box-2'>
-          <div className='m-4'>
-            <div className='box-sell'>
-              <div className="card">
-                <button className="btn btn-outline-info" onClick={refresh}>Refresh Trades</button>
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-secondary">SELLS</h6>
-                  <div className="px-4">
-                    {sellList}
+          <div className='container-6'>
+            <div className='m-4'>
+              <div className='box-refresh'>
+              <button className="btn btn-primary" onClick={refresh}>Refresh Trades</button>
+              </div>
+              <div className='container-1'>
+                <div className='box-sell'>
+                  <div className='card'>
+                  <div className="card-body">
+                    <h6 className="card-subtitle mb-2 text-secondary">SELLS</h6>
+                    <div className="px-4">
+                      {sellList}
+                    </div>
+                  </div>
+                  </div>
+               
+                </div>
+                <div className='box-buy'>
+                  <div className="card">
+                    <div className="card-body">
+                      <h6 className="card-subtitle mb-2 text-secondary">BUYS</h6>
+                      <div className="px-4" >
+                        {buyList}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+
+
           </div>
+
         </div>
 
-        <div className='box-3'>
-          <div className='m-4'>
-            <div className='box-buy'>
-              <div className="card">
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-secondary">BUYS</h6>
-                  <div className="px-4" >
-                    {buyList}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+
+
     </>
   );
 };

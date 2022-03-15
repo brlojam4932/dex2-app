@@ -40,6 +40,7 @@ https://youtu.be/JJSoEo8JSnc
   
     flex-direction: column;
     */
+    justify-content: space-around; 
     
   }
   
@@ -49,9 +50,10 @@ https://youtu.be/JJSoEo8JSnc
     justify-content: flex-start;
     justify-content: flex-end;
     justify-content: center;
-    justify-content: space-around;
+    justify-content: space-between; 
     */
-    justify-content: space-between;   
+   
+    justify-content: space-around;  
   }
 
   .container-3{
@@ -60,9 +62,11 @@ https://youtu.be/JJSoEo8JSnc
     justify-content: flex-start;
     justify-content: flex-end;
     justify-content: center;
-    justify-content: space-around;
+   
+     justify-content: space-between; 
     */
-    justify-content: space-between;   
+    justify-content: space-around;
+     
   }
 
   .container-4{
@@ -71,9 +75,10 @@ https://youtu.be/JJSoEo8JSnc
     justify-content: flex-start;
     justify-content: flex-end;
     justify-content: center;
-    justify-content: space-around;
+    justify-content: space-between; 
     */
-    justify-content: space-between;   
+    
+    justify-content: space-around;  
   }
 
   .container-5{
@@ -82,9 +87,10 @@ https://youtu.be/JJSoEo8JSnc
     justify-content: flex-start;
     justify-content: flex-end;
     justify-content: center;
-    justify-content: space-around;
+    justify-content: space-between; 
     */
-    justify-content: space-between;   
+    
+    justify-content: space-around; 
   }
 
   .container-6{
@@ -93,9 +99,10 @@ https://youtu.be/JJSoEo8JSnc
     justify-content: flex-start;
     justify-content: flex-end;
     justify-content: center;
-    justify-content: space-around;
+    justify-content: space-between;  
     */
-    justify-content: space-between;   
+    
+    justify-content: space-around; 
   }
  }
 
@@ -115,6 +122,7 @@ https://youtu.be/JJSoEo8JSnc
 .box-1{
   flex: 1;
   /*
+  flex: 1;
   order: 2;
   */
 }
@@ -122,6 +130,7 @@ https://youtu.be/JJSoEo8JSnc
 .box-2{
   flex: 1;
   /*
+  flex: 1;
   order: 1;
   */
   
@@ -129,6 +138,7 @@ https://youtu.be/JJSoEo8JSnc
 
 .box-3{
   flex: 1;
+ 
   /*
   order: 1;
   */
@@ -136,6 +146,13 @@ https://youtu.be/JJSoEo8JSnc
 }
 
 .box-4{
+  flex: 1;
+  /*
+  order: 1;
+  */ 
+}
+
+.box-refresh{
   flex: 1;
   /*
   order: 1;
