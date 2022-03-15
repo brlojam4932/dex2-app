@@ -1,7 +1,6 @@
 import React from 'react';
 import { ethers } from "ethers";
 import { v4 as uuidv4 } from 'uuid';
-
 import { useState, useEffect } from 'react';
 import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
@@ -12,7 +11,6 @@ import BuyOrders from './components/BuyOrders';
 import ApproveList from './components/ApproveList';
 import Header from './components/Header';
 import Footer from './components/Footer';
-//import NameList from './components/NameList';
 
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
@@ -77,13 +75,6 @@ function App() {
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
   const [isTransferFrom, setIsTransferFrom] = useState(false);
 
-  /*
-  const [dexBalanceInfo, setDexBalanceInfo] = useState({
-    address: "-",
-    ticker: "-"
-  });
-  */
-
   //////////////DEX STATES/////////////////
 
   const [dexBalanceInfo, setDexBalanceInfo] = useState([]);
@@ -107,8 +98,6 @@ function App() {
   const [isSellInfo, setIsSellInfo] = useState([]);
   const [isBuyInfo, setIsBuyInfo] = useState([]);
 
-  //const [isSellLength, setIsSellLength] = useState("-");
-  //const [isBuyLength, setIsBuyLength] = useState("-");
   const [listOfTokens, setListOfTokens] = useState([]);
 
   //tabs
@@ -127,7 +116,6 @@ function App() {
   const toggleTabs3 = (index) => {
     setToggleTabState3(index);
   };
-
 
   // ethers js /// provider is read only; signer is write to contract
 
@@ -149,7 +137,7 @@ function App() {
             txHash: event.transactionHash,
             from,
             to,
-            amount: ethers.utils.formatEther(amount) //amount: String(amount)
+            amount: ethers.utils.formatEther(amount), //amount: String(amount)
           }
         ]);
       });
@@ -225,7 +213,7 @@ function App() {
               ticker: ethers.utils.parseBytes32String(tickerSell),
               amount: amountSell.toString(),
               price: priceSell,
-              filled: filledSell.toNumber()
+              filled: filledSell.toNumber(),
             }
           ]);
         };
@@ -793,23 +781,23 @@ function App() {
                 </button>
               </footer>
               <div className="px-4">
-              <table className="table w-full text-info">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Symbol</th>
-                        <th>Total supply</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th>{contractInfo.tokenName}</th>
-                        <td>{contractInfo.tokenSymbol}</td>
-                        <td>{String(contractInfo.totalSupply)}</td>
-                        <td>{contractInfo.deployedAt}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <table className="table w-full text-info">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Symbol</th>
+                      <th>Total supply</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th>{contractInfo.tokenName}</th>
+                      <td>{contractInfo.tokenSymbol}</td>
+                      <td>{String(contractInfo.totalSupply)}</td>
+                      <td>{contractInfo.deployedAt}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
               <div className="p-4">
                 <button
@@ -821,20 +809,20 @@ function App() {
                 </button>
               </div>
               <div className="px-4">
-              <table className="table w-full text-info">
-                    <thead>
-                      <tr>
-                        <th>Address</th>
-                        <th>Balance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th>{balanceInfo.address}</th>
-                        <td>{balanceInfo.balance}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <table className="table w-full text-info">
+                  <thead>
+                    <tr>
+                      <th>Address</th>
+                      <th>Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th>{balanceInfo.address}</th>
+                      <td>{balanceInfo.balance}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </form>
@@ -847,7 +835,7 @@ function App() {
               <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Transfer</button>
               <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Approve</button>
               <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Allowance</button>
-              <button className={toggleTabState === 4 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(4)}>Tranfer From</button>
+              <button className={toggleTabState === 4 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(4)}>Transfer From</button>
             </div>
 
             <div className='content-tabs'>
@@ -920,7 +908,7 @@ function App() {
                         type="text"
                         name="spender"
                         className="input p-1"
-                        placeholder="DEX address"
+                        placeholder="DEX or other address"
                         style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
                       />
                     </div>
@@ -1007,7 +995,7 @@ function App() {
               </div>
 
               <div className={toggleTabState === 4 ? 'content active-content' : "content"}>
-                <h3 className='text-muted'>Tranfer From</h3>
+                <h3 className='text-muted'>Transfer From</h3>
                 <hr />
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">transfer from</h6>
@@ -1080,9 +1068,9 @@ function App() {
         </div>
       </div>
 
-        {/* Token Events */}
+      {/* Token Events */}
       <div className='container'>
-           <div className='box-4'>
+        <div className='box-4'>
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
@@ -1120,7 +1108,7 @@ function App() {
         <div className='box-1'>
           <div className='container'>
             <div className='bloc-tabs'>
-              <button className={toggleTabState2 === 5 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(5)}>Add Tokens</button>
+              <button className={toggleTabState2 === 5 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(5)}>Add Ticker Symbol</button>
               <button className={toggleTabState2 === 6 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(6)}>Dex deposits</button>
               <button className={toggleTabState2 === 7 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(7)}>Deposit ETH</button>
               <button className={toggleTabState2 === 8 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(8)}>Withdraw</button>
@@ -1128,7 +1116,7 @@ function App() {
 
             <div className='content-tabs'>
               <div className={toggleTabState2 === 5 ? 'content active-content' : "content"}>
-                <h4 className='text-muted'>Add tokens to trade.</h4>
+                <h4 className='text-muted'>Add token ticker/symbol to trade.</h4>
                 <hr />
                 <div className="card-body">
                   {/* get Dex add token */}
@@ -1172,30 +1160,33 @@ function App() {
                   </form>
                 </div>
 
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">list tokens</h6>
-                  {/* get Dex add token */}
-                  <form onSubmit={getAllTokensList}>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-info"
-                      >
-                        List All Tokens
-                      </button>
-                      <div className="my-4 mb-2">
-                        {myTokenList}
-                      </div>
-                    </footer>
-                  </form>
+                <div className='my-3'>
+                  <div>
+                    <div className="card-body">
+                      <h6 className="card-subtitle mb-2 text-muted">list tokens</h6>
+                      {/* get Dex add token */}
+                      <form onSubmit={getAllTokensList}>
+                        <footer className="p-4">
+                          <button
+                            type="submit"
+                            className="btn btn-outline-info"
+                          >
+                            List All Tokens
+                          </button>
+                          <div className="my-4 mb-2">
+                            {myTokenList}
+                          </div>
+                        </footer>
+                      </form>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className={toggleTabState2 === 6 ? 'content active-content' : "content"}>
-                <h4 className='text-muted'>Deposit tokens to DEX</h4>
+                <h4 className='text-muted'>Deposit token into DEX</h4>
                 <hr />
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">dex deposits</h6>
                   {/* get Dex token deposits */}
                   <form onSubmit={handleDexTokenDeposit}>
                     <div className="my-3">
@@ -1249,7 +1240,7 @@ function App() {
               </div>
 
               <div className={toggleTabState2 === 7 ? 'content active-content' : "content"}>
-                <h4 className='text-muted'>Deposit ETH</h4>
+                <h4 className='text-muted'>Deposit ETH to pay for trading</h4>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleDepositEth}>
@@ -1294,7 +1285,7 @@ function App() {
               </div>
 
               <div className={toggleTabState2 === 8 ? 'content active-content' : "content"}>
-                <h4 className='text-muted'>Withdraw from DEX</h4>
+                <h4 className='text-muted'>Withdraw tokens from DEX< h6>Tokens will be withdrawn from this exchange to your wallet</h6></h4>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleWithDraw}>
@@ -1547,7 +1538,7 @@ function App() {
                         type="text"
                         name="price"
                         className="input p-1"
-                        placeholder="Token Price"
+                        placeholder="Token Price in ETH"
                         style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
                       />
                     </div>
@@ -1700,17 +1691,17 @@ function App() {
           <div className='container-6'>
             <div className='m-4'>
               <div className='box-refresh'>
-              <button className="btn btn-primary" onClick={refresh}>Refresh Trades</button>
+                <button className="btn btn-primary" onClick={refresh}>Refresh Trades</button>
               </div>
               <div className='container-1'>
                 <div className='box-sell'>
                   <div className='card'>
-                  <div className="card-body">
-                    <h6 className="card-subtitle mb-2 text-secondary">SELLS</h6>
-                    <div className="px-4">
-                      {sellList}
+                    <div className="card-body">
+                      <h6 className="card-subtitle mb-2 text-secondary">SELLS</h6>
+                      <div className="px-4">
+                        {sellList}
+                      </div>
                     </div>
-                  </div>
                   </div>
                 </div>
                 <div className='box-buy'>
