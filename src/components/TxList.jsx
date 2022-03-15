@@ -7,7 +7,7 @@ function TxList({ txs }) {
   return (
     <>
       {txs.map((item, index) => (
-        <div key={index} className="alert alert-dismissible alert-secondary">
+        <div key={index} className="alert alert-dismissible alert-primary">
           <div>
             <strong>From:</strong>{" "}{item.from}
           </div>

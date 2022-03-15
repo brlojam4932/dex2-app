@@ -1,7 +1,7 @@
 import React from 'react';
 import { ethers } from "ethers";
 import { v4 as uuidv4 } from 'uuid';
-import './App.css';
+
 import { useState, useEffect } from 'react';
 import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
@@ -10,6 +10,8 @@ import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
 import SellOrders from './components/SellOrders';
 import BuyOrders from './components/BuyOrders';
 import ApproveList from './components/ApproveList';
+import Header from './components/Header';
+import Footer from './components/Footer';
 //import NameList from './components/NameList';
 
 // https://youtu.be/a0osIaAOFSE
@@ -761,16 +763,14 @@ function App() {
   return (
     <>
       {/* ERC20 token info/get balance/tx/approve/allowance/txfer-from/receipts */}
+      <div className='container'>
+        <Header />
+      </div>
       <div className='container-1'>
         <div className='box-1'>
           <form className="m-4" onSubmit={handleGetTokenInfo}>
-            <div className="credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+            <div className="shadow-lg bg-darkgrey">
               <main className="mt-4 p-4">
-                <h1 className="text-xl font-semibold text-info text-left">
-                  ERC20 Smart Contract Token UI
-                </h1>
-                <p><small className="text-muted">Read from a smart contract, approve, transfer, transfer from and recieve transaction messages from the blockchain.</small> </p>
-                <br />
                 <div>
                   <h6 className="card-subtitle mb-2 text-muted">ERC20 token contract</h6>
                   <div className="my-3">
@@ -793,8 +793,7 @@ function App() {
                 </button>
               </footer>
               <div className="px-4">
-                <div className="overflow-x-auto">
-                  <table className="table w-full text-info">
+              <table className="table w-full text-info">
                     <thead>
                       <tr>
                         <th>Name</th>
@@ -811,7 +810,6 @@ function App() {
                       </tr>
                     </tbody>
                   </table>
-                </div>
               </div>
               <div className="p-4">
                 <button
@@ -823,8 +821,7 @@ function App() {
                 </button>
               </div>
               <div className="px-4">
-                <div className="overflow-x-auto">
-                  <table className="table w-full text-info">
+              <table className="table w-full text-info">
                     <thead>
                       <tr>
                         <th>Address</th>
@@ -838,7 +835,6 @@ function App() {
                       </tr>
                     </tbody>
                   </table>
-                </div>
               </div>
             </div>
           </form>
@@ -912,7 +908,7 @@ function App() {
               </div>
 
               <div className={toggleTabState === 2 ? 'content active-content' : "content"}>
-                <h3 className='text-muted'>Approve DEX</h3>
+                <h3 className='text-muted'>Approve DEX <h6>or any other smart contract address</h6> </h3>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleApprove}>
@@ -1082,9 +1078,11 @@ function App() {
 
           </div>
         </div>
+      </div>
 
-        {/* Token Tx */}
-        <div className='box-4'>
+        {/* Token Events */}
+      <div className='container'>
+           <div className='box-4'>
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
@@ -1096,6 +1094,7 @@ function App() {
             </div>
           </div>
         </div>
+
       </div>
 
       {/* DEX Wallet Header */}
@@ -1713,7 +1712,6 @@ function App() {
                     </div>
                   </div>
                   </div>
-               
                 </div>
                 <div className='box-buy'>
                   <div className="card">
@@ -1727,16 +1725,10 @@ function App() {
                 </div>
               </div>
             </div>
-
-
-
           </div>
-
         </div>
-
       </div>
-
-
+      <Footer />
     </>
   );
 };
