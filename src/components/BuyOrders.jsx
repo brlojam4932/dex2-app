@@ -18,6 +18,9 @@ function BuyOrders({ orders }) {
       <div className='text-success'>
         <strong>Price:</strong>{" "}{orders.price}
       </div>
+      <div>
+        <strong>Filled:</strong>{" "}{orders.filled}
+      </div>
     </div>
   )
 }
