@@ -5,9 +5,9 @@ function ApproveList({ approveTx }) {
   return (
     <>
       {approveTx.map((approves, index) => (
-        <div key={index} className="alert alert-dismissible alert-success">
+        <div key={index} className="alert alert-dismissible alert-info">
           <div>
-            <strong>Spender:</strong>{" "}{approves.spender}
+            <strong>Approved Spender/DEX:</strong>{" "}{approves.spender}
           </div>
           <div>
             <strong>Amount:</strong>{" "}{approves.amount}

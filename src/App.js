@@ -687,6 +687,24 @@ function App() {
     }
   }
 
+  const handleApproveDex = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
+      const data = new FormData(e.target);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
+      const transaction = await erc20.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
+      await transaction.wait();
+      //console.log("Success! -- approved");
+      setIsApproved(true);
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("error, check address or re-set Metamask");
+    }
+  }
+
 
   // function allowance(address owner, address spender) external view returns (uint256);
   // address a is owner and address b is the spender -> checks the balance owner allows spender to spend
@@ -786,6 +804,7 @@ function App() {
         approveTx={approveTx}
         errorTransferFrom={errorTransferFrom}
         setErrorTransferFrom={setErrorTransferFrom}
+        handleApproveDex={handleApproveDex}
       />
 
       {/* Token Events */}
@@ -798,6 +817,7 @@ function App() {
               </h3>
               <div>
                 <TxList txs={txs} />
+                <ApproveList approveTx={approveTx} />
               </div>
             </div>
           </div>

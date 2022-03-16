@@ -27,7 +27,8 @@ function Token({
   ApproveList,
   approveTx,
   errorTransferFrom,
-  setErrorTransferFrom
+  setErrorTransferFrom,
+  handleApproveDex
   
  }) {
 
@@ -114,6 +115,7 @@ function Token({
           <div className='container'>
             <div className='bloc-tabs'>
               <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Transfer</button>
+              <button className={toggleTabState === 5 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(5)}>Approve DEX</button>
               <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Approve</button>
               <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Allowance</button>
               <button className={toggleTabState === 4 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(4)}>Transfer From</button>
@@ -176,23 +178,15 @@ function Token({
                 </div>
               </div>
 
-              <div className={toggleTabState === 2 ? 'content active-content' : "content"}>
+              <div className={toggleTabState === 5 ? 'content active-content' : "content"}>
                 <h3 className='text-muted'>Approve DEX</h3>
-                <small className='text-muted'>or any other smart contract address</small>
                 <hr />
                 <div className="card-body">
-                  <form onSubmit={handleApprove}>
+                  <form onSubmit={handleApproveDex}>
                     <div className="my-3">
                       <div>
-                        <h6 className="card-subtitle mb-2 text-muted">approve the spender, this DEX</h6>
+                        <h6 className="card-subtitle mb-2 text-muted">approve this DEX</h6>
                       </div>
-                      <input
-                        type="text"
-                        name="spender"
-                        className="input p-1"
-                        placeholder="DEX or other address"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
                     </div>
                     <div className="my-3">
                       <div>
@@ -215,7 +209,57 @@ function Token({
                       </button>
                       <div className="my-4 mb-2">
                         {isApproved &&
-                          <div className="alert alert-dismissible alert-success">
+                          <div className="alert alert-dismissible alert-primary">
+                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
+                            <ApproveList approveTx={approveTx} />
+                          </div>
+                        }
+                      </div>
+                    </footer>
+                  </form>
+                </div>
+              </div>
+
+              <div className={toggleTabState === 2 ? 'content active-content' : "content"}>
+                <h3 className='text-muted'>Approve Spender</h3>
+                <small className='text-muted'>Approve another address to spend your tokens</small>
+                <hr />
+                <div className="card-body">
+                  <form onSubmit={handleApprove}>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">approve the spender</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="spender"
+                        className="input p-1"
+                        placeholder="Spender address"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <div className="my-3">
+                      <div>
+                        <h6 className="card-subtitle mb-2 text-muted">amount</h6>
+                      </div>
+                      <input
+                        type="text"
+                        name="amount"
+                        className="input p-1"
+                        placeholder="Amount to approve"
+                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
+                      />
+                    </div>
+                    <footer className="p-4">
+                      <button
+                        type="submit"
+                        className="btn btn-outline-warning"
+                      >
+                        Approve Spender
+                      </button>
+                      <div className="my-4 mb-2">
+                        {isApproved &&
+                          <div className="alert alert-dismissible alert-primary">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
                             <ApproveList approveTx={approveTx} />
                           </div>
