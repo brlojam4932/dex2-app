@@ -301,7 +301,7 @@ function DexTransact({
                     <footer className="p-4">
                       <button
                         type="submit"
-                        className="btn btn-outline-info"
+                        className="btn btn-primary"
                       >
                         Get Dex Balances
                       </button>

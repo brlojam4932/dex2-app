@@ -16,10 +16,8 @@ function ApproveList({ approveTx }) {
         </div>
       ))}
     </>
-  )
+  );
 
-
-
-}
+};
 
 export default ApproveList

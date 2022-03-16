@@ -272,6 +272,7 @@ function Token({
 
               <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
                 <h3 className='text-muted'>Allowance</h3>
+                <small className='text-muted'>Check the allowance amount between your Metamask or Coinbase Link address and the spender, like this DEX</small>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleAllowance}>
