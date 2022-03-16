@@ -4,13 +4,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { useState, useEffect } from 'react';
 import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
-import TxList from './components/TxList.jsx';
+import TxList from './components/Transactions/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
-import SellOrders from './components/SellOrders';
-import BuyOrders from './components/BuyOrders';
-import ApproveList from './components/ApproveList';
+import SellOrders from './components/Transactions/SellOrders';
+import BuyOrders from './components/Transactions/BuyOrders';
+import ApproveList from './components/Transactions/ApproveList';
 import Header from './components/Header';
+
 import Footer from './components/Footer';
+import Token from './components/Token';
+import DexTransact from './components/Dex/DexTransact';
+import DexHeader from './components/Dex/DexHeader';
 
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
@@ -750,323 +754,39 @@ function App() {
 
   return (
     <>
-      {/* ERC20 token info/get balance/tx/approve/allowance/txfer-from/receipts */}
       <div className='container'>
         <Header />
       </div>
-      <div className='container-1'>
-        <div className='box-1'>
-          <form className="m-4" onSubmit={handleGetTokenInfo}>
-            <div className="shadow-lg bg-darkgrey">
-              <main className="mt-4 p-4">
-                <div>
-                  <h6 className="card-subtitle mb-2 text-muted">ERC20 token contract</h6>
-                  <div className="my-3">
-                    <input
-                      type="text"
-                      name={contractAddress}
-                      className="input p-1"
-                      placeholder="ERC20 contract address"
-                      style={{ background: "#1f1f1f", borderStyle: "solid 1px", borderColor: "#7bc3ed", borderRadius: "5px", color: "white" }}
-                    />
-                  </div>
-                </div>
-              </main>
-              <footer className="p-4">
-                <button
-                  type="submit"
-                  className="btn btn-outline-success"
-                >
-                  Get token info
-                </button>
-              </footer>
-              <div className="px-4">
-                <table className="table w-full text-info">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Symbol</th>
-                      <th>Total supply</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>{contractInfo.tokenName}</th>
-                      <td>{contractInfo.tokenSymbol}</td>
-                      <td>{String(contractInfo.totalSupply)}</td>
-                      <td>{contractInfo.deployedAt}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-4">
-                <button
-                  onClick={getMyBalance}
-                  type="submit"
-                  className="btn btn-outline-success"
-                >
-                  Get my balance
-                </button>
-              </div>
-              <div className="px-4">
-                <table className="table w-full text-info">
-                  <thead>
-                    <tr>
-                      <th>Address</th>
-                      <th>Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>{balanceInfo.address}</th>
-                      <td>{balanceInfo.balance}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </form>
-        </div>
-        {/* Token Tabs */}
-        <div className='box-2'>
-          {/* Transactions */}
-          <div className='container'>
-            <div className='bloc-tabs'>
-              <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Transfer</button>
-              <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Approve</button>
-              <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Allowance</button>
-              <button className={toggleTabState === 4 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(4)}>Transfer From</button>
-            </div>
 
-            <div className='content-tabs'>
-              <div className={toggleTabState === 1 ? 'content active-content' : "content"}>
-                <h3 className='text-muted'>Transfer</h3>
-                <hr />
-                <div className="card-body">
-                  <form onSubmit={handleTransfer}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">recipient</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="recipient"
-                        className="input p-1"
-                        placeholder="Recipient address"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">amount</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="Amount to transfer"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-warning"
-                      >
-                        Transfer
-                      </button>
-                      <div className="my-4 mb-2">
-                        {isTransferMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransferMsg(false)}></button>
-                            <strong>Well Done!</strong> Your transfer amount of {transfer} tokens has been completed.
-                          </div>
-                        }
-
-                        {errorTransfer &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorTransfer(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-              </div>
-
-              <div className={toggleTabState === 2 ? 'content active-content' : "content"}>
-                <h3 className='text-muted'>Approve DEX <h6>or any other smart contract address</h6> </h3>
-                <hr />
-                <div className="card-body">
-                  <form onSubmit={handleApprove}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">approve the spender, this DEX</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="spender"
-                        className="input p-1"
-                        placeholder="DEX or other address"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">amount</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="Amount to approve"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-warning"
-                      >
-                        Approve DEX
-                      </button>
-                      <div className="my-4 mb-2">
-                        {isApproved &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <ApproveList approveTx={approveTx} />
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-              </div>
-
-              <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
-                <h3 className='text-muted'>Allowance</h3>
-                <hr />
-                <div className="card-body">
-                  <form onSubmit={handleAllowance}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">owner</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="owner"
-                        className="input p-1"
-                        placeholder="Owner address"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-
-                    </div>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">spender</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="spender"
-                        className="input p-1"
-                        placeholder="Spender address"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-info"
-                      >
-                        Allowance
-                      </button>
-                      <div className="my-3">
-                        {isAllowanceMsg &&
-                          <div className="alert alert-dismissible alert-warning">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsAllowanceMsg(false)}></button>
-                            Spender can spend this ETH amount:{" "}{allowanceAmount}{" "}
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-              </div>
-
-              <div className={toggleTabState === 4 ? 'content active-content' : "content"}>
-                <h3 className='text-muted'>Transfer From</h3>
-                <hr />
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">transfer from</h6>
-                  <form onSubmit={handleTransferFrom}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">sender</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="sender"
-                        className="input p-1"
-                        placeholder="Sender address"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">recipient</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="recipient"
-                        className="input p-1"
-                        placeholder="Recipient address"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">amount</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="Amount to transfer"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-warning"
-                      >
-                        Transfer from
-                      </button>
-                      <div className="my-4 mb-2">
-                        {isTransferFrom &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransferFrom(false)}></button>
-                            <strong>Well Done!</strong> Your transfer has been completed.
-                          </div>
-                        }
-                        {errorTransferFrom &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorTransferFrom(false)}></button>
-                            <strong>Error!</strong> Transfer amount exceeds balance.
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-      </div>
+      <Token
+        handleGetTokenInfo={handleGetTokenInfo}
+        getMyBalance={getMyBalance}
+        balanceInfo={balanceInfo}
+        handleTransfer={handleTransfer}
+        isTransferMsg={isTransferMsg}
+        setIsTransferMsg={setIsTransferMsg}
+        transfer={transfer}
+        handleApprove={handleApprove}
+        isApproved={isApproved}
+        setIsApproved={setIsApproved}
+        handleAllowance={handleAllowance}
+        isAllowanceMsg={isAllowanceMsg}
+        setIsAllowanceMsg={setIsAllowanceMsg}
+        allowanceAmount={allowanceAmount}
+        handleTransferFrom={handleTransferFrom}
+        isTransferFrom={isTransferFrom}
+        setIsTransferFrom={setIsTransferFrom}
+        contractAddress={contractAddress}
+        contractInfo={contractInfo}
+        toggleTabs={toggleTabs}
+        toggleTabState={toggleTabState}
+        errorTransfer={errorTransfer}
+        setErrorTransfer={setErrorTransfer}
+        ApproveList={ApproveList}
+        approveTx={approveTx}
+        errorTransferFrom={errorTransferFrom}
+        setErrorTransferFrom={setErrorTransferFrom}
+      />
 
       {/* Token Events */}
       <div className='container'>
@@ -1082,324 +802,39 @@ function App() {
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* DEX Wallet Header */}
-      <header className='container-2'>
-        <div className='box-1'>
-          <div>
-            <div className='m-4'>
-              <main className="mt-4 p-4">
-                <h1 className="text-xl font-semibold text-info text-left">
-                  DEX UI
-                </h1>
-                <p><small className="text-muted">Add ERC20 tokens into DEX, to trade. Deposit the amount tokens, deposit ETH to make transactions and withdraw tokens.</small> </p>
-                <p><small className='text-secondary'>You must be login to Metamask or Coinbase Link Wallet.</small></p>
-              </main>
-            </div>
-          </div>
+      <DexHeader />
 
-        </div>
-      </header>
-      {/* DEX deposts/balances/add-token, etc...  */}
-      <div className='container-3'>
-        {/* add tokens */}
-        <div className='box-1'>
-          <div className='container'>
-            <div className='bloc-tabs'>
-              <button className={toggleTabState2 === 5 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(5)}>Add Ticker Symbol</button>
-              <button className={toggleTabState2 === 6 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(6)}>Dex deposits</button>
-              <button className={toggleTabState2 === 7 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(7)}>Deposit ETH</button>
-              <button className={toggleTabState2 === 8 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs2(8)}>Withdraw</button>
-            </div>
+      <DexTransact
+        errorAddToken={errorAddToken}
+        errorDexDeposit={errorDexDeposit}
+        errorDepositEth={errorDepositEth}
+        errorDexWithdraw={errorDexWithdraw}
+        dexBalanceInfo={dexBalanceInfo}
+        withDrawSuccessMsg={withDrawSuccessMsg}
+        withDrawAmountInfo={withDrawAmountInfo}
+        addTokenSuccessMsg={addTokenSuccessMsg}
+        depositEthSuccessMsg={depositEthSuccessMsg}
+        depositEthAmount={depositEthAmount}
+        toggleTabState2={toggleTabState2}
+        myTokenList={myTokenList}
+        depositSuccessMsg={depositSuccessMsg}
+        handleDepositEth = {handleDepositEth}
+        toggleTabs2={toggleTabs2}
+        handleAddToken={handleAddToken}
+        setAddTokenSuccessMsg={setAddTokenSuccessMsg}
+        setErrorAddToken={setErrorAddToken}
+        getAllTokensList={getAllTokensList}
+        handleDexTokenDeposit={handleDexTokenDeposit}
+        setErrorDexDeposit={setErrorDexDeposit}
+        handleWithDraw={handleWithDraw}
+        setErrorDexWithdraw={setErrorDexWithdraw}
+        getDexBalances={getDexBalances}
+        setWithDrawSuccessMsg={setWithDrawSuccessMsg}
 
-            <div className='content-tabs'>
-              <div className={toggleTabState2 === 5 ? 'content active-content' : "content"}>
-                <h4 className='text-muted'>Add token ticker/symbol to trade.</h4>
-                <hr />
-                <div className="card-body">
-                  {/* get Dex add token */}
-                  <form onSubmit={handleAddToken}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">add token to DEX</h6>
-                      </div>
-                      <input
-                        type="bytes32"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-warning"
-                      >
-                        Add Token
-                      </button>
-                      <div className="my-4 mb-2">
-                        {addTokenSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert"
-                              onClick={() => setAddTokenSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your you added a token.
-                          </div>
-                        }
+      />
 
-                        {errorAddToken &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorAddToken(false)}></button>
-                            <strong>Oh snap!</strong> Token must be ERC20 and you must be the owner or log into Metamask or Coinbase Link Wallet. Also, make sure the token smart contract is logged in as well.
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-
-                <div className='my-3'>
-                  <div>
-                    <div className="card-body">
-                      <h6 className="card-subtitle mb-2 text-muted">list tokens</h6>
-                      {/* get Dex add token */}
-                      <form onSubmit={getAllTokensList}>
-                        <footer className="p-4">
-                          <button
-                            type="submit"
-                            className="btn btn-outline-info"
-                          >
-                            List All Tokens
-                          </button>
-                          <div className="my-4 mb-2">
-                            {myTokenList}
-                          </div>
-                        </footer>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={toggleTabState2 === 6 ? 'content active-content' : "content"}>
-                <h4 className='text-muted'>Deposit token into DEX</h4>
-                <hr />
-                <div className="card-body">
-                  {/* get Dex token deposits */}
-                  <form onSubmit={handleDexTokenDeposit}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">deposit tokens into DEX</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="Amount to deposit"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-warning"
-                      >
-                        Deposit Tokens
-                      </button>
-                      <div className="my-4 mb-2">
-                        {depositSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setDepositSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your deposit was executed.
-                          </div>
-                        }
-                        {errorDexDeposit &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexDeposit(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Must be an ERC20 token or check allowance.
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-              </div>
-
-              <div className={toggleTabState2 === 7 ? 'content active-content' : "content"}>
-                <h4 className='text-muted'>Deposit ETH to pay for trading</h4>
-                <hr />
-                <div className="card-body">
-                  <form onSubmit={handleDepositEth}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">deposit ETH to DEX</h6>
-                      </div>
-                      <input
-                        type="number"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="ETH Amount"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-warning"
-                      >
-                        Deposit ETH
-                      </button>
-                      <div className="my-4 mb-2">
-                        {depositEthSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setDepositEthSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your deposit of {depositEthAmount} Ether was executed.
-                          </div>
-                        }
-
-                        {errorDepositEth &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDepositEth(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Token balance may be insufficient.
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-
-              </div>
-
-              <div className={toggleTabState2 === 8 ? 'content active-content' : "content"}>
-                <h4 className='text-muted'>Withdraw tokens from DEX< h6>Tokens will be withdrawn from this exchange to your wallet</h6></h4>
-                <hr />
-                <div className="card-body">
-                  <form onSubmit={handleWithDraw}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">widthraw tokens from DEX</h6>
-                      </div>
-                      <input
-                        type="number"
-                        name="amount"
-                        className="input p-1"
-                        placeholder="Token Amount"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="bytes32"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-warning"
-                      >
-                        Withdraw Tokens
-                      </button>
-                      <div className="my-4 mb-2">
-                        {withDrawSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setWithDrawSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your widthrawl of {withDrawAmountInfo} tokens was executed.
-                          </div>
-                        }
-                        {errorDexWithdraw &&
-                          <div className="alert alert-dismissible alert-danger">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexWithdraw(false)}></button>
-                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
-                          </div>
-                        }
-                      </div>
-                    </footer>
-                  </form>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-        {/* get Dex balances */}
-        <div className='box-3'>
-          <div className='m-4'>
-            <div>
-              <div className="card">
-                <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">ERC20 Token balances in DEX</h6>
-                  <form onSubmit={getDexBalances}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-outline-info"
-                      >
-                        Get Dex Balances
-                      </button>
-                    </footer>
-                  </form>
-                </div>
-              </div>
-              {/* return dex balances */}
-              <div className="px-4">
-                <div className="overflow-x-auto">
-                  <table className="table w-full text-info">
-                    <thead>
-                      <tr>
-                        <th>Address</th>
-                        <th>Token Balance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th>{dexBalanceInfo.address}</th>
-                        <td>{dexBalanceInfo.ticker}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
       {/* TRADING  */}
       <div className='container-4'>
         <div className='box-1'>

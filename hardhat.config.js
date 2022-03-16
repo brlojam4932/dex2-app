@@ -34,4 +34,3 @@ module.exports = {
 // npx hardhat node
 // npx hardhat run scripts/deploy1.js --network localhost
 
-// Greeter deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
