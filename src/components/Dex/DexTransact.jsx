@@ -1,4 +1,5 @@
 import React from 'react';
+// DEX wallet for deposits, withdraw, token list, balances
 
 function DexTransact({ 
   errorAddToken,

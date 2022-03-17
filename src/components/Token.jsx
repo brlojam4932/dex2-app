@@ -1,4 +1,5 @@
 import React from 'react';
+// ERC20 token transfer, approve, transferFrom 
 
 function Token({
   handleGetTokenInfo,

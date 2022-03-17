@@ -34,7 +34,11 @@ import Trading from './components/Trading/Trading';
 //dex deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 //Real Token deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 
-const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// robsten deployment
+// dex deployed to: 0x71E33774EA49494aAfA8E96b0A793F03EE069a2b
+// Real Token deployed to: 0xe4b6351Dc44f54e5CbbBe9008f06fA253001BcFb
+
+const dexContractAddress = "0x71E33774EA49494aAfA8E96b0A793F03EE069a2b";
 //const myTokenSymbol = ethers.utils.formatBytes32String("RETK");
 
 function App() {

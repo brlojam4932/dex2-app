@@ -1,4 +1,5 @@
 import React from 'react';
+// transaction list for ERC20 token contract events
 
 function TxList({ txs }) {
 

@@ -1,4 +1,5 @@
 import React from 'react';
+// limit/market buys and sells and orderbook printout
 
 function Trading({
   toggleTabState3,

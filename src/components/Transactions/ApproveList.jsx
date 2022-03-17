@@ -1,4 +1,5 @@
 import React from 'react';
+// lists approved addresses
 
 function ApproveList({ approveTx }) {
 
