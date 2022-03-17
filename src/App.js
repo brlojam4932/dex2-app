@@ -18,6 +18,7 @@ import DexHeader from './components/Dex/DexHeader';
 import TradingHeader from './components/Trading/TradingHeader';
 import Trading from './components/Trading/Trading';
 
+
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
 
@@ -43,7 +44,7 @@ const dexContractAddress = "0x71E33774EA49494aAfA8E96b0A793F03EE069a2b";
 //const myTokenSymbol = ethers.utils.formatBytes32String("RETK");
 
 function App() {
-
+ 
   const [txs, setTxs] = useState([]);
   const [contractListened, setContractListened] = useState();
 
@@ -158,7 +159,7 @@ function App() {
         contractListened.removeAllListeners();
       }
     };
-
+  // eslint-disable-next-line
   }, [contractInfo.address]);
 
 
@@ -186,7 +187,7 @@ function App() {
         approveContractListened.removeAllListeners();
       };
     };
-
+  // eslint-disable-next-line
   }, [contractInfo.address]);
 
 
@@ -239,7 +240,7 @@ function App() {
     if (isSellInfo.length === 0) {
       handleGetSellOrders();
     }
-
+    // eslint-disable-next-line
   }, []);
 
   // MAP THROUGH OBJECT -> SEND TO PRINT
@@ -293,7 +294,7 @@ function App() {
     if (isBuyInfo.length === 0) {
       handleGetBuyOrders();
     }
-
+    // eslint-disable-next-line
   }, []);
 
   // MAP THROUGH OBJECT -> SEND TO PRINT
