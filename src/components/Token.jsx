@@ -86,7 +86,7 @@ function Token({
                 <button
                   onClick={getMyBalance}
                   type="submit"
-                  className="btn btn-outline-danger"
+                  className="btn btn-success"
                 >
                   LOGIN / Get my balance
                 </button>
