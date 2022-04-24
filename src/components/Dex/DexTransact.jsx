@@ -1,10 +1,16 @@
 import React from 'react';
+import DexBalances from '../Transactions/DexBalances';
 // DEX wallet for deposits, withdraw, token list, balances
+import styled from 'styled-components';
+
+export const Wrapper3 = styled.section`
+padding: 19px;
+margin: 17px;
+`
 
 function DexTransact({ 
   errorAddToken,
   errorDexDeposit,
-  errorDepositEth,
   errorDexWithdraw,
   dexBalanceInfo,
   withDrawSuccessMsg,
@@ -17,20 +23,19 @@ function DexTransact({
   handleAddToken,
   setAddTokenSuccessMsg,
   setErrorAddToken,
-  getAllTokensList,
   myTokenList,
   handleDexTokenDeposit,
   handleDepositEth,
   setErrorDexDeposit,
   handleWithDraw,
   setErrorDexWithdraw,
-  getDexBalances,
   depositSuccessMsg,
   setDepositSuccessMsg,
   setDepositEthSuccessMsg,
   setErrorDepositEth,
-  setWithDrawSuccessMsg
- 
+  setWithDrawSuccessMsg,
+  errorDepositEthMsg,
+  ethDexBalance
 }) {
   return (
     <>
@@ -95,21 +100,10 @@ function DexTransact({
                 <div className='my-3'>
                   <div>
                     <div className="card-body">
-                      <h6 className="card-subtitle mb-2 text-muted">list tokens</h6>
-                      {/* get Dex add token */}
-                      <form onSubmit={getAllTokensList}>
-                        <footer className="p-4">
-                          <button
-                            type="submit"
-                            className="btn btn-outline-info"
-                          >
-                            List All Tokens
-                          </button>
-                          <div className="my-4 mb-2">
+                      <h6 className="card-subtitle mb-2 text-info">Token List</h6>
+                      <div className="my-4 mb-2">
                             {myTokenList}
                           </div>
-                        </footer>
-                      </form>
                     </div>
                   </div>
                 </div>
@@ -162,7 +156,7 @@ function DexTransact({
                         {errorDexDeposit &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexDeposit(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Must be an ERC20 token or check allowance.
+                            <strong>Oh snap!</strong>Must be an ERC20 token or must be approved, check allowance.
                           </div>
                         }
                       </div>
@@ -203,7 +197,7 @@ function DexTransact({
                           </div>
                         }
 
-                        {errorDepositEth &&
+                        {errorDepositEthMsg &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDepositEth(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Token balance may be insufficient.
@@ -285,51 +279,19 @@ function DexTransact({
             <div>
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">ERC20 Token balances in DEX</h6>
-                  <form onSubmit={getDexBalances}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-primary"
-                      >
-                        Get Dex Balances
-                      </button>
-                    </footer>
-                  </form>
+                  <h6 className="card-subtitle mb-2 text-muted">DEX Token Balances</h6>
                 </div>
-              </div>
-              {/* return dex balances */}
-              <div className="px-4">
-                <div className="overflow-x-auto">
-                  <table className="table w-full text-info">
-                    <thead>
-                      <tr>
-                        <th>Address</th>
-                        <th>Token Balance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th>{dexBalanceInfo.address}</th>
-                        <td>{dexBalanceInfo.ticker}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                <Wrapper3 className='text-info'>
+            <div>
+            <strong>Address:</strong> {ethDexBalance.address}         
             </div>
+            <div>
+            <strong>Amount:</strong> {ethDexBalance.ethBal} ETH
+            </div>
+            <DexBalances dexBalanceInfo={dexBalanceInfo}/>
+          </Wrapper3>
+            </div>
+              </div>
           </div>
         </div>
       </div>

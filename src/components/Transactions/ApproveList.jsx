@@ -3,15 +3,18 @@ import React from 'react';
 
 function ApproveList({ approveTx }) {
 
+  if (approveTx.length === 0) return null;
+
   return (
     <>
       {approveTx.map((approves, index) => (
         <div key={index} className="alert alert-dismissible alert-info">
           <div>
-            <strong>Approved Spender/DEX:</strong>{" "}{approves.spender}
+            <strong>Approved Spender</strong>{" "}{approves.spender}
           </div>
           <div>
-            <strong>Amount:</strong>{" "}{approves.amount}
+            {/* <strong>Amount:</strong>{" "}{approves.event} */}
+            
           </div>
 
         </div>

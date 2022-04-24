@@ -2,22 +2,22 @@ import React from 'react';
 import { ethers } from "ethers";
 import { v4 as uuidv4 } from 'uuid';
 import { useState, useEffect } from 'react';
-import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
+import RealToken from "./artifacts/contracts/tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/Transactions/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
-import SellOrders from './components/Transactions/SellOrders';
-import BuyOrders from './components/Transactions/BuyOrders';
+//import SellOrders from './components/Transactions/SellOrders';
+//import BuyOrders from './components/Transactions/BuyOrders';
 import ApproveList from './components/Transactions/ApproveList';
 import Header from './components/Header';
-
 import Footer from './components/Footer';
 import Token from './components/Token';
 import DexTransact from './components/Dex/DexTransact';
 import DexHeader from './components/Dex/DexHeader';
 import TradingHeader from './components/Trading/TradingHeader';
 import Trading from './components/Trading/Trading';
-
+import { useWeb3React } from "@web3-react/core";
+import { getContract } from './utils/utils';
 
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
@@ -31,8 +31,9 @@ import Trading from './components/Trading/Trading';
 
 //practice - Flexbox CSS in 20 minutes
 //https://youtu.be/JJSoEo8JSnc
+//const myTokenSymbol = ethers.utils.formatBytes32String("RETK");
 
-
+// localhost
 //dex deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 //Real Token deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 
@@ -40,24 +41,66 @@ import Trading from './components/Trading/Trading';
 // dex deployed to: 0x71E33774EA49494aAfA8E96b0A793F03EE069a2b
 // Real Token deployed to: 0xe4b6351Dc44f54e5CbbBe9008f06fA253001BcFb
 
-const dexContractAddress = "0x71E33774EA49494aAfA8E96b0A793F03EE069a2b";
-//const myTokenSymbol = ethers.utils.formatBytes32String("RETK");
+// localhost test net
+const tokenContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+
 
 function App() {
- 
-  const [txs, setTxs] = useState([]);
-  const [contractListened, setContractListened] = useState();
+  //const [contractAddress, setContractAddress] = useState("-"); 
+  const [tokenContract, setTokenContract] = useState(null);
+  const [dexContract, setDexContract] = useState(null);
+  const [openWindowMsg, setOpenWindowMsg] = useState(false);
 
+  const { library, account } = useWeb3React(); // import library
+
+  useEffect(() => {
+    if (library) {
+      // to init a contract
+      const token = getContract(tokenContractAddress, RealToken.abi, library, account);
+      setTokenContract(token);
+      //console.log("token:", token);
+
+      const dex = getContract(dexContractAddress, Dex.abi, library, account);
+      setDexContract(dex);
+      //console.log("dex:", dex);
+    } else {
+      setOpenWindowMsg(true);
+    }
+  }, [account, library]);
+
+
+  const [contractInfo, setContractInfo] = useState({
+    address: "-",
+    tokenName: "-",
+    tokenSymbol: "-",
+    totalSupply: "-",
+    user: "-",
+    balance: "-"
+  });
+
+  /*
+  const [balanceInfo, setBalanceInfo] = useState({
+    address: "-",
+    balance: "-"
+  });
+  */
+
+  const [txs, setTxs] = useState([]);
   const [approveTx, setApproveTx] = useState([]);
-  const [approveContractListened, setApproveContractListened] = useState();
+  const [limitTx, setLimitTx] = useState([]);
+  const [marketTx, setMarketTx] = useState([]);
+
+  const [ethDexBalance, setEthDexBalance] = useState({
+    address: "-",
+    ethBal: "_"
+  });
 
   const [errorTransfer, setErrorTransfer] = useState(false);
   const [errorTransferFrom, setErrorTransferFrom] = useState(false);
 
-  //const [errorGetTokens, setErrorGetTokens] = useState(false);
   const [errorAddToken, setErrorAddToken] = useState(false);
   const [errorDexDeposit, setErrorDexDeposit] = useState(false);
-  //const [errorDexBal, setErrorDexBal] = useState(false);
   const [errorDepositEth, setErrorDepositEth] = useState(false);
   const [errorDexWithdraw, setErrorDexWithdraw] = useState(false);
 
@@ -67,21 +110,8 @@ function App() {
   const [errorMarketSell, setErrorMarketSell] = useState(false);
   const [errorMarketBuy, setErrorMarketBuy] = useState(false);
 
-  //////////////TOKEN STATES/////////////////
-  const [contractAddress, setContractAddress] = useState("-");
-  const [contractInfo, setContractInfo] = useState({
-    address: "-",
-    tokenName: "-",
-    tokenSymbol: "-",
-    totalSupply: "-",
-  });
 
-  const [balanceInfo, setBalanceInfo] = useState({
-    address: "-",
-    balance: "-"
-  });
-
-  // affirms tx is complete and sends a visual message
+  // tx is complete and sends a visual message
   const [isApproved, setIsApproved] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState();
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
@@ -103,12 +133,15 @@ function App() {
   const [isMarketBuyMsg, setIsMarketBuyMsg] = useState(false);
 
   const [addTokenSuccessMsg, setAddTokenSuccessMsg] = useState(false);
+
   const [depositSuccessMsg, setDepositSuccessMsg] = useState(false);
   const [depositEthSuccessMsg, setDepositEthSuccessMsg] = useState(false);
+  const [errorDepositEthMsg, setErrorDepositEthMsg] = useState(false)
   const [depositEthAmount, setDepositEthAmount] = useState("-");
+  const [dexTokenTX, setDexTokenTx] = useState([])
 
-  const [isSellInfo, setIsSellInfo] = useState([]);
-  const [isBuyInfo, setIsBuyInfo] = useState([]);
+  //const [isSellInfo, setIsSellInfo] = useState([]);
+  //const [isBuyInfo, setIsBuyInfo] = useState([]);
 
   const [listOfTokens, setListOfTokens] = useState([]);
 
@@ -130,18 +163,13 @@ function App() {
   };
 
   // ethers js /// provider is read only; signer is write to contract
-
   // TOKEN EVENTS
   useEffect(() => {
+
+    //event Transfer(address indexed from, address indexed to, uint256 value);
     if (contractInfo.address !== "-") {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
-
-      //event Transfer(address indexed from, address indexed to, uint256 value);
-
-      erc20.on("Transfer", (from, to, amount, event) => {
-        //event.removeListener(); // Solve memory leak with this.
-        console.log({ from, to, amount, event });
+      tokenContract?.on("Transfer", (from, to, amount, event) => {
+        //console.log({ from, to, amount, event });
         // the transaction result gets copied over to a state
         setTxs((prevTx) => [
           ...prevTx,
@@ -152,476 +180,140 @@ function App() {
             amount: ethers.utils.formatEther(amount), //amount: String(amount)
           }
         ]);
+        //event.removeListener(); // Solve memory leak with this.
       });
-      setContractListened(erc20);
 
       return () => {
-        contractListened.removeAllListeners();
+        tokenContract.removeAllListeners("Transfer")
       }
     };
-  // eslint-disable-next-line
+    // eslint-disable-next-line
   }, [contractInfo.address]);
 
 
   // APPROVE EVENTS
   useEffect(() => {
     if (contractInfo.address !== "-") {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const token = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
-
-      token.on("Approve", (spender, amount, event) => {
-        console.log({ spender, amount, event });
-
-        setApproveTx(prev => [
-          ...prev,
+      tokenContract?.on("Approval", (spender, event) => {
+        //console.log({ spender, amount, event });
+        setApproveTx(prevApprove => [
+          ...prevApprove,
           {
             txHash: event.transactionHash,
             spender,
-            amount: ethers.utils.formatEther(amount)
           }
         ]);
       });
-      setApproveContractListened(token);
-
       return () => {
-        approveContractListened.removeAllListeners();
-      };
+        tokenContract.removeAllListeners("Approval");
+      }
     };
-  // eslint-disable-next-line
+
+    // eslint-disable-next-line
   }, [contractInfo.address]);
 
 
-  // GET SELL ORDERS
-  const handleGetSellOrders = async () => {
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
 
-      // get token list
-      const allTokenList = await dex.getTokenListLength();
-      for (let i = 0; i < allTokenList; i++) {
-        let tokenList = await dex.tokenList(i);
-        // add tokenList result to ticker argument - tokenList is parsed but it's also formatted
-        const sellTx = await dex.getOrderBook(
-          ethers.utils.formatBytes32String(
-            ethers.utils.parseBytes32String(tokenList)), 1);
+  // ORDERS
+  useEffect(() => {
+    //-----Limit------------
+    dexContract?.on("LimitOrder", (trader, side, ticker, amount, price, event) => {
+      console.log(trader, side, ticker, amount, price, event);
 
-        // loop through the sellTx instance of getOrderBook
-        for (let i = 0; i < sellTx.length; i++) {
-          const traderSell = sellTx[i]["trader"];
-          const tickerSell = sellTx[i]["ticker"];
-          const amountSell = sellTx[i]["amount"];
-          const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
-          const filledSell = sellTx[i]["filled"];
-          console.log("Sell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
-
-          // spread operator to create a new object
-          setIsSellInfo(prev => [
-            ...prev,
-            {
-              id: uuidv4(),
-              trader: traderSell,
-              ticker: ethers.utils.parseBytes32String(tickerSell),
-              amount: amountSell.toString(),
-              price: priceSell,
-              filled: filledSell.toNumber(),
-            }
-          ]);
-        };
+      setLimitTx(prevLimitTx => [
+        ...prevLimitTx,
+        {
+          txHash: event.transactionHash,
+          trader,
+          side,
+          ticker: ethers.utils.parseBytes32String(ticker),
+          amount: String(amount),
+          price: ethers.utils.formatEther(price),
+        }
+      ]);
+      return () => {
+        dexContract.removeAllListeners("LimitORder");
       }
 
-    } catch (error) {
-      console.log("error...from get sell orderbook", error);
-    }
-  };
+    });
+    //-----Market------------
+    dexContract?.on("MarketOrder", (trader, side, ticker, amount, event) => {
+      console.log(trader, side, ticker, amount, event);
 
-  useEffect(() => {
-    if (isSellInfo.length === 0) {
-      handleGetSellOrders();
-    }
-    // eslint-disable-next-line
-  }, []);
+      setMarketTx(prevMarketTx => [
+        ...prevMarketTx,
+        {
+          txHash: event.transactionHash,
+          trader,
+          side,
+          ticker: ethers.utils.parseBytes32String(ticker),
+          amount: String(amount),
+        }
+      ]);
+      return () => {
+        dexContract.removeAllListeners("MarketOrder");
+      }
 
-  // MAP THROUGH OBJECT -> SEND TO PRINT
-  const sellList = isSellInfo.map((orders) => (
-    <SellOrders key={orders.id} orders={orders} />
-  ));
+    });
 
-  // GET BUY ORDERS
-  const handleGetBuyOrders = async () => {
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      const allTokenList = await dex.getTokenListLength();
-
-      for (let i = 0; i < allTokenList; i++) {
-        let tokenList = await dex.tokenList(i);
-
-        const buyTx = await dex.getOrderBook(
-          ethers.utils.formatBytes32String(
-            ethers.utils.parseBytes32String(tokenList)), 0);
-
-        for (let i = 0; i < buyTx.length; i++) {
-          const traderBuy = buyTx[i]["trader"];
-          const tickerBuy = buyTx[i]["ticker"];
-          const amountBuy = buyTx[i]["amount"];
-          const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
-          const filledBuy = buyTx[i]["filled"];
-          console.log("Buy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:", filledBuy.toNumber());
-
-          setIsBuyInfo(prev => [
-            ...prev,
-            {
-              id: uuidv4(),
-              trader: traderBuy,
-              ticker: ethers.utils.parseBytes32String(tickerBuy),
-              amount: amountBuy.toString(),
-              price: priceBuy,
-              filled: filledBuy.toNumber()
-            }
-          ]);
-        };
-      };
-
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
-
-  useEffect(() => {
-    if (isBuyInfo.length === 0) {
-      handleGetBuyOrders();
-    }
-    // eslint-disable-next-line
-  }, []);
-
-  // MAP THROUGH OBJECT -> SEND TO PRINT
-  const buyList = isBuyInfo.map((orders) => (
-    <BuyOrders key={orders.id} orders={orders} />
-  ));
+  }, [dexContract]);
 
 
-  // REFRESH PAGE
-  const refresh = (e) => {
-    e.preventDefault();
-    window.location.reload();
-  };
-
-
-  // GET ERC20 TOKEN CONTRACT
+  // ------------------GET ERC20 TOKEN CONTRACT -----------------------
   const handleGetTokenInfo = async (e) => {
-    e.preventDefault();
+    //e.preventDefault();
     try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      //const data = new FormData(e.target);
+      //const erc20 = getContract(data.get(contractAddress), RealToken.abi, library, account);
+      const tokenName = await tokenContract.name();
+      const tokenSymbol = await tokenContract.symbol();
+      const totalSupply = await tokenContract.totalSupply();
 
-      const erc20 = new ethers.Contract(data.get(contractAddress), RealToken.abi, provider);
-
-      const tokenName = await erc20.name();
-      const tokenSymbol = await erc20.symbol();
-      const totalSupply = await erc20.totalSupply();
-
-      setContractInfo({
-        address: data.get(contractAddress),
-        tokenName,
-        tokenSymbol,
-        totalSupply: ethers.utils.formatEther(totalSupply)
-      });
-      setContractAddress(data);
-    } catch (error) {
-      console.log("error", error);
-      if (error) return alert("not loggein to Metamask");
-    }
-  };
-
-
-  /////////////// DEX //////////////////
-  const handleAddToken = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const data = new FormData(e.target);
-      // add provider
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // get signer
-      const signer = provider.getSigner();
-      // create instance
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
-      await provider.send("eth_requestAccounts", []);
-      // create function from Contract
-      const addTokenTx = await dex.addToken(
-        ethers.utils.formatBytes32String(data.get("ticker")), contractInfo.address
-      );
-      await addTokenTx.wait();
-      //console.log("Add Token: ", addTokenTx);
-      setAddTokenSuccessMsg(true);
-
-    } catch (error) {
-      console.log("error", error);
-      //if (error) return alert("error...check correct address or you may need to approve DEX");
-      setErrorAddToken(true);
-    };
-  };
-
-
-  // GET ALL TOKENS
-  const getAllTokensList = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      const allTokenList = await dex.getTokenListLength();
-      //console.log("token list length:", allTokenList.toNumber());
-      for (let i = 0; i < allTokenList; i++) {
-        let tokenList = await dex.tokenList(i);
-        //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
-        setListOfTokens(prev => [
-          ...prev,
-          {
-            id: uuidv4(),
-            ticker: ethers.utils.parseBytes32String(tokenList)
-          }
-        ]);
-
-      };
-    } catch (error) {
-      console.log('error', error);
-      if (error) return alert("tokenlist error");
-    }
-  };
-
-  // PRINT TOKEN LIST
-  const myTokenList = listOfTokens.map((lists) => (
-    <div key={lists.id} className="alert alert-dismissible alert-primary text-secondary">
-      <div>
-        <strong>Id:</strong>{" "}{lists.id}
-      </div>
-      <div className='text-success'>
-        <strong>Token:</strong>{" "}{lists.ticker}
-      </div>
-    </div>
-
-  ));
-
-
-  const getDexBalances = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, provider);
-      const signer = provider.getSigner();
-      const signerAddress = await signer.getAddress();
-      const tickerBalance = await dex.balances(signerAddress,
-        ethers.utils.formatBytes32String(data.get("ticker")));
-
-      setDexBalanceInfo({
-        address: signerAddress,
-        ticker: ethers.utils.formatEther(tickerBalance)
-      });
-    } catch (error) {
-      console.log("error", error);
-      if (error) return alert("error...login to Metamask or Coinbase Link Wallet");
-    }
-  };
-
-
-  const handleLimitOrderSell = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
-      await provider.send("eth_requestAccounts", []);
-
-      const limitOrderSellTx = await dex.createLimitOrder(
-        1,
-        ethers.utils.formatBytes32String(data.get("ticker")),
-        data.get("amount"),
-        ethers.utils.parseEther(data.get("price"))
-      );
-      await limitOrderSellTx.wait();
-      console.log('limit SELL order success', limitOrderSellTx);
-      setIsLimitSellMsg(true);
-
-    } catch (error) {
-      console.log("error", error);
-      //if (error) return alert("error...check token balance");
-      setErrorLimitSell(true)
-    };
-  };
-
-
-  const handleLimitOrderBuy = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const data = new FormData(e.target);
-      // add provider
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // add signer
-      const signer = provider.getSigner();
-      // add instance
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
-      // transact
-      await provider.send("eth_requestAccounts", []);
-
-      const limitOrderBuyTx = await dex.createLimitOrder(
-        0,
-        ethers.utils.formatBytes32String(data.get("ticker")),
-        data.get("amount"),
-        ethers.utils.parseEther(data.get("price"))
-      );
-      await limitOrderBuyTx.wait();
-      console.log("limit BUY order success", limitOrderBuyTx);
-      setIsLimitBuyMsg(true);
-
-    } catch (error) {
-      console.log("error", error);
-      //if (error) return alert("error...Not enough ETH balancance");
-      setErrorLimitBuy(true);
-    };
-  };
-
-
-  const handleMarketOrderSell = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      // add Form data
-      const data = new FormData(e.target);
-      // add provider
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // add signer
-      const signer = provider.getSigner();
-      // add new Contract instance
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
-      // create tx
-      await provider.send("eth_requestAccounts");
-
-      const marketOrderSellTx = await dex.createMarketOrder(
-        1,
-        ethers.utils.formatBytes32String(data.get("ticker")),
-        data.get("amount"));
-
-      await marketOrderSellTx.wait();
-      console.log("market SELL order success", marketOrderSellTx);
-      setIsMarketSellMsg(true);
-
-    } catch (error) {
-      console.log("error", error);
-      //if (error) return alert("something went wrong");
-      setErrorMarketSell(true);
-    };
-  };
-
-
-  const handleMarketOrderBuy = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
-      await provider.send("eth_requestAccounts", []);
-
-      const marketOrderTx = await dex.createMarketOrder(
-        0, ethers.utils.formatBytes32String(data.get("ticker")), data.get("amount")
-      );
-      await marketOrderTx.wait();
-      console.log("market BUY order success", marketOrderTx);
-      setIsMarketBuyMsg(true);
-
-    } catch (error) {
-      console.log("error", error);
-      //if (error) return alert("error...check Eth amount");
-      setErrorMarketBuy(true);
-    };
-  };
-
-
-  // DEPOSIT ERC20 TOKENS INTO DEX
-  const handleDexTokenDeposit = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
-      await provider.send("eth_requestAccounts", []);
-      const dexDepositTx = await dex.deposit(
-        ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
-      );
-      await dexDepositTx.wait();
-      //console.log("Dex deposit tx: ", dexDepositTx);
-      setDepositSuccessMsg(true);
-
-    } catch (error) {
-      console.log("error", error);
-      //if (error) return alert("error...insufficient allowance, token does not exist");
-      setErrorDexDeposit(true);
-    };
-  };
-
-  ////////////////// TOKEN CONT... //////////////////////
-
-  const handleDepositEth = async (e) => {
-    e.preventDefault();
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
-      await provider.send("eth_requestAccounts", []);
-      const depositEthTx = await dex.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
-      await depositEthTx.wait();
-      //console.log("Deposit ETH: ", depositEthTx);
-      //console.log("Deposit ETH: ", depositEthTx.value.toString());
-      setDepositEthSuccessMsg(true);
-      //setDepositEthAmount(depositEthTx.value.toString());
-      setDepositEthAmount(ethers.utils.formatEther(depositEthTx.value));
-
-
-    } catch (error) {
-      //console.log("error", error);
-      setErrorDepositEth(true);
-    };
-  };
-
-
-  const getMyBalance = async () => {
-    try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
-      const signer = provider.getSigner();
-      const signerAddress = await signer.getAddress();
-      const balance = await erc20.balanceOf(signerAddress);
+      const balance = await tokenContract.balanceOf(account);
       const ethFormatBalance = ethers.utils.formatEther(balance);
 
-      setBalanceInfo({
-        address: signerAddress,
+      setContractInfo({
+        //address: data.get(contractAddress),
+        address: tokenContract.address,
+        tokenName,
+        tokenSymbol,
+        totalSupply: ethers.utils.formatEther(totalSupply),
+        user: account,
         balance: String(ethFormatBalance)
       });
+      //setContractAddress(data); // this, in case I switch to a dynamic input field again
     } catch (error) {
       console.log("error", error);
-      if (error) return alert("login with metamask or input contract address");
     }
   };
+
+  // Get ERC20 Token Contract Info
+  useEffect(() => {
+    handleGetTokenInfo();
+    // eslint-disable-next-line
+  }, [account]);
+
+  /*
+  console.log(
+    "contractInfo address:",
+    contractInfo.address,
+    "name:", contractInfo.tokenName,
+    "symbol:", contractInfo.tokenSymbol,
+    "totalSupply:", contractInfo.totalSupply,
+    "balanceInfo balance:", contractInfo.balance
+  );
+  */
+
+  //--------- list of tokens in DEX ----------------
+  useEffect(() => {
+    const tokenListData = window.localStorage.getItem("token_list");
+    setListOfTokens(JSON.parse(tokenListData));
+    //console.log(tokenListData);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
+  }, [listOfTokens]);
 
 
   const handleTransfer = async (e) => {
@@ -629,11 +321,7 @@ function App() {
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
-      await provider.send("eth_requestAccounts", []);
-      const transaction = await erc20.transfer(data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
+      const transaction = await tokenContract.transfer(data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
       await transaction.wait();
       //console.log('Success! -- recipient recieved amount');
       setIsTransferMsg(true);
@@ -656,11 +344,7 @@ function App() {
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
-      await provider.send("eth_requestAccounts", [])
-      const transactionFrom = await erc20.transferFrom(data.get("sender"), data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
+      const transactionFrom = await tokenContract.transferFrom(data.get("sender"), data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
       await transactionFrom.wait();
       console.log("transferFrom -- success");
       setIsTransferFrom(true);
@@ -681,10 +365,12 @@ function App() {
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
-      const transaction = await erc20.approve(data.get("spender"), ethers.utils.parseEther(data.get("amount")));
+      //const provider = new ethers.providers.Web3Provider(window.ethereum);
+      //const signer = provider.getSigner();
+      //const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
+      //approve infinity amount
+      // 115792089237316195423570985008687907853269984665640564039457584007913129639935
+      const transaction = await tokenContract.approve(data.get("spender"), ethers.utils.parseEther(data.get("amount")));
       await transaction.wait();
       //console.log("Success! -- approved");
       setIsApproved(true);
@@ -700,10 +386,10 @@ function App() {
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
-      const transaction = await erc20.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
+      //const provider = new ethers.providers.Web3Provider(window.ethereum);
+      //const signer = provider.getSigner();
+      //const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, signer);
+      const transaction = await tokenContract.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
       await transaction.wait();
       //console.log("Success! -- approved");
       setIsApproved(true);
@@ -722,13 +408,7 @@ function App() {
     try {
       if (!window.ethereum) return alert("Please install or sign-in to Metamask");
       const data = new FormData(e.target);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const erc20 = new ethers.Contract(contractInfo.address, RealToken.abi, provider);
-      const signer = provider.getSigner();
-      const owner = await signer.getAddress();
-      console.log(owner);
-      const allowance = await erc20.allowance(data.get("owner"), data.get("spender"));
+      const allowance = await tokenContract.allowance(data.get("owner"), data.get("spender"));
       console.log(allowance.toString());
       setIsAllowanceMsg(true);
       setAllowanceAmount(ethers.utils.formatEther(allowance));
@@ -742,24 +422,142 @@ function App() {
 
   };
 
+
+  /////////////// DEX //////////////////
+  // Get ERC20 token balances in DEX
+  const getDexBalances = async () => {
+    try {
+      // get token list
+      const allTokenList = await dexContract.getTokenListLength();
+      //console.log("token list length:", allTokenList.toNumber());
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dexContract.tokenList(i);
+        //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+        const tickerBalance = await dexContract.balances(account,
+          (tokenList));
+        console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
+        setDexBalanceInfo(prevDexBal => [
+          ...prevDexBal,
+          {
+            address: account,
+            amount: ethers.utils.formatEther(tickerBalance),
+            ticker: ethers.utils.parseBytes32String(tokenList),
+          }
+        ]);
+      };
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+
+  useEffect(() => {
+    getDexBalances();
+    // eslint-disable-next-line
+  }, [account, dexTokenTX]);
+
+
+  // Get only the ETH bal in DEX
+  const getDexETH_Balance = async () => {
+    try {
+      const dexEthBal = await dexContract.balances(account, ethers.utils.formatBytes32String("ETH"));
+      console.log("Dex ETH Bal:", ethers.utils.formatEther(dexEthBal.toString()));
+      setEthDexBalance({
+        address: account,
+        ethBal: ethers.utils.formatEther(dexEthBal)
+      });
+      //return dexEthBal;
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+
+
+  useEffect(() => {
+    if (account) {
+      getDexETH_Balance();
+    }
+
+    // eslint-disable-next-line
+  }, [account, depositEthAmount]);
+
+
+
+  const handleAddToken = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const addTokenTx = await dexContract.addToken(
+        ethers.utils.formatBytes32String(data.get("ticker")), contractInfo.address
+      );
+      await addTokenTx.wait();
+      //console.log("Add Token: ", addTokenTx);
+      setAddTokenSuccessMsg(true);
+
+      // get token list
+      const allTokenList = await dexContract.getTokenListLength();
+      //console.log("token list length:", allTokenList.toNumber());
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dexContract.tokenList(i);
+        //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+        setListOfTokens(prevTokens => [
+          ...prevTokens,
+          {
+            id: uuidv4(),
+            ticker: ethers.utils.parseBytes32String(tokenList)
+          }
+        ]);
+      };
+    } catch (error) {
+      console.log("error", error);
+      setErrorAddToken(true);
+    };
+  };
+
+  // Deposit only ETH into DEX
+  const handleDepositEth = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const depositEthTx = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
+      await depositEthTx.wait();
+      console.log("Deposit ETH: ", depositEthTx);
+      //console.log("Deposit ETH: ", depositEthTx.value.toString());
+      setDepositEthAmount(ethers.utils.formatEther(depositEthTx.value));
+      //setDepositEthSuccessMsg(true);
+    } catch (error) {
+      console.log("error", error);
+      //setErrorDepositEthMsg(true);
+    };
+  };
+
+
+  // DEPOSIT ERC20 TOKENS INTO DEX
+  const handleDexTokenDeposit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const dexDepositTx = await dexContract.deposit(
+        ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
+      );
+      await dexDepositTx.wait();
+      console.log("Dex deposit tx: ", dexDepositTx);
+      setDexTokenTx(dexDepositTx);
+      setDepositSuccessMsg(true);
+    } catch (error) {
+      console.log("error", error);
+      setErrorDexDeposit(true);
+    };
+  };
+
   // WITHDRAW ERC20 TOKENS FROM DEX
 
   const handleWithDraw = async (e) => {
     e.preventDefault();
     try {
-      if (!window.ethereum) return alert("Please install or sign-in to Metamask");
-      // use Form data
       const data = new FormData(e.target);
-      //get provider
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // get signer
-      const signer = provider.getSigner();
-      // create instance
-      const dex = new ethers.Contract(dexContractAddress, Dex.abi, signer);
-      // send tx
-      await provider.send("eth_requestAccounts", []);
-      // create receipt
-      const withdrawTx = await dex.withdraw(
+      const withdrawTx = await dexContract.withdraw(
         ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
       );
       await withdrawTx.wait();
@@ -768,42 +566,135 @@ function App() {
       setWithDrawSuccessMsg(true);
       //setWithDrawAmountInfo(ethers.utils.formatEther(withdrawTx.value));
       setWithDrawAmountInfo(data.get(("amount")));
+    } catch (error) {
+      console.log("error", error);
+      setErrorDexWithdraw(true);
+    }
+  };
 
+
+  const handleLimitOrderSell = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const limitOrderSellTx = await dexContract.createLimitOrder(
+        1,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"),
+        ethers.utils.parseEther(data.get("price"))
+      );
+      await limitOrderSellTx.wait();
+      console.log('limit SELL order success', limitOrderSellTx);
+      setIsLimitSellMsg(true);
+
+      window.location.reload();
 
     } catch (error) {
       console.log("error", error);
-      //if (error) return alert("balance may be insufficient");
-      setErrorDexWithdraw(true);
-    }
-  }
+      setErrorLimitSell(true)
+    };
+  };
+
+
+  const handleLimitOrderBuy = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const limitOrderBuyTx = await dexContract.createLimitOrder(
+        0,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"),
+        ethers.utils.parseEther(data.get("price"))
+      );
+      await limitOrderBuyTx.wait();
+      console.log("limit BUY order success", limitOrderBuyTx);
+      setIsLimitBuyMsg(true);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log("error", error);
+      //if (error) return alert("error...Not enough ETH balancance");
+      setErrorLimitBuy(true);
+    };
+  };
+
+
+  const handleMarketOrderSell = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const marketOrderSellTx = await dexContract.createMarketOrder(
+        1,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"));
+
+      await marketOrderSellTx.wait();
+      console.log("market SELL order success", marketOrderSellTx);
+      setIsMarketSellMsg(true);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log("error", error);
+      setErrorMarketSell(true);
+    };
+  };
+
+
+  const handleMarketOrderBuy = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const marketOrderTx = await dexContract.createMarketOrder(
+        0, ethers.utils.formatBytes32String(data.get("ticker")), data.get("amount")
+      );
+      await marketOrderTx.wait();
+      console.log("market BUY order success", marketOrderTx);
+      setIsMarketBuyMsg(true);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log("error", error);
+      setErrorMarketBuy(true);
+    };
+  };
+
+  // PRINT TOKEN LIST
+  const myTokenList = listOfTokens.map((lists) => (
+    <div key={lists.id} className="alert alert-dismissible alert-primary text-secondary">
+      <div>
+        <strong>Id:</strong>{" "}{lists.id}
+      </div>
+      <div className='text-success'>
+        <strong>Token:</strong>{" "}{lists.ticker}
+      </div>
+    </div>
+
+  ));
 
 
   return (
     <>
       <div className='container'>
-        <Header />
+        <Header
+          openWindowMsg={openWindowMsg}
+          setOpenWindowMsg={setOpenWindowMsg}
+        />
       </div>
 
       <Token
-        handleGetTokenInfo={handleGetTokenInfo}
-        getMyBalance={getMyBalance}
-        balanceInfo={balanceInfo}
-        handleTransfer={handleTransfer}
         isTransferMsg={isTransferMsg}
         setIsTransferMsg={setIsTransferMsg}
         transfer={transfer}
-        handleApprove={handleApprove}
         isApproved={isApproved}
         setIsApproved={setIsApproved}
-        handleAllowance={handleAllowance}
         isAllowanceMsg={isAllowanceMsg}
         setIsAllowanceMsg={setIsAllowanceMsg}
         allowanceAmount={allowanceAmount}
-        handleTransferFrom={handleTransferFrom}
         isTransferFrom={isTransferFrom}
         setIsTransferFrom={setIsTransferFrom}
-        contractAddress={contractAddress}
-        contractInfo={contractInfo}
         toggleTabs={toggleTabs}
         toggleTabState={toggleTabState}
         errorTransfer={errorTransfer}
@@ -812,8 +703,22 @@ function App() {
         approveTx={approveTx}
         errorTransferFrom={errorTransferFrom}
         setErrorTransferFrom={setErrorTransferFrom}
+        handleGetTokenInfo={handleGetTokenInfo}
+        handleTransfer={handleTransfer}
+        handleApprove={handleApprove}
+        handleAllowance={handleAllowance}
+        handleTransferFrom={handleTransferFrom}
         handleApproveDex={handleApproveDex}
+        contractInfo={contractInfo}
+        tokenContract={tokenContract}
       />
+
+      {/* 
+       balanceInfo={balanceInfo}
+      getMyBalance={getMyBalance}
+       contractAddress={contractAddress}
+
+        */}
 
       {/* Token Events */}
       <div className='container'>
@@ -846,51 +751,69 @@ function App() {
         depositEthSuccessMsg={depositEthSuccessMsg}
         depositEthAmount={depositEthAmount}
         toggleTabState2={toggleTabState2}
-        myTokenList={myTokenList}
         depositSuccessMsg={depositSuccessMsg}
-        handleDepositEth = {handleDepositEth}
+        setDepositSuccessMsg={setDepositSuccessMsg}
+        handleDepositEth={handleDepositEth}
         toggleTabs2={toggleTabs2}
         handleAddToken={handleAddToken}
+        setDepositEthSuccessMsg={setDepositEthSuccessMsg}
         setAddTokenSuccessMsg={setAddTokenSuccessMsg}
         setErrorAddToken={setErrorAddToken}
-        getAllTokensList={getAllTokensList}
         handleDexTokenDeposit={handleDexTokenDeposit}
         setErrorDexDeposit={setErrorDexDeposit}
+        setErrorDepositEth={setErrorDepositEth}
         handleWithDraw={handleWithDraw}
         setErrorDexWithdraw={setErrorDexWithdraw}
         getDexBalances={getDexBalances}
         setWithDrawSuccessMsg={setWithDrawSuccessMsg}
+        myTokenList={myTokenList}
+        errorDepositEthMsg={errorDepositEthMsg}
+        setErrorDepositEthMsg={setErrorDepositEthMsg}
+        ethDexBalance={ethDexBalance}
       />
+      {/*
+        getAllTokensList={getAllTokensList}
+           
+ 
+       */}
 
       <TradingHeader />
-   
+
       <Trading
-        toggleTabState3 = {toggleTabState3}
-        toggleTabs3 = {toggleTabs3}
-        handleLimitOrderSell = {handleLimitOrderSell}
-        isLimitSellMsg = {isLimitSellMsg}
-        setIsLimitSellMsg = {setIsLimitSellMsg}
-        errorLimitSell = {errorLimitSell}
-        setErrorLimitSell = {setErrorLimitSell}
-        handleLimitOrderBuy = {handleLimitOrderBuy}
-        isLimitBuyMsg = {isLimitBuyMsg}
-        setIsLimitBuyMsg = {setIsLimitBuyMsg}
-        errorLimitBuy = {errorLimitBuy}
-        setErrorLimitBuy = {setErrorLimitBuy}
-        handleMarketOrderBuy = {handleMarketOrderBuy}
-        isMarketBuyMsg = {isMarketBuyMsg}
-        setIsMarketBuyMsg = {setIsMarketBuyMsg}
-        errorMarketBuy = {errorMarketBuy}
-        setErrorMarketBuy = {setErrorMarketBuy}
-        handleMarketOrderSell = {handleMarketOrderSell}
-        isMarketSellMsg = {isMarketSellMsg}
-        setIsMarketSellMsg = {setIsMarketSellMsg}
-        errorMarketSell = {errorMarketSell}
-        setErrorMarketSell = {setErrorMarketSell}
-        buyList = {buyList}
-        sellList = {sellList}
-        refresh = {refresh}
-       />
+        toggleTabState3={toggleTabState3}
+        toggleTabs3={toggleTabs3}
+        handleLimitOrderSell={handleLimitOrderSell}
+        isLimitSellMsg={isLimitSellMsg}
+        setIsLimitSellMsg={setIsLimitSellMsg}
+        errorLimitSell={errorLimitSell}
+        setErrorLimitSell={setErrorLimitSell}
+        handleLimitOrderBuy={handleLimitOrderBuy}
+        isLimitBuyMsg={isLimitBuyMsg}
+        setIsLimitBuyMsg={setIsLimitBuyMsg}
+        errorLimitBuy={errorLimitBuy}
+        setErrorLimitBuy={setErrorLimitBuy}
+        handleMarketOrderBuy={handleMarketOrderBuy}
+        isMarketBuyMsg={isMarketBuyMsg}
+        setIsMarketBuyMsg={setIsMarketBuyMsg}
+        errorMarketBuy={errorMarketBuy}
+        setErrorMarketBuy={setErrorMarketBuy}
+        handleMarketOrderSell={handleMarketOrderSell}
+        isMarketSellMsg={isMarketSellMsg}
+        setIsMarketSellMsg={setIsMarketSellMsg}
+        errorMarketSell={errorMarketSell}
+        setErrorMarketSell={setErrorMarketSell}
+
+        limitTx={limitTx}
+        setLimitTx={setLimitTx}
+        marketTx={marketTx}
+        setMarketTx={setMarketTx}
+      />
+      {/*
+      sellList={sellList}
+          buyList={buyList}
+          sellList={sellList}
+          refresh={refresh}
+       */}
 
       <Footer />
     </>

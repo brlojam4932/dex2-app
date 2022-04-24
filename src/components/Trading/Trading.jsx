@@ -1,4 +1,6 @@
 import React from 'react';
+import LimitOrders from '../Transactions/LimitOrders';
+import MarketOrders from '../Transactions/MarketOrders';
 // limit/market buys and sells and orderbook printout
 
 function Trading({
@@ -24,8 +26,8 @@ function Trading({
   setIsMarketSellMsg,
   errorMarketSell,
   setErrorMarketSell,
-  buyList,
-  sellList,
+  limitTx,
+  marketTx,
   refresh
 
 }) {
@@ -303,16 +305,13 @@ function Trading({
         <div className='box-2'>
           <div className='container-6'>
             <div className='m-4'>
-              <div className='box-refresh'>
-                <button className="btn btn-primary" onClick={refresh}>Refresh Trades</button>
-              </div>
               <div className='container'>
                 <div className='box-sell'>
                   <div className='card'>
                     <div className="card-body">
-                      <h6 className="card-subtitle mb-2 text-secondary">SELLS</h6>
+                      <h6 className="card-subtitle mb-2 text-secondary">LIMIT ORDERS</h6>
                       <div className="px-4">
-                        {sellList}
+                        <LimitOrders limitTx={limitTx} />
                       </div>
                     </div>
                   </div>
@@ -320,9 +319,9 @@ function Trading({
                 <div className='box-buy'>
                   <div className="card">
                     <div className="card-body">
-                      <h6 className="card-subtitle mb-2 text-secondary">BUYS</h6>
+                      <h6 className="card-subtitle mb-2 text-secondary">MARKET ORDERS</h6>
                       <div className="px-4" >
-                        {buyList}
+                        <MarketOrders marketTx={marketTx}/>
                       </div>
                     </div>
                   </div>

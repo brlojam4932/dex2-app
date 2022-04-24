@@ -1,25 +1,28 @@
 import React from 'react'
 
-function BuyOrders({ orders }) {
+function BuyOrders({ buys }) {
+
+  if (buys.length === 0) return null;
+
   return (
     <div className="alert alert-dismissible alert-primary text-secondary">
       <div>
-        <strong>Id:</strong>{" "}{orders.id}
+        <strong>Id:</strong>{" "}{buys.id}
       </div>
       <div> 
-        <strong>Trader:</strong>{" "}{orders.trader}
+        <strong>Trader:</strong>{" "}{buys.trader}
       </div>
       <div>
-        <strong>Ticker:</strong>{" "}{orders.ticker}
+        <strong>Ticker:</strong>{" "}{buys.ticker}
       </div>
       <div>
-        <strong>Amount:</strong>{" "}{orders.amount}
+        <strong>Amount:</strong>{" "}{buys.amount}
       </div>
       <div className='text-success'>
-        <strong>Price:</strong>{" "}{orders.price}
+        <strong>Price:</strong>{" "}{buys.price}
       </div>
       <div>
-        <strong>Filled:</strong>{" "}{orders.filled}
+        <strong>Filled:</strong>{" "}{buys.filled}
       </div>
     </div>
   )

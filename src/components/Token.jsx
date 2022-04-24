@@ -1,9 +1,13 @@
 import React from 'react';
+import styled from 'styled-components';
+
+export const Wrapper2 = styled.section`
+padding: 19px;
+margin: 17px;
+`
 // ERC20 token transfer, approve, transferFrom 
 
 function Token({
-  handleGetTokenInfo,
-  getMyBalance,
   balanceInfo,
   handleTransfer,
   isTransferMsg,
@@ -19,7 +23,6 @@ function Token({
   handleTransferFrom,
   isTransferFrom,
   setIsTransferFrom,
-  contractAddress,
   contractInfo,
   toggleTabs,
   toggleTabState,
@@ -29,8 +32,9 @@ function Token({
   approveTx,
   errorTransferFrom,
   setErrorTransferFrom,
-  handleApproveDex
-  
+  handleApproveDex,
+  contractAddress,
+  handleGetTokenInfo
  }) {
 
   
@@ -39,83 +43,25 @@ function Token({
      {/* ERC20 token info/get balance/tx/approve/allowance/txfer-from/receipts */}
      <div className='container-1'>
         <div className='box-1'>
-          <form className="m-4" onSubmit={handleGetTokenInfo}>
-            <div className="shadow-lg bg-darkgrey">
-              <main className="mt-4 p-4">
-                <div>
-                  <h6 className="card-subtitle mb-2 text-muted">ERC20 token contract</h6>
-                  <div className="my-3">
-                    <input
-                      type="text"
-                      name={contractAddress}
-                      className="input p-1"
-                      placeholder="ERC20 contract address"
-                      style={{ background: "#1f1f1f", borderStyle: "solid 1px", borderColor: "#7bc3ed", borderRadius: "5px", color: "white" }}
-                    />
-                  </div>
-                </div>
-              </main>
-              <footer className="p-4">
-                <button
-                  type="submit"
-                  className="btn btn-outline-success"
-                >
-                  Get token info
-                </button>
-              </footer>
-              <div className="px-4">
-                <table className="table w-full text-info">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Symbol</th>
-                      <th>Total supply</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>{contractInfo.tokenName}</th>
-                      <td>{contractInfo.tokenSymbol}</td>
-                      <td>{String(contractInfo.totalSupply)}</td>
-                      <td>{contractInfo.deployedAt}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-4">
-                <button
-                  onClick={getMyBalance}
-                  type="submit"
-                  className="btn btn-success"
-                >
-                  LOGIN / Get my balance
-                </button>
-              </div>
-              <div className="px-4">
-                <table className="table w-full text-info">
-                  <thead>
-                    <tr>
-                      <th>Address</th>
-                      <th>Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>{balanceInfo.address}</th>
-                      <td>{balanceInfo.balance}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </form>
+          <Wrapper2 className='text-info'>
+            <h2 style={{color: "#e1e1e1"}}>ERC20 Contract</h2>
+            <p>Address: {contractInfo.address}</p>
+            <p>Symbol: {contractInfo.tokenSymbol}</p>
+            <p>Total Supply: {contractInfo.totalSupply}</p>
+          </Wrapper2>
+
+        <Wrapper2 className='text-info'>
+        <h2 style={{color: "#e1e1e1"}}>Account Info</h2>
+        <p>Address: {contractInfo.user}</p>
+        <p>Balance: {contractInfo.balance} {contractInfo.tokenSymbol} </p>
+        </Wrapper2>
         </div>
         {/* Token Tabs */}
         <div className='box-2'>
           {/* Transactions */}
           <div className='container'>
             <div className='bloc-tabs'>
-              <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Transfer</button>
+              <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Send</button>
               <button className={toggleTabState === 5 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(5)}>Approve DEX</button>
               <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Approve</button>
               <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Allowance</button>
@@ -124,7 +70,7 @@ function Token({
 
             <div className='content-tabs'>
               <div className={toggleTabState === 1 ? 'content active-content' : "content"}>
-                <h3 className='text-muted'>Transfer</h3>
+                <h3 className='text-muted'>Send</h3>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleTransfer}>
@@ -210,9 +156,9 @@ function Token({
                       </button>
                       <div className="my-4 mb-2">
                         {isApproved &&
-                          <div className="alert alert-dismissible alert-primary">
+                          <div className="alert alert-dismissible alert-success">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <ApproveList approveTx={approveTx} />
+                            <strong>Success!</strong> DEX is approved
                           </div>
                         }
                       </div>
@@ -262,7 +208,8 @@ function Token({
                         {isApproved &&
                           <div className="alert alert-dismissible alert-primary">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <ApproveList approveTx={approveTx} />
+                            {/* <ApproveList approveTx={approveTx} /> */}
+                            Spender is approved
                           </div>
                         }
                       </div>
