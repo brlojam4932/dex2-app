@@ -66,7 +66,7 @@ const HomeConnectButton = ({ click, disconnect }) => {
 }
 
 
-function Header({ openWindowMsg }) {
+function Header() {
   
   const { connectOn, disconnect } = useWeb3(); // imported hooks from useWeb3 (disconnect function and connectOn function)
   return (
@@ -83,7 +83,6 @@ function Header({ openWindowMsg }) {
           <br />
           <a className="nav-link text-info" href='https://ropsten.etherscan.io/token/0xe4b6351dc44f54e5cbbbe9008f06fa253001bcfb'>Link to my ERC20 RETK token contract </a>
         </main>
-        {openWindowMsg && <p>Please open Metamask window</p>}
       </div>
     </div>
   );

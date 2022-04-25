@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { ethers } from "ethers";
+import { v4 as uuidv4 } from 'uuid';
 import DexBalances from '../Transactions/DexBalances';
 // DEX wallet for deposits, withdraw, token list, balances
 import styled from 'styled-components';
@@ -20,14 +22,9 @@ function DexTransact({
   depositEthAmount,
   toggleTabState2,
   toggleTabs2,
-  handleAddToken,
   setAddTokenSuccessMsg,
   setErrorAddToken,
-  myTokenList,
-  handleDexTokenDeposit,
-  handleDepositEth,
   setErrorDexDeposit,
-  handleWithDraw,
   setErrorDexWithdraw,
   depositSuccessMsg,
   setDepositSuccessMsg,
@@ -35,8 +32,240 @@ function DexTransact({
   setErrorDepositEth,
   setWithDrawSuccessMsg,
   errorDepositEthMsg,
-  ethDexBalance
+  ethDexBalance,
+  dexContract,
+  setLimitTx,
+  setMarketTx,
+  setListOfTokens,
+  listOfTokens,
+  account,
+  setDexBalanceInfo,
+  setEthDexBalance,
+  contractInfo,
+  setDepositEthAmount,
+  setDexTokenTx,
+  setWithDrawAmountInfo,
+  dexTokenTX
 }) {
+
+   // ORDERS
+   useEffect(() => {
+    //-----Limit------------
+    dexContract?.on("LimitOrder", (trader, side, ticker, amount, price, event) => {
+      console.log(trader, side, ticker, amount, price, event);
+
+      setLimitTx(prevLimitTx => [
+        ...prevLimitTx,
+        {
+          txHash: event.transactionHash,
+          trader,
+          side,
+          ticker: ethers.utils.parseBytes32String(ticker),
+          amount: String(amount),
+          price: ethers.utils.formatEther(price),
+        }
+      ]);
+      return () => {
+        dexContract.removeAllListeners("LimitORder");
+      }
+
+    });
+    //-----Market------------
+    dexContract?.on("MarketOrder", (trader, side, ticker, amount, event) => {
+      console.log(trader, side, ticker, amount, event);
+
+      setMarketTx(prevMarketTx => [
+        ...prevMarketTx,
+        {
+          txHash: event.transactionHash,
+          trader,
+          side,
+          ticker: ethers.utils.parseBytes32String(ticker),
+          amount: String(amount),
+        }
+      ]);
+      return () => {
+        dexContract.removeAllListeners("MarketOrder");
+      }
+
+    });
+
+  }, [dexContract]);
+
+
+  //--------- list of tokens in DEX ----------------
+  useEffect(() => {
+    const tokenListData = window.localStorage.getItem("token_list");
+    setListOfTokens(JSON.parse(tokenListData));
+    //console.log(tokenListData);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
+  }, [listOfTokens]);
+
+  /////////////// DEX //////////////////
+  // Get ERC20 token balances in DEX
+  const getDexBalances = async () => {
+    try {
+      // get token list
+      const allTokenList = await dexContract.getTokenListLength();
+      //console.log("token list length:", allTokenList.toNumber());
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dexContract.tokenList(i);
+        //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+        const tickerBalance = await dexContract.balances(account,
+          (tokenList));
+        console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
+        setDexBalanceInfo(prevDexBal => [
+          ...prevDexBal,
+          {
+            address: account,
+            amount: ethers.utils.formatEther(tickerBalance),
+            ticker: ethers.utils.parseBytes32String(tokenList),
+          }
+        ]);
+      };
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+
+  useEffect(() => {
+    getDexBalances();
+    // eslint-disable-next-line
+  }, [account, dexTokenTX]);
+
+
+  // Get only the ETH bal in DEX
+  const getDexETH_Balance = async () => {
+    try {
+      const dexEthBal = await dexContract.balances(account, ethers.utils.formatBytes32String("ETH"));
+      console.log("Dex ETH Bal:", ethers.utils.formatEther(dexEthBal.toString()));
+      setEthDexBalance({
+        address: account,
+        ethBal: ethers.utils.formatEther(dexEthBal)
+      });
+      //return dexEthBal;
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+
+
+  useEffect(() => {
+    if (account) {
+      getDexETH_Balance();
+    }
+
+    // eslint-disable-next-line
+  }, [account, depositEthAmount]);
+
+
+
+  const handleAddToken = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const addTokenTx = await dexContract.addToken(
+        ethers.utils.formatBytes32String(data.get("ticker")), contractInfo.address
+      );
+      await addTokenTx.wait();
+      //console.log("Add Token: ", addTokenTx);
+      setAddTokenSuccessMsg(true);
+
+      // get token list
+      const allTokenList = await dexContract.getTokenListLength();
+      //console.log("token list length:", allTokenList.toNumber());
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dexContract.tokenList(i);
+        //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+        setListOfTokens(prevTokens => [
+          ...prevTokens,
+          {
+            id: uuidv4(),
+            ticker: ethers.utils.parseBytes32String(tokenList)
+          }
+        ]);
+      };
+    } catch (error) {
+      console.log("error", error);
+      setErrorAddToken(true);
+    };
+  };
+
+  // Deposit only ETH into DEX
+  const handleDepositEth = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const depositEthTx = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
+      await depositEthTx.wait();
+      console.log("Deposit ETH: ", depositEthTx);
+      //console.log("Deposit ETH: ", depositEthTx.value.toString());
+      setDepositEthAmount(ethers.utils.formatEther(depositEthTx.value));
+      //setDepositEthSuccessMsg(true);
+    } catch (error) {
+      console.log("error", error);
+      //setErrorDepositEthMsg(true);
+    };
+  };
+
+
+  // DEPOSIT ERC20 TOKENS INTO DEX
+  const handleDexTokenDeposit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const dexDepositTx = await dexContract.deposit(
+        ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
+      );
+      await dexDepositTx.wait();
+      console.log("Dex deposit tx: ", dexDepositTx);
+      setDexTokenTx(dexDepositTx);
+      setDepositSuccessMsg(true);
+    } catch (error) {
+      console.log("error", error);
+      setErrorDexDeposit(true);
+    };
+  };
+
+  // WITHDRAW ERC20 TOKENS FROM DEX
+
+  const handleWithDraw = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const withdrawTx = await dexContract.withdraw(
+        ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
+      );
+      await withdrawTx.wait();
+      console.log("withdraw: ", withdrawTx);
+
+      setWithDrawSuccessMsg(true);
+      //setWithDrawAmountInfo(ethers.utils.formatEther(withdrawTx.value));
+      setWithDrawAmountInfo(data.get(("amount")));
+    } catch (error) {
+      console.log("error", error);
+      setErrorDexWithdraw(true);
+    }
+  };
+
+  // PRINT TOKEN LIST
+  const myTokenList = listOfTokens.map((lists) => (
+    <div key={lists.id} className="alert alert-dismissible alert-primary text-secondary">
+      <div>
+        <strong>Id:</strong>{" "}{lists.id}
+      </div>
+      <div className='text-success'>
+        <strong>Token:</strong>{" "}{lists.ticker}
+      </div>
+    </div>
+
+  ));
+
   return (
     <>
        {/* DEX deposts/balances/add-token, etc...  */}
@@ -276,22 +505,22 @@ function DexTransact({
         {/* get Dex balances */}
         <div className='box-3'>
           <div className='m-4'>
-            <div>
               <div className="card">
                 <div className="card-body">
                   <h6 className="card-subtitle mb-2 text-muted">DEX Token Balances</h6>
                 </div>
-                <Wrapper3 className='text-info'>
+            <Wrapper3 className='text-info'>
             <div>
             <strong>Address:</strong> {ethDexBalance.address}         
             </div>
             <div>
             <strong>Amount:</strong> {ethDexBalance.ethBal} ETH
             </div>
+
             <DexBalances dexBalanceInfo={dexBalanceInfo}/>
+            
           </Wrapper3>
             </div>
-              </div>
           </div>
         </div>
       </div>

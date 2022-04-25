@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
+import { ethers } from "ethers";
 
 export const Wrapper2 = styled.section`
 padding: 19px;
@@ -7,20 +8,17 @@ margin: 17px;
 `
 // ERC20 token transfer, approve, transferFrom 
 
+
 function Token({
-  balanceInfo,
-  handleTransfer,
   isTransferMsg,
   setIsTransferMsg,
   transfer,
-  handleApprove,
   isApproved,
   setIsApproved,
-  handleAllowance,
   isAllowanceMsg,
   setIsAllowanceMsg,
+  setAllowanceAmount,
   allowanceAmount,
-  handleTransferFrom,
   isTransferFrom,
   setIsTransferFrom,
   contractInfo,
@@ -28,14 +26,204 @@ function Token({
   toggleTabState,
   errorTransfer,
   setErrorTransfer,
-  ApproveList,
-  approveTx,
   errorTransferFrom,
   setErrorTransferFrom,
-  handleApproveDex,
-  contractAddress,
-  handleGetTokenInfo
+  account,
+  tokenContract,
+  setContractInfo,
+  dexContractAddress,
+  setTxs,
+  setApproveTx,
+  setTransfer,
  }) {
+
+  // ethers js /// provider is read only; signer is write to contract
+  // TOKEN EVENTS
+  useEffect(() => {
+
+    //event Transfer(address indexed from, address indexed to, uint256 value);
+    if (contractInfo.address !== "-") {
+      tokenContract?.on("Transfer", (from, to, amount, event) => {
+        //console.log({ from, to, amount, event });
+        // the transaction result gets copied over to a state
+        setTxs((prevTx) => [
+          ...prevTx,
+          {
+            txHash: event.transactionHash,
+            from,
+            to,
+            amount: ethers.utils.formatEther(amount), //amount: String(amount)
+          }
+        ]);
+        //event.removeListener(); // Solve memory leak with this.
+      });
+
+      return () => {
+        tokenContract.removeAllListeners("Transfer")
+      }
+    };
+    // eslint-disable-next-line
+  }, [contractInfo.address]);
+
+
+  // APPROVE EVENTS
+  useEffect(() => {
+    if (contractInfo.address !== "-") {
+      tokenContract?.on("Approval", (spender, event) => {
+        //console.log({ spender, amount, event });
+        setApproveTx(prevApprove => [
+          ...prevApprove,
+          {
+            txHash: event.transactionHash,
+            spender,
+          }
+        ]);
+      });
+      return () => {
+        tokenContract.removeAllListeners("Approval");
+      }
+    };
+
+    // eslint-disable-next-line
+  }, [contractInfo.address]);
+
+   // ------------------GET ERC20 TOKEN CONTRACT -----------------------
+   const handleGetTokenInfo = async (e) => {
+    //e.preventDefault();
+    try {
+      //const data = new FormData(e.target);
+      //const erc20 = getContract(data.get(contractAddress), RealToken.abi, library, account);
+      const tokenName = await tokenContract.name();
+      const tokenSymbol = await tokenContract.symbol();
+      const totalSupply = await tokenContract.totalSupply();
+
+      const balance = await tokenContract.balanceOf(account);
+      const ethFormatBalance = ethers.utils.formatEther(balance);
+
+      setContractInfo({
+        //address: data.get(contractAddress),
+        address: tokenContract.address,
+        tokenName,
+        tokenSymbol,
+        totalSupply: ethers.utils.formatEther(totalSupply),
+        user: account,
+        balance: String(ethFormatBalance)
+      });
+      //setContractAddress(data); // this, in case I switch to a dynamic input field again
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  // Get ERC20 Token Contract Info
+  useEffect(() => {
+    handleGetTokenInfo();
+    // eslint-disable-next-line
+  }, [account]);
+
+   /*
+  console.log(
+    "contractInfo address:",
+    contractInfo.address,
+    "name:", contractInfo.tokenName,
+    "symbol:", contractInfo.tokenSymbol,
+    "totalSupply:", contractInfo.totalSupply,
+    "balanceInfo balance:", contractInfo.balance
+  );
+  */
+
+  const handleTransfer = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const transaction = await tokenContract.transfer(data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
+      await transaction.wait();
+      //console.log('Success! -- recipient recieved amount');
+      setIsTransferMsg(true);
+      setTransfer(data.get("amount"));
+    } catch (error) {
+      console.log(error);
+      //if (error) return alert('transfer amount exceeds balance');
+      setErrorTransfer(true);
+    };
+
+  };
+
+   // function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+  // address a, b & c -> a is the sender, b is the spender, c is the recipient
+  // address b can send to address c on a's behalf
+
+  const handleTransferFrom = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const transactionFrom = await tokenContract.transferFrom(data.get("sender"), data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
+      await transactionFrom.wait();
+      console.log("transferFrom -- success");
+      setIsTransferFrom(true);
+    } catch (error) {
+      console.log(error);
+      //setError(true);
+      if (error) return alert("transfer from amount exceeds balance");
+    };
+
+  };
+
+
+  //function approve(address spender, uint256 amount) external returns (bool);
+  // address a, b & c -> address a approves address b, the spender
+
+  const handleApprove = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      // 115792089237316195423570985008687907853269984665640564039457584007913129639935
+      const transaction = await tokenContract.approve(data.get("spender"), ethers.utils.parseEther(data.get("amount")));
+      await transaction.wait();
+      //console.log("Success! -- approved");
+      setIsApproved(true);
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("error, check address or re-set Metamask");
+
+    }
+  }
+
+  const handleApproveDex = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const transaction = await tokenContract.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
+      await transaction.wait();
+      //console.log("Success! -- approved");
+      setIsApproved(true);
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("error, check address or re-set Metamask");
+    }
+  }
+
+
+  // function allowance(address owner, address spender) external view returns (uint256);
+  // address a is owner and address b is the spender -> checks the balance owner allows spender to spend
+
+  const handleAllowance = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const allowance = await tokenContract.allowance(data.get("owner"), data.get("spender"));
+      console.log(allowance.toString());
+      setIsAllowanceMsg(true);
+      setAllowanceAmount(ethers.utils.formatEther(allowance));
+
+      return allowance;
+
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("Input correct address");
+    };
+
+  };
 
   
   return (

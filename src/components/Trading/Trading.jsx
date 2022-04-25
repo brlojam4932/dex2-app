@@ -1,4 +1,5 @@
 import React from 'react';
+import { ethers } from "ethers";
 import LimitOrders from '../Transactions/LimitOrders';
 import MarketOrders from '../Transactions/MarketOrders';
 // limit/market buys and sells and orderbook printout
@@ -6,31 +7,116 @@ import MarketOrders from '../Transactions/MarketOrders';
 function Trading({
   toggleTabState3,
   toggleTabs3,
-  handleLimitOrderSell,
   isLimitSellMsg,
   setIsLimitSellMsg,
   errorLimitSell,
   setErrorLimitSell,
-  handleLimitOrderBuy,
   isLimitBuyMsg,
   setIsLimitBuyMsg,
   errorLimitBuy,
   setErrorLimitBuy,
-  handleMarketOrderBuy,
   isMarketBuyMsg,
   setIsMarketBuyMsg,
   errorMarketBuy,
   setErrorMarketBuy,
-  handleMarketOrderSell,
   isMarketSellMsg,
   setIsMarketSellMsg,
   errorMarketSell,
   setErrorMarketSell,
   limitTx,
   marketTx,
-  refresh
+  dexContract,
 
 }) {
+
+  const handleLimitOrderSell = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const limitOrderSellTx = await dexContract.createLimitOrder(
+        1,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"),
+        ethers.utils.parseEther(data.get("price"))
+      );
+      await limitOrderSellTx.wait();
+      console.log('limit SELL order success', limitOrderSellTx);
+      setIsLimitSellMsg(true);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log("error", error);
+      setErrorLimitSell(true)
+    };
+  };
+
+
+  const handleLimitOrderBuy = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const limitOrderBuyTx = await dexContract.createLimitOrder(
+        0,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"),
+        ethers.utils.parseEther(data.get("price"))
+      );
+      await limitOrderBuyTx.wait();
+      console.log("limit BUY order success", limitOrderBuyTx);
+      setIsLimitBuyMsg(true);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log("error", error);
+      //if (error) return alert("error...Not enough ETH balancance");
+      setErrorLimitBuy(true);
+    };
+  };
+
+
+  const handleMarketOrderSell = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const marketOrderSellTx = await dexContract.createMarketOrder(
+        1,
+        ethers.utils.formatBytes32String(data.get("ticker")),
+        data.get("amount"));
+
+      await marketOrderSellTx.wait();
+      console.log("market SELL order success", marketOrderSellTx);
+      setIsMarketSellMsg(true);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log("error", error);
+      setErrorMarketSell(true);
+    };
+  };
+
+
+  const handleMarketOrderBuy = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const marketOrderTx = await dexContract.createMarketOrder(
+        0, ethers.utils.formatBytes32String(data.get("ticker")), data.get("amount")
+      );
+      await marketOrderTx.wait();
+      console.log("market BUY order success", marketOrderTx);
+      setIsMarketBuyMsg(true);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log("error", error);
+      setErrorMarketBuy(true);
+    };
+  };
+
   return (
     <>
      {/* handle sell and buy  */}

@@ -12,9 +12,9 @@ function TradingHeader() {
                 <h1 className="text-xl font-semibold text-info text-left">
                   DEX TRADING
                 </h1>
-                <p><small className="text-muted">Limit sell and buy. Market sell and buy.</small> </p>
+                <p><small className="text-success">Side 0 is a BUY and Side 1 is a SELL</small> </p>
                 <br />
-                <h6 className='text-muted'>Price in ETH</h6>
+                <h6 className='text-muted'>Prices in ETH</h6>
               </main>
             </div>
           </div>
