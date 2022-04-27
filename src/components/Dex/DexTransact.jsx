@@ -45,7 +45,10 @@ function DexTransact({
   setDepositEthAmount,
   setDexTokenTx,
   setWithDrawAmountInfo,
-  dexTokenTX
+  dexTokenTX,
+  depositEthTx,
+  setDepositEthTx
+
 }) {
 
    // ORDERS
@@ -93,7 +96,7 @@ function DexTransact({
   }, [dexContract]);
 
 
-  //--------- list of tokens in DEX ----------------
+  //--------- DEX Token List ----------------
   useEffect(() => {
     const tokenListData = window.localStorage.getItem("token_list");
     setListOfTokens(JSON.parse(tokenListData));
@@ -103,6 +106,18 @@ function DexTransact({
   useEffect(() => {
     window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
   }, [listOfTokens]);
+
+    //--------- DEX balances to local storage ----------------
+    useEffect(() => {
+      const dexBalData = window.localStorage.getItem("dex_balances");
+      setListOfTokens(JSON.parse(dexBalData));
+      //console.log(tokenListData);
+    }, []);
+  
+    useEffect(() => {
+      window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
+    }, [dexBalanceInfo]);
+
 
   /////////////// DEX //////////////////
   // Get ERC20 token balances in DEX
@@ -116,7 +131,7 @@ function DexTransact({
         //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
         const tickerBalance = await dexContract.balances(account,
           (tokenList));
-        console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
+        //console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
         setDexBalanceInfo(prevDexBal => [
           ...prevDexBal,
           {
@@ -133,9 +148,13 @@ function DexTransact({
 
 
   useEffect(() => {
-    getDexBalances();
+    if (account) {
+      getDexBalances();
+    }
     // eslint-disable-next-line
-  }, [account, dexTokenTX]);
+  //}, [account, dexTokenTX]);
+// }, [dexTokenTX, listOfTokens]);
+}, [account, dexTokenTX]);
 
 
   // Get only the ETH bal in DEX
@@ -153,15 +172,12 @@ function DexTransact({
     }
   };
 
-
-
   useEffect(() => {
     if (account) {
       getDexETH_Balance();
     }
-
     // eslint-disable-next-line
-  }, [account, depositEthAmount]);
+  }, [account, depositEthTx]); // prev had accounts as dependancy - maybe responsible for multiple print outs
 
 
 
@@ -196,22 +212,26 @@ function DexTransact({
     };
   };
 
+
   // Deposit only ETH into DEX
   const handleDepositEth = async (e) => {
     e.preventDefault();
     try {
       const data = new FormData(e.target);
-      const depositEthTx = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
-      await depositEthTx.wait();
-      console.log("Deposit ETH: ", depositEthTx);
+      const depositEthData = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
+      await depositEthData.wait();
+      console.log("Deposit ETH: ", depositEthData);
+      setDepositEthTx(depositEthData.value)
       //console.log("Deposit ETH: ", depositEthTx.value.toString());
-      setDepositEthAmount(ethers.utils.formatEther(depositEthTx.value));
+      setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
       //setDepositEthSuccessMsg(true);
     } catch (error) {
       console.log("error", error);
       //setErrorDepositEthMsg(true);
     };
   };
+
+  //console.log(depositEthTx)
 
 
   // DEPOSIT ERC20 TOKENS INTO DEX
@@ -232,8 +252,8 @@ function DexTransact({
     };
   };
 
-  // WITHDRAW ERC20 TOKENS FROM DEX
 
+  // WITHDRAW ERC20 TOKENS FROM DEX
   const handleWithDraw = async (e) => {
     e.preventDefault();
     try {
@@ -252,6 +272,7 @@ function DexTransact({
       setErrorDexWithdraw(true);
     }
   };
+
 
   // PRINT TOKEN LIST
   const myTokenList = listOfTokens.map((lists) => (

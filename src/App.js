@@ -134,6 +134,7 @@ function App() {
   const [errorDepositEthMsg, setErrorDepositEthMsg] = useState(false)
   const [depositEthAmount, setDepositEthAmount] = useState("-");
   const [dexTokenTX, setDexTokenTx] = useState([])
+  const [depositEthTx, setDepositEthTx] = useState([]);
 
   //const [isSellInfo, setIsSellInfo] = useState([]);
   //const [isBuyInfo, setIsBuyInfo] = useState([]);
@@ -267,6 +268,8 @@ function App() {
         setIsMarketBuyMsg={setIsMarketBuyMsg}
         setErrorMarketBuy={setErrorMarketBuy}
         dexTokenTX={dexTokenTX}
+        depositEthTx={depositEthTx}
+        setDepositEthTx={setDepositEthTx}
       />
       <TradingHeader />
 

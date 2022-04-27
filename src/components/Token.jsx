@@ -88,7 +88,20 @@ function Token({
   }, [contractInfo.address]);
 
    // ------------------GET ERC20 TOKEN CONTRACT -----------------------
-   const handleGetTokenInfo = async (e) => {
+    //--------- DEX Token List ----------------
+  
+  useEffect(() => {
+    const tokenInfoData = window.localStorage.getItem("token_info");
+    setContractInfo(JSON.parse(tokenInfoData));
+    //console.log(tokenListData);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("token_info", JSON.stringify(contractInfo));
+  }, [contractInfo]);
+
+
+   const handleGetTokenInfo = async () => {
     //e.preventDefault();
     try {
       //const data = new FormData(e.target);
@@ -119,7 +132,7 @@ function Token({
   useEffect(() => {
     handleGetTokenInfo();
     // eslint-disable-next-line
-  }, [account]);
+  }, [account, transfer]);
 
    /*
   console.log(
@@ -139,8 +152,8 @@ function Token({
       const transaction = await tokenContract.transfer(data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
       await transaction.wait();
       //console.log('Success! -- recipient recieved amount');
-      setIsTransferMsg(true);
       setTransfer(data.get("amount"));
+      setIsTransferMsg(true);
     } catch (error) {
       console.log(error);
       //if (error) return alert('transfer amount exceeds balance');
