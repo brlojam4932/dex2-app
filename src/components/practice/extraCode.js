@@ -1,3 +1,5 @@
+// Previous functions for retrieving Orders...now using Events
+
 // HANDLE ORDERS 
 
 //--------- get trades ----------------

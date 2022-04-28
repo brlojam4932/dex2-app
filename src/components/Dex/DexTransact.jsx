@@ -47,7 +47,13 @@ function DexTransact({
   setWithDrawAmountInfo,
   dexTokenTX,
   depositEthTx,
-  setDepositEthTx
+  setDepositEthTx,
+  setDexBalances,
+  dexBalances,
+  setTokenAdded,
+  tokenAdded,
+  setDexTokenWithdrawTx,
+  dexTokenWithdrawTx
 
 }) {
 
@@ -90,33 +96,47 @@ function DexTransact({
       return () => {
         dexContract.removeAllListeners("MarketOrder");
       }
-
     });
 
   }, [dexContract]);
 
 
-  //--------- DEX Token List ----------------
+  //--------- DEX Token List to local storage ----------------
   useEffect(() => {
     const tokenListData = window.localStorage.getItem("token_list");
-    setListOfTokens(JSON.parse(tokenListData));
+    setTokenAdded(JSON.parse(tokenListData));
     //console.log(tokenListData);
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
-  }, [listOfTokens]);
+    window.localStorage.setItem("token_list", JSON.stringify(tokenAdded));
+  }, [tokenAdded]); // prev listOfTokens
 
-    //--------- DEX balances to local storage ----------------
+  //--------- DEX balances to local storage ----------------
+
     useEffect(() => {
       const dexBalData = window.localStorage.getItem("dex_balances");
-      setListOfTokens(JSON.parse(dexBalData));
+      setDexBalances(JSON.parse(dexBalData));
       //console.log(tokenListData);
     }, []);
+
   
     useEffect(() => {
-      window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
-    }, [dexBalanceInfo]);
+      window.localStorage.setItem("dex_balances", JSON.stringify(dexBalances));
+    }, [dexBalances]); // prev dexTokenTX
+
+
+  //--------- DEX ETH balances to local storage ----------------
+    useEffect(() => {
+      const ethDexBalData = window.localStorage.getItem("eth_dex_balances");
+      setEthDexBalance(JSON.parse(ethDexBalData));// rev setListOfTokens
+      //console.log(tokenListData);
+    }, []);
+
+    
+    useEffect(() => {
+      window.localStorage.setItem("eth_dex_balances", JSON.stringify(ethDexBalance));
+    }, [ethDexBalance]);
 
 
   /////////////// DEX //////////////////
@@ -131,7 +151,13 @@ function DexTransact({
         //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
         const tickerBalance = await dexContract.balances(account,
           (tokenList));
-        //console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
+        console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
+        setDexBalances({
+          address: account,
+          amount: ethers.utils.formatEther(tickerBalance),
+          ticker: ethers.utils.parseBytes32String(tokenList)
+        })
+/*
         setDexBalanceInfo(prevDexBal => [
           ...prevDexBal,
           {
@@ -140,21 +166,17 @@ function DexTransact({
             ticker: ethers.utils.parseBytes32String(tokenList),
           }
         ]);
+        */
       };
     } catch (error) {
       console.log("error", error);
     }
   };
 
-
   useEffect(() => {
-    if (account) {
       getDexBalances();
-    }
-    // eslint-disable-next-line
-  //}, [account, dexTokenTX]);
-// }, [dexTokenTX, listOfTokens]);
-}, [account, dexTokenTX]);
+
+}, [account, dexTokenTX, dexTokenWithdrawTx]);
 
 
   // Get only the ETH bal in DEX
@@ -177,8 +199,35 @@ function DexTransact({
       getDexETH_Balance();
     }
     // eslint-disable-next-line
-  }, [account, depositEthTx]); // prev had accounts as dependancy - maybe responsible for multiple print outs
+  }, [account, depositEthTx]);
 
+
+  const handleGetTokenList = async () => {
+    try {
+        // get token list
+        const allTokenList = await dexContract.getTokenListLength();
+        //console.log("token list length:", allTokenList.toNumber());
+        for (let i = 0; i < allTokenList; i++) {
+          let tokenList = await dexContract.tokenList(i);
+          //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+          setListOfTokens(prevTokens => [
+            ...prevTokens,
+            {
+              id: uuidv4(),
+              ticker: ethers.utils.parseBytes32String(tokenList)
+            }
+          ]);
+        };
+    } catch (error) {
+      console.log("error", error)
+    }
+  };
+
+  useEffect(() => {
+    if (account) {
+      handleGetTokenList();
+    }
+  }, [account, tokenAdded]);
 
 
   const handleAddToken = async (e) => {
@@ -189,23 +238,9 @@ function DexTransact({
         ethers.utils.formatBytes32String(data.get("ticker")), contractInfo.address
       );
       await addTokenTx.wait();
-      //console.log("Add Token: ", addTokenTx);
+      console.log("Add Token: ", addTokenTx);
+      setTokenAdded(addTokenTx)
       setAddTokenSuccessMsg(true);
-
-      // get token list
-      const allTokenList = await dexContract.getTokenListLength();
-      //console.log("token list length:", allTokenList.toNumber());
-      for (let i = 0; i < allTokenList; i++) {
-        let tokenList = await dexContract.tokenList(i);
-        //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
-        setListOfTokens(prevTokens => [
-          ...prevTokens,
-          {
-            id: uuidv4(),
-            ticker: ethers.utils.parseBytes32String(tokenList)
-          }
-        ]);
-      };
     } catch (error) {
       console.log("error", error);
       setErrorAddToken(true);
@@ -221,7 +256,7 @@ function DexTransact({
       const depositEthData = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
       await depositEthData.wait();
       console.log("Deposit ETH: ", depositEthData);
-      setDepositEthTx(depositEthData.value)
+      setDepositEthTx(ethers.utils.formatEther(depositEthData.value))
       //console.log("Deposit ETH: ", depositEthTx.value.toString());
       setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
       //setDepositEthSuccessMsg(true);
@@ -230,8 +265,6 @@ function DexTransact({
       //setErrorDepositEthMsg(true);
     };
   };
-
-  //console.log(depositEthTx)
 
 
   // DEPOSIT ERC20 TOKENS INTO DEX
@@ -263,7 +296,7 @@ function DexTransact({
       );
       await withdrawTx.wait();
       console.log("withdraw: ", withdrawTx);
-
+      setDexTokenWithdrawTx(withdrawTx)
       setWithDrawSuccessMsg(true);
       //setWithDrawAmountInfo(ethers.utils.formatEther(withdrawTx.value));
       setWithDrawAmountInfo(data.get(("amount")));
@@ -275,6 +308,7 @@ function DexTransact({
 
 
   // PRINT TOKEN LIST
+
   const myTokenList = listOfTokens.map((lists) => (
     <div key={lists.id} className="alert alert-dismissible alert-primary text-secondary">
       <div>
@@ -284,8 +318,9 @@ function DexTransact({
         <strong>Token:</strong>{" "}{lists.ticker}
       </div>
     </div>
-
   ));
+
+
 
   return (
     <>
@@ -352,7 +387,7 @@ function DexTransact({
                     <div className="card-body">
                       <h6 className="card-subtitle mb-2 text-info">Token List</h6>
                       <div className="my-4 mb-2">
-                            {myTokenList}
+                         {myTokenList}
                           </div>
                     </div>
                   </div>
@@ -538,7 +573,14 @@ function DexTransact({
             <strong>Amount:</strong> {ethDexBalance.ethBal} ETH
             </div>
 
-            <DexBalances dexBalanceInfo={dexBalanceInfo}/>
+            <div>
+            <strong>Address:</strong> {dexBalances.address}         
+            </div>
+            <div>
+            <strong>Amount:</strong> {dexBalances.amount} {dexBalances.ticker}
+            </div>
+
+           
             
           </Wrapper3>
             </div>

@@ -133,13 +133,20 @@ function App() {
   const [depositEthSuccessMsg, setDepositEthSuccessMsg] = useState(false);
   const [errorDepositEthMsg, setErrorDepositEthMsg] = useState(false)
   const [depositEthAmount, setDepositEthAmount] = useState("-");
-  const [dexTokenTX, setDexTokenTx] = useState([])
+  const [dexTokenTX, setDexTokenTx] = useState([]);
   const [depositEthTx, setDepositEthTx] = useState([]);
+  const [tokenAdded, setTokenAdded] = useState([]);
+  const [dexTokenWithdrawTx, setDexTokenWithdrawTx] = useState([]);
 
   //const [isSellInfo, setIsSellInfo] = useState([]);
   //const [isBuyInfo, setIsBuyInfo] = useState([]);
 
   const [listOfTokens, setListOfTokens] = useState([]);
+  const [dexBalances, setDexBalances] = useState({
+    address: "-",
+    amount: "-",
+    ticker: "-"
+  })
 
   //tabs
   const [toggleTabState, setToggleTabState] = useState(1);
@@ -157,9 +164,6 @@ function App() {
   const toggleTabs3 = (index) => {
     setToggleTabState3(index);
   };
-
-
-
 
 
   return (
@@ -270,6 +274,12 @@ function App() {
         dexTokenTX={dexTokenTX}
         depositEthTx={depositEthTx}
         setDepositEthTx={setDepositEthTx}
+        dexBalances={dexBalances}
+        setDexBalances={setDexBalances}
+        setTokenAdded={setTokenAdded}
+        tokenAdded={tokenAdded}
+        setDexTokenWithdrawTx={setDexTokenWithdrawTx}
+        dexTokenWithdrawTx={dexTokenWithdrawTx}
       />
       <TradingHeader />
 

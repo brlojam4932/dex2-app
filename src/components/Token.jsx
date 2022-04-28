@@ -40,35 +40,38 @@ function Token({
   // ethers js /// provider is read only; signer is write to contract
   // TOKEN EVENTS
   useEffect(() => {
-
     //event Transfer(address indexed from, address indexed to, uint256 value);
-    if (contractInfo.address !== "-") {
-      tokenContract?.on("Transfer", (from, to, amount, event) => {
-        //console.log({ from, to, amount, event });
-        // the transaction result gets copied over to a state
-        setTxs((prevTx) => [
-          ...prevTx,
-          {
-            txHash: event.transactionHash,
-            from,
-            to,
-            amount: ethers.utils.formatEther(amount), //amount: String(amount)
-          }
-        ]);
-        //event.removeListener(); // Solve memory leak with this.
-      });
+   if (account) {
 
-      return () => {
-        tokenContract.removeAllListeners("Transfer")
-      }
+    tokenContract?.on("Transfer", (from, to, amount, event) => {
+      //console.log({ from, to, amount, event });
+      // the transaction result gets copied over to a state
+      setTxs((prevTx) => [
+        ...prevTx,
+        {
+          txHash: event.transactionHash,
+          from,
+          to,
+          amount: ethers.utils.formatEther(amount), //amount: String(amount)
+        }
+      ]);
+      //event.removeListener(); // Solve memory leak with this.
+    });
+
+    return () => {
+      tokenContract.removeAllListeners("Transfer")
     };
+
+   };
     // eslint-disable-next-line
   }, [contractInfo.address]);
 
 
   // APPROVE EVENTS
   useEffect(() => {
-    if (contractInfo.address !== "-") {
+
+    if (account) {
+
       tokenContract?.on("Approval", (spender, event) => {
         //console.log({ spender, amount, event });
         setApproveTx(prevApprove => [
@@ -81,9 +84,8 @@ function Token({
       });
       return () => {
         tokenContract.removeAllListeners("Approval");
-      }
+      };
     };
-
     // eslint-disable-next-line
   }, [contractInfo.address]);
 
