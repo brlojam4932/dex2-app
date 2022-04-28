@@ -53,7 +53,8 @@ function DexTransact({
   setTokenAdded,
   tokenAdded,
   setDexTokenWithdrawTx,
-  dexTokenWithdrawTx
+  dexTokenWithdrawTx,
+  setErrorDepositEthMsg
 
 }) {
 
@@ -104,13 +105,13 @@ function DexTransact({
   //--------- DEX Token List to local storage ----------------
   useEffect(() => {
     const tokenListData = window.localStorage.getItem("token_list");
-    setTokenAdded(JSON.parse(tokenListData));
+    setListOfTokens(JSON.parse(tokenListData));
     //console.log(tokenListData);
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("token_list", JSON.stringify(tokenAdded));
-  }, [tokenAdded]); // prev listOfTokens
+    window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
+  }, [listOfTokens]); // prev listOfTokens
 
   //--------- DEX balances to local storage ----------------
 
@@ -122,8 +123,8 @@ function DexTransact({
 
   
     useEffect(() => {
-      window.localStorage.setItem("dex_balances", JSON.stringify(dexBalances));
-    }, [dexBalances]); // prev dexTokenTX
+      window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
+    }, [dexBalanceInfo]); // prev dexTokenTX
 
 
   //--------- DEX ETH balances to local storage ----------------
@@ -152,12 +153,13 @@ function DexTransact({
         const tickerBalance = await dexContract.balances(account,
           (tokenList));
         console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
+        /*
         setDexBalances({
           address: account,
           amount: ethers.utils.formatEther(tickerBalance),
           ticker: ethers.utils.parseBytes32String(tokenList)
         })
-/*
+        */
         setDexBalanceInfo(prevDexBal => [
           ...prevDexBal,
           {
@@ -166,7 +168,7 @@ function DexTransact({
             ticker: ethers.utils.parseBytes32String(tokenList),
           }
         ]);
-        */
+
       };
     } catch (error) {
       console.log("error", error);
@@ -195,11 +197,9 @@ function DexTransact({
   };
 
   useEffect(() => {
-    if (account) {
-      getDexETH_Balance();
-    }
+        getDexETH_Balance();
     // eslint-disable-next-line
-  }, [account, depositEthTx]);
+  }, [account, depositEthTx, depositEthSuccessMsg]);
 
 
   const handleGetTokenList = async () => {
@@ -256,13 +256,13 @@ function DexTransact({
       const depositEthData = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
       await depositEthData.wait();
       console.log("Deposit ETH: ", depositEthData);
-      setDepositEthTx(ethers.utils.formatEther(depositEthData.value))
-      //console.log("Deposit ETH: ", depositEthTx.value.toString());
-      setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
-      //setDepositEthSuccessMsg(true);
+      setDepositEthTx(depositEthData.value);
+      //console.log("Deposit ETH: ", depositEthData.value.toString());
+      //setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
+      setDepositEthSuccessMsg(true);
     } catch (error) {
       console.log("error", error);
-      //setErrorDepositEthMsg(true);
+      setErrorDepositEthMsg(true);
     };
   };
 
@@ -572,16 +572,9 @@ function DexTransact({
             <div>
             <strong>Amount:</strong> {ethDexBalance.ethBal} ETH
             </div>
-
             <div>
-            <strong>Address:</strong> {dexBalances.address}         
-            </div>
-            <div>
-            <strong>Amount:</strong> {dexBalances.amount} {dexBalances.ticker}
-            </div>
-
-           
-            
+              <DexBalances dexBalanceInfo={dexBalanceInfo} />
+            </div> 
           </Wrapper3>
             </div>
           </div>

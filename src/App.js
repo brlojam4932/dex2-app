@@ -134,19 +134,20 @@ function App() {
   const [errorDepositEthMsg, setErrorDepositEthMsg] = useState(false)
   const [depositEthAmount, setDepositEthAmount] = useState("-");
   const [dexTokenTX, setDexTokenTx] = useState([]);
-  const [depositEthTx, setDepositEthTx] = useState([]);
+  const [depositEthTx, setDepositEthTx] = useState("-");
   const [tokenAdded, setTokenAdded] = useState([]);
   const [dexTokenWithdrawTx, setDexTokenWithdrawTx] = useState([]);
 
-  //const [isSellInfo, setIsSellInfo] = useState([]);
-  //const [isBuyInfo, setIsBuyInfo] = useState([]);
-
-  const [listOfTokens, setListOfTokens] = useState([]);
   const [dexBalances, setDexBalances] = useState({
     address: "-",
     amount: "-",
     ticker: "-"
   })
+
+  //const [isSellInfo, setIsSellInfo] = useState([]);
+  //const [isBuyInfo, setIsBuyInfo] = useState([]);
+
+  const [listOfTokens, setListOfTokens] = useState([]);
 
   //tabs
   const [toggleTabState, setToggleTabState] = useState(1);
