@@ -35,6 +35,8 @@ function Token({
   setTxs,
   setApproveTx,
   setTransfer,
+  isLoading,
+  setIsLoading,
  }) {
 
   // ethers js /// provider is read only; signer is write to contract
@@ -64,7 +66,7 @@ function Token({
 
    };
     // eslint-disable-next-line
-  }, [contractInfo.address]);
+  }, [contractInfo.address, transfer]);
 
 
   // APPROVE EVENTS
@@ -87,7 +89,7 @@ function Token({
       };
     };
     // eslint-disable-next-line
-  }, [contractInfo.address]);
+  }, [contractInfo.address, transfer]);
 
    // ------------------GET ERC20 TOKEN CONTRACT -----------------------
     //--------- DEX Token List ----------------
@@ -96,6 +98,8 @@ function Token({
     const tokenInfoData = window.localStorage.getItem("token_info");
     setContractInfo(JSON.parse(tokenInfoData));
     //console.log(tokenListData);
+
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -152,10 +156,13 @@ function Token({
     try {
       const data = new FormData(e.target);
       const transaction = await tokenContract.transfer(data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
+      setIsLoading(true);
+      console.log('...loading');
       await transaction.wait();
-      //console.log('Success! -- recipient recieved amount');
+      setIsLoading(false);
+      //setIsTransferMsg(true);
+      console.log("...success!");
       setTransfer(data.get("amount"));
-      setIsTransferMsg(true);
     } catch (error) {
       console.log(error);
       //if (error) return alert('transfer amount exceeds balance');
@@ -195,12 +202,13 @@ function Token({
       // 115792089237316195423570985008687907853269984665640564039457584007913129639935
       const transaction = await tokenContract.approve(data.get("spender"), ethers.utils.parseEther(data.get("amount")));
       await transaction.wait();
+      setIsLoading(true);
+      console.log('...loading');
       //console.log("Success! -- approved");
-      setIsApproved(true);
+      //setIsApproved(true);
     } catch (error) {
       console.log(error);
       if (error) return alert("error, check address or re-set Metamask");
-
     }
   }
 
@@ -209,9 +217,11 @@ function Token({
     try {
       const data = new FormData(e.target);
       const transaction = await tokenContract.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
+      setIsLoading(true);
       await transaction.wait();
-      //console.log("Success! -- approved");
-      setIsApproved(true);
+      console.log("...loading");
+      setIsLoading(false);
+      console.log("...success!");
     } catch (error) {
       console.log(error);
       if (error) return alert("error, check address or re-set Metamask");
@@ -309,17 +319,20 @@ function Token({
                         Transfer
                       </button>
                       <div className="my-4 mb-2">
-                        {isTransferMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransferMsg(false)}></button>
-                            <strong>Well Done!</strong> Your transfer amount of {transfer} tokens has been completed.
-                          </div>
+                        {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>Loading!</strong> Sending Transaction
+                        </div>
+                        ) : (
+                          null
+                        )
+                          
                         }
 
                         {errorTransfer &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorTransfer(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
+                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient or reset Metamask - advanced, "Reset Account"
                           </div>
                         }
                       </div>
@@ -358,11 +371,14 @@ function Token({
                         Approve DEX
                       </button>
                       <div className="my-4 mb-2">
-                        {isApproved &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <strong>Success!</strong> DEX is approved
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>Loading!</strong> Sending Transaction
+                        </div>
+                        ) : (
+                          null
+                        )
+                          
                         }
                       </div>
                     </footer>
@@ -408,12 +424,14 @@ function Token({
                         Approve Spender
                       </button>
                       <div className="my-4 mb-2">
-                        {isApproved &&
-                          <div className="alert alert-dismissible alert-primary">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            {/* <ApproveList approveTx={approveTx} /> */}
-                            Spender is approved
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>Loading!</strong> Sending Transaction
+                        </div>
+                        ) : (
+                          null
+                        )
+                          
                         }
                       </div>
                     </footer>

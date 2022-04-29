@@ -75,7 +75,7 @@ function Header() {
         <main className="mt-4 p-4">
           <ButtonWrapper>
           <StyledHeader className="text-xl font-semibold text-info text-left">
-            Interact with ERC20 Smart Contracts and DEX
+            Interact with ERC20 Smart Contract Wallet and DEX
           </StyledHeader>
           <HomeConnectButton click={connectOn} disconnect={disconnect}></HomeConnectButton>
           </ButtonWrapper>

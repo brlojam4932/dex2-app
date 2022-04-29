@@ -42,20 +42,17 @@ function DexTransact({
   setDexBalanceInfo,
   setEthDexBalance,
   contractInfo,
-  setDepositEthAmount,
   setDexTokenTx,
   setWithDrawAmountInfo,
   dexTokenTX,
   depositEthTx,
   setDepositEthTx,
   setDexBalances,
-  dexBalances,
   setTokenAdded,
   tokenAdded,
   setDexTokenWithdrawTx,
   dexTokenWithdrawTx,
-  setErrorDepositEthMsg
-
+  setErrorDepositEthMsg,
 }) {
 
    // ORDERS
@@ -103,6 +100,7 @@ function DexTransact({
 
 
   //--------- DEX Token List to local storage ----------------
+  /*
   useEffect(() => {
     const tokenListData = window.localStorage.getItem("token_list");
     setListOfTokens(JSON.parse(tokenListData));
@@ -112,6 +110,7 @@ function DexTransact({
   useEffect(() => {
     window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
   }, [listOfTokens]); // prev listOfTokens
+  */
 
   //--------- DEX balances to local storage ----------------
 
@@ -138,6 +137,7 @@ function DexTransact({
     useEffect(() => {
       window.localStorage.setItem("eth_dex_balances", JSON.stringify(ethDexBalance));
     }, [ethDexBalance]);
+
 
 
   /////////////// DEX //////////////////
@@ -176,7 +176,11 @@ function DexTransact({
   };
 
   useEffect(() => {
+    console.log("dexBalances mount");
       getDexBalances();
+      return () => {
+        console.log("dexBalances will unmount", dexTokenTX);
+      }
 
 }, [account, dexTokenTX, dexTokenWithdrawTx]);
 
@@ -199,9 +203,11 @@ function DexTransact({
   useEffect(() => {
         getDexETH_Balance();
     // eslint-disable-next-line
-  }, [account, depositEthTx, depositEthSuccessMsg]);
+  }, [account, depositEthTx, depositEthSuccessMsg, dexTokenWithdrawTx]);
 
 
+  // get token list
+  
   const handleGetTokenList = async () => {
     try {
         // get token list
@@ -209,7 +215,7 @@ function DexTransact({
         //console.log("token list length:", allTokenList.toNumber());
         for (let i = 0; i < allTokenList; i++) {
           let tokenList = await dexContract.tokenList(i);
-          //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+          console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
           setListOfTokens(prevTokens => [
             ...prevTokens,
             {
@@ -218,16 +224,24 @@ function DexTransact({
             }
           ]);
         };
+        console.log("listOfTokens", listOfTokens);
     } catch (error) {
       console.log("error", error)
     }
   };
 
   useEffect(() => {
-    if (account) {
+    if (listOfTokens.length === 0) {
+      console.log("list..tokens mount");
       handleGetTokenList();
     }
-  }, [account, tokenAdded]);
+  
+      return () => {
+        console.log("list of tokens will unmount", listOfTokens)
+      }
+
+  }, [account, tokenAdded, dexTokenTX ]); //tokenAdded, dexTokenTX
+
 
 
   const handleAddToken = async (e) => {
@@ -314,7 +328,7 @@ function DexTransact({
       <div>
         <strong>Id:</strong>{" "}{lists.id}
       </div>
-      <div className='text-success'>
+      <div className='text-info'>
         <strong>Token:</strong>{" "}{lists.ticker}
       </div>
     </div>

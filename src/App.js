@@ -91,6 +91,8 @@ function App() {
     ethBal: "_"
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [errorTransfer, setErrorTransfer] = useState(false);
   const [errorTransferFrom, setErrorTransferFrom] = useState(false);
 
@@ -111,15 +113,14 @@ function App() {
   const [allowanceAmount, setAllowanceAmount] = useState();
   const [isAllowanceMsg, setIsAllowanceMsg] = useState(false);
   const [isTransferFrom, setIsTransferFrom] = useState(false);
+  const [isTransferMsg, setIsTransferMsg] = useState(false);
+  const [transfer, setTransfer] = useState("-");
 
   //////////////DEX STATES/////////////////
 
   const [dexBalanceInfo, setDexBalanceInfo] = useState([]);
   const [withDrawSuccessMsg, setWithDrawSuccessMsg] = useState(false);
   const [withDrawAmountInfo, setWithDrawAmountInfo] = useState("-");
-
-  const [isTransferMsg, setIsTransferMsg] = useState(false);
-  const [transfer, setTransfer] = useState("-");
 
   const [isLimitSellMsg, setIsLimitSellMsg] = useState(false);
   const [isLimitBuyMsg, setIsLimitBuyMsg] = useState(false);
@@ -202,6 +203,8 @@ function App() {
         setAllowanceAmount={setAllowanceAmount}
         setTransfer={setTransfer}
         dexContractAddress={dexContractAddress}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
       />
 
       {/* Token Events */}
