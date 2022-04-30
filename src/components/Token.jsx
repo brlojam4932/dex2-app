@@ -257,7 +257,7 @@ function Token({
      <div className='container-1'>
         <div className='box-1'>
           <Wrapper2 className='text-info'>
-            <h2 style={{color: "#e1e1e1"}}>ERC20 Contract</h2>
+            <h2 style={{color: "#e1e1e1"}}>ERC20 Contract Wallet</h2>
             <p>Address: {contractInfo.address}</p>
             <p>Symbol: {contractInfo.tokenSymbol}</p>
             <p>Total Supply: {contractInfo.totalSupply}</p>
@@ -441,7 +441,7 @@ function Token({
 
               <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
                 <h3 className='text-muted'>Allowance</h3>
-                <small className='text-muted'>Check the allowance amount between your Metamask or Coinbase Link address and the spender, like this DEX</small>
+                <small className='text-muted'>Check the allowance amount between your Metamask or Coinbase Link address and the spender, like this DEX it's ERC20 Wallet</small>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleAllowance}>
