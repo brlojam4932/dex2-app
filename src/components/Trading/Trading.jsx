@@ -43,7 +43,7 @@ function Trading({
       console.log('limit SELL order success', limitOrderSellTx);
       setIsLimitSellMsg(true);
 
-      window.location.reload();
+      //window.location.reload();
 
     } catch (error) {
       console.log("error", error);
@@ -66,7 +66,7 @@ function Trading({
       console.log("limit BUY order success", limitOrderBuyTx);
       setIsLimitBuyMsg(true);
 
-      window.location.reload();
+      //window.location.reload();
 
     } catch (error) {
       console.log("error", error);
@@ -89,7 +89,7 @@ function Trading({
       console.log("market SELL order success", marketOrderSellTx);
       setIsMarketSellMsg(true);
 
-      window.location.reload();
+      //window.location.reload();
 
     } catch (error) {
       console.log("error", error);
@@ -109,7 +109,7 @@ function Trading({
       console.log("market BUY order success", marketOrderTx);
       setIsMarketBuyMsg(true);
 
-      window.location.reload();
+      //window.location.reload();
 
     } catch (error) {
       console.log("error", error);

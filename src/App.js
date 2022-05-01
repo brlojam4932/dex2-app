@@ -119,6 +119,7 @@ function App() {
   //////////////DEX STATES/////////////////
 
   const [dexBalanceInfo, setDexBalanceInfo] = useState([]);
+  const [dexApproved, setDexApproved] = useState([]);
   const [withDrawSuccessMsg, setWithDrawSuccessMsg] = useState(false);
   const [withDrawAmountInfo, setWithDrawAmountInfo] = useState("-");
 
@@ -205,6 +206,8 @@ function App() {
         dexContractAddress={dexContractAddress}
         isLoading={isLoading}
         setIsLoading={setIsLoading}
+        setDexApproved={setDexApproved}
+        dexApproved={dexApproved}
       />
 
       {/* Token Events */}
@@ -284,6 +287,8 @@ function App() {
         tokenAdded={tokenAdded}
         setDexTokenWithdrawTx={setDexTokenWithdrawTx}
         dexTokenWithdrawTx={dexTokenWithdrawTx}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
       />
       <TradingHeader />
 

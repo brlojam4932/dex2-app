@@ -37,6 +37,8 @@ function Token({
   setTransfer,
   isLoading,
   setIsLoading,
+  setDexApproved,
+  dexApproved
  }) {
 
   // ethers js /// provider is read only; signer is write to contract
@@ -89,7 +91,7 @@ function Token({
       };
     };
     // eslint-disable-next-line
-  }, [contractInfo.address, transfer]);
+  }, [dexApproved]);
 
    // ------------------GET ERC20 TOKEN CONTRACT -----------------------
     //--------- DEX Token List ----------------
@@ -157,11 +159,10 @@ function Token({
       const data = new FormData(e.target);
       const transaction = await tokenContract.transfer(data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
       setIsLoading(true);
-      console.log('...loading');
+      //console.log('...loading');
       await transaction.wait();
       setIsLoading(false);
-      //setIsTransferMsg(true);
-      console.log("...success!");
+      //console.log("...success!");
       setTransfer(data.get("amount"));
     } catch (error) {
       console.log(error);
@@ -181,7 +182,7 @@ function Token({
       const data = new FormData(e.target);
       const transactionFrom = await tokenContract.transferFrom(data.get("sender"), data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
       await transactionFrom.wait();
-      console.log("transferFrom -- success");
+     // console.log("transferFrom -- success");
       setIsTransferFrom(true);
     } catch (error) {
       console.log(error);
@@ -201,11 +202,11 @@ function Token({
       const data = new FormData(e.target);
       // 115792089237316195423570985008687907853269984665640564039457584007913129639935
       const transaction = await tokenContract.approve(data.get("spender"), ethers.utils.parseEther(data.get("amount")));
-      await transaction.wait();
       setIsLoading(true);
-      console.log('...loading');
-      //console.log("Success! -- approved");
-      //setIsApproved(true);
+      //console.log('...loading');
+      await transaction.wait();
+      setIsLoading(false);
+      //console.log("...success!");
     } catch (error) {
       console.log(error);
       if (error) return alert("error, check address or re-set Metamask");
@@ -216,12 +217,13 @@ function Token({
     e.preventDefault();
     try {
       const data = new FormData(e.target);
-      const transaction = await tokenContract.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
+      const approveTx = await tokenContract.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
       setIsLoading(true);
-      await transaction.wait();
-      console.log("...loading");
+      //console.log("...loading");
+      await approveTx.wait();
       setIsLoading(false);
-      console.log("...success!");
+      setDexApproved(approveTx);
+      //console.log("...success!");
     } catch (error) {
       console.log(error);
       if (error) return alert("error, check address or re-set Metamask");
@@ -326,9 +328,8 @@ function Token({
                         ) : (
                           null
                         )
-                          
+                       
                         }
-
                         {errorTransfer &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorTransfer(false)}></button>

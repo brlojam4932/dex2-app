@@ -53,6 +53,8 @@ function DexTransact({
   setDexTokenWithdrawTx,
   dexTokenWithdrawTx,
   setErrorDepositEthMsg,
+  isLoading,
+  setIsLoading,
 }) {
 
    // ORDERS
@@ -268,12 +270,14 @@ function DexTransact({
     try {
       const data = new FormData(e.target);
       const depositEthData = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
+      setIsLoading(true);
       await depositEthData.wait();
       console.log("Deposit ETH: ", depositEthData);
       setDepositEthTx(depositEthData.value);
+      setIsLoading(false);
       //console.log("Deposit ETH: ", depositEthData.value.toString());
       //setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
-      setDepositEthSuccessMsg(true);
+      //setDepositEthSuccessMsg(true);
     } catch (error) {
       console.log("error", error);
       setErrorDepositEthMsg(true);
@@ -289,10 +293,12 @@ function DexTransact({
       const dexDepositTx = await dexContract.deposit(
         ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
       );
+      setIsLoading(true);
       await dexDepositTx.wait();
       console.log("Dex deposit tx: ", dexDepositTx);
       setDexTokenTx(dexDepositTx);
-      setDepositSuccessMsg(true);
+      setIsLoading(false);
+      //setDepositSuccessMsg(true);
     } catch (error) {
       console.log("error", error);
       setErrorDexDeposit(true);
@@ -446,11 +452,12 @@ function DexTransact({
                         Deposit Tokens
                       </button>
                       <div className="my-4 mb-2">
-                        {depositSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setDepositSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your deposit was executed.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
+                          
                         }
                         {errorDexDeposit &&
                           <div className="alert alert-dismissible alert-danger">
@@ -489,11 +496,12 @@ function DexTransact({
                         Deposit ETH
                       </button>
                       <div className="my-4 mb-2">
-                        {depositEthSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setDepositEthSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your deposit of {depositEthAmount} Ether was executed.
-                          </div>
+                        {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
+                          
                         }
 
                         {errorDepositEthMsg &&
@@ -557,7 +565,7 @@ function DexTransact({
                         {errorDexWithdraw &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexWithdraw(false)}></button>
-                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
+                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist. Add ETH ticker/symbol to the DEX
                           </div>
                         }
                       </div>
@@ -577,7 +585,7 @@ function DexTransact({
           <div className='m-4'>
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">DEX Token Balances</h6>
+                  <h6 className="card-subtitle mb-2 text-muted">DEX ETH Balance</h6>
                 </div>
             <Wrapper3 className='text-info'>
             <div>
@@ -586,9 +594,15 @@ function DexTransact({
             <div>
             <strong>Amount:</strong> {ethDexBalance.ethBal} ETH
             </div>
-            <div>
+          </Wrapper3>
+            </div>
+            <br />         
+            <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">DEX Token Balances</h6>
+                </div>
+            <Wrapper3 className='text-info'>
               <DexBalances dexBalanceInfo={dexBalanceInfo} />
-            </div> 
           </Wrapper3>
             </div>
           </div>
