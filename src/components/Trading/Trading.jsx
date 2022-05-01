@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ethers } from "ethers";
 import LimitOrders from '../Transactions/LimitOrders';
 import MarketOrders from '../Transactions/MarketOrders';
@@ -26,8 +26,67 @@ function Trading({
   limitTx,
   marketTx,
   dexContract,
+  setLimitTx,
+  setMarketTx,
+  isLoading,
+  setIsLoading,
+  setLimitSells,
+  limitSells,
+  account,
+  toggleTabs4,
+  toggleTabState4
+  
 
 }) {
+
+  
+   // ORDERS
+   useEffect(() => {
+    //-----Limit------------
+    if (account) {
+
+      dexContract?.on("LimitOrder", (trader, side, ticker, amount, price, event) => {
+        console.log(trader, side, ticker, amount, price, event);
+  
+        setLimitTx(prevLimitTx => [
+          ...prevLimitTx,
+          {
+            txHash: event.transactionHash,
+            trader,
+            side,
+            ticker: ethers.utils.parseBytes32String(ticker),
+            amount: String(amount),
+            price: ethers.utils.formatEther(price),
+          }
+        ]);
+        return () => {
+          dexContract.removeAllListeners("LimitOrder");
+        }
+  
+      });
+      //-----Market------------
+      dexContract?.on("MarketOrder", (trader, side, ticker, amount, event) => {
+        console.log(trader, side, ticker, amount, event);
+  
+        setMarketTx(prevMarketTx => [
+          ...prevMarketTx,
+          {
+            txHash: event.transactionHash,
+            trader,
+            side,
+            ticker: ethers.utils.parseBytes32String(ticker),
+            amount: String(amount),
+          }
+        ]);
+        return () => {
+          dexContract.removeAllListeners("MarketOrder");
+        }
+      });
+
+    }
+   
+
+  }, [dexContract]);
 
   const handleLimitOrderSell = async (e) => {
     e.preventDefault();
@@ -39,9 +98,13 @@ function Trading({
         data.get("amount"),
         ethers.utils.parseEther(data.get("price"))
       );
+      setIsLoading(true);
       await limitOrderSellTx.wait();
       console.log('limit SELL order success', limitOrderSellTx);
-      setIsLimitSellMsg(true);
+      setIsLoading(false);
+      setLimitSells(limitOrderSellTx);
+      console.log(`limitOrderSellTx: ${limitOrderSellTx}`);
+      //setIsLimitSellMsg(true);
 
       //window.location.reload();
 
@@ -181,12 +244,14 @@ function Trading({
                         Create a limit SELL order
                       </button>
                       <div className="my-4 mb-2">
-                        {isLimitSellMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsLimitSellMsg(false)}></button>
-                            <strong>Well Done!</strong> Your limit sell order has been completed.
-                          </div>
-                        }
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>Loading!</strong> Sending Transaction
+                        </div>
+                        ) : (
+                          null
+                        )
+                      }
 
                         {errorLimitSell &&
                           <div className="alert alert-dismissible alert-warning">
@@ -392,7 +457,12 @@ function Trading({
           <div className='container-6'>
             <div className='m-4'>
               <div className='container'>
-                <div className='box-sell'>
+              <div className='bloc-tabs'>
+              <button className={toggleTabState4 === 13 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(13)}>Orders</button>
+              <button className={toggleTabState4 === 14 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(14)}>Order History</button>
+            </div>
+            <div  className={toggleTabState4 === 13 ? 'content active-content' : "content"}>
+            <div className='box-limit'>
                   <div className='card'>
                     <div className="card-body">
                       <h6 className="card-subtitle mb-2 text-secondary">LIMIT ORDERS</h6>
@@ -402,7 +472,7 @@ function Trading({
                     </div>
                   </div>
                 </div>
-                <div className='box-buy'>
+                <div className='box-market'>
                   <div className="card">
                     <div className="card-body">
                       <h6 className="card-subtitle mb-2 text-secondary">MARKET ORDERS</h6>
@@ -412,6 +482,33 @@ function Trading({
                     </div>
                   </div>
                 </div>
+
+            </div>
+
+            <div  className={toggleTabState4 === 14 ? 'content active-content' : "content"}>
+            <div className='box-limit'>
+                  <div className='card'>
+                    <div className="card-body">
+                      <h6 className="card-subtitle mb-2 text-secondary">LIMIT ORDERS</h6>
+                      <div className="px-4">
+                        <LimitOrders limitTx={limitTx} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className='box-market'>
+                  <div className="card">
+                    <div className="card-body">
+                      <h6 className="card-subtitle mb-2 text-secondary">MARKET ORDERS</h6>
+                      <div className="px-4" >
+                        <MarketOrders marketTx={marketTx}/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+            </div>
+              
               </div>
             </div>
           </div>

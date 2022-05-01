@@ -129,6 +129,8 @@ function App() {
   const [isMarketSellMsg, setIsMarketSellMsg] = useState(false);
   const [isMarketBuyMsg, setIsMarketBuyMsg] = useState(false);
 
+  const [limitSells, setLimitSells] = useState([]);
+
   const [addTokenSuccessMsg, setAddTokenSuccessMsg] = useState(false);
 
   const [depositSuccessMsg, setDepositSuccessMsg] = useState(false);
@@ -155,6 +157,7 @@ function App() {
   const [toggleTabState, setToggleTabState] = useState(1);
   const [toggleTabState2, setToggleTabState2] = useState(5);
   const [toggleTabState3, setToggleTabState3] = useState(9);
+  const [toggleTabState4, setToggleTabState4] = useState(13);
 
   const toggleTabs = (index) => {
     setToggleTabState(index);
@@ -166,6 +169,10 @@ function App() {
 
   const toggleTabs3 = (index) => {
     setToggleTabState3(index);
+  };
+
+  const toggleTabs4 = (index) => {
+    setToggleTabState4(index);
   };
 
 
@@ -295,6 +302,9 @@ function App() {
       <Trading
         toggleTabState3={toggleTabState3}
         toggleTabs3={toggleTabs3}
+        toggleTabs4={toggleTabs4}
+        toggleTabState4={toggleTabState4}
+
         isLimitSellMsg={isLimitSellMsg}
         setIsLimitSellMsg={setIsLimitSellMsg}
         errorLimitSell={errorLimitSell}
@@ -316,6 +326,11 @@ function App() {
         marketTx={marketTx}
         setMarketTx={setMarketTx}
         dexContract={dexContract}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+        setLimitSells={setLimitSells}
+        limitSells={limitSells}
+        account={account}
       />
       <Footer />
     </>

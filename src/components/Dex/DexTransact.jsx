@@ -57,50 +57,6 @@ function DexTransact({
   setIsLoading,
 }) {
 
-   // ORDERS
-   useEffect(() => {
-    //-----Limit------------
-    dexContract?.on("LimitOrder", (trader, side, ticker, amount, price, event) => {
-      console.log(trader, side, ticker, amount, price, event);
-
-      setLimitTx(prevLimitTx => [
-        ...prevLimitTx,
-        {
-          txHash: event.transactionHash,
-          trader,
-          side,
-          ticker: ethers.utils.parseBytes32String(ticker),
-          amount: String(amount),
-          price: ethers.utils.formatEther(price),
-        }
-      ]);
-      return () => {
-        dexContract.removeAllListeners("LimitORder");
-      }
-
-    });
-    //-----Market------------
-    dexContract?.on("MarketOrder", (trader, side, ticker, amount, event) => {
-      console.log(trader, side, ticker, amount, event);
-
-      setMarketTx(prevMarketTx => [
-        ...prevMarketTx,
-        {
-          txHash: event.transactionHash,
-          trader,
-          side,
-          ticker: ethers.utils.parseBytes32String(ticker),
-          amount: String(amount),
-        }
-      ]);
-      return () => {
-        dexContract.removeAllListeners("MarketOrder");
-      }
-    });
-
-  }, [dexContract]);
-
-
   //--------- DEX Token List to local storage ----------------
   /*
   useEffect(() => {

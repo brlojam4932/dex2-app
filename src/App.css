@@ -161,14 +161,14 @@ https://youtu.be/JJSoEo8JSnc
   */ 
 }
 
-.box-sell{
+.box-limit{
   flex: 1;
   /*
   order: 1;
   */ 
 }
 
-.box-buy{
+.box-market{
   flex: 1;
   /*
   order: 1;
