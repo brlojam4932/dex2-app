@@ -129,6 +129,9 @@ function App() {
   const [isMarketSellMsg, setIsMarketSellMsg] = useState(false);
   const [isMarketBuyMsg, setIsMarketBuyMsg] = useState(false);
 
+  const [isSellInfo, setIsSellInfo] = useState([]);
+  const [isBuyInfo, setIsBuyInfo] = useState([]);
+
   const [limitSells, setLimitSells] = useState([]);
 
   const [addTokenSuccessMsg, setAddTokenSuccessMsg] = useState(false);
@@ -147,9 +150,6 @@ function App() {
     amount: "-",
     ticker: "-"
   })
-
-  //const [isSellInfo, setIsSellInfo] = useState([]);
-  //const [isBuyInfo, setIsBuyInfo] = useState([]);
 
   const [listOfTokens, setListOfTokens] = useState([]);
 
@@ -304,7 +304,8 @@ function App() {
         toggleTabs3={toggleTabs3}
         toggleTabs4={toggleTabs4}
         toggleTabState4={toggleTabState4}
-
+        isSellInfo={isSellInfo}
+        setIsSellInfo={setIsSellInfo}
         isLimitSellMsg={isLimitSellMsg}
         setIsLimitSellMsg={setIsLimitSellMsg}
         errorLimitSell={errorLimitSell}
@@ -331,6 +332,8 @@ function App() {
         setLimitSells={setLimitSells}
         limitSells={limitSells}
         account={account}
+        isBuyInfo={isBuyInfo}
+        setIsBuyInfo={setIsBuyInfo}
       />
       <Footer />
     </>

@@ -110,7 +110,7 @@ function DexTransact({
         //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
         const tickerBalance = await dexContract.balances(account,
           (tokenList));
-        console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
+        //console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
         /*
         setDexBalances({
           address: account,
@@ -134,7 +134,7 @@ function DexTransact({
   };
 
   useEffect(() => {
-    console.log("dexBalances mount");
+    //console.log("dexBalances mount");
       getDexBalances();
       return () => {
         console.log("dexBalances will unmount", dexTokenTX);
@@ -147,12 +147,11 @@ function DexTransact({
   const getDexETH_Balance = async () => {
     try {
       const dexEthBal = await dexContract.balances(account, ethers.utils.formatBytes32String("ETH"));
-      console.log("Dex ETH Bal:", ethers.utils.formatEther(dexEthBal.toString()));
+      //console.log("Dex ETH Bal:", ethers.utils.formatEther(dexEthBal.toString()));
       setEthDexBalance({
         address: account,
         ethBal: ethers.utils.formatEther(dexEthBal)
       });
-      //return dexEthBal;
     } catch (error) {
       console.log("error", error);
     }
@@ -173,7 +172,7 @@ function DexTransact({
         //console.log("token list length:", allTokenList.toNumber());
         for (let i = 0; i < allTokenList; i++) {
           let tokenList = await dexContract.tokenList(i);
-          console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+          //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
           setListOfTokens(prevTokens => [
             ...prevTokens,
             {
@@ -182,7 +181,7 @@ function DexTransact({
             }
           ]);
         };
-        console.log("listOfTokens", listOfTokens);
+        //console.log("listOfTokens", listOfTokens);
     } catch (error) {
       console.log("error", error)
     }
@@ -190,7 +189,7 @@ function DexTransact({
 
   useEffect(() => {
     if (listOfTokens.length === 0) {
-      console.log("list..tokens mount");
+      //console.log("list..tokens mount");
       handleGetTokenList();
     }
   
@@ -210,11 +209,11 @@ function DexTransact({
         ethers.utils.formatBytes32String(data.get("ticker")), contractInfo.address
       );
       await addTokenTx.wait();
-      console.log("Add Token: ", addTokenTx);
+      //console.log("Add Token: ", addTokenTx);
       setTokenAdded(addTokenTx)
       setAddTokenSuccessMsg(true);
     } catch (error) {
-      console.log("error", error);
+      //console.log("error", error);
       setErrorAddToken(true);
     };
   };
@@ -228,7 +227,7 @@ function DexTransact({
       const depositEthData = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
       setIsLoading(true);
       await depositEthData.wait();
-      console.log("Deposit ETH: ", depositEthData);
+      //console.log("Deposit ETH: ", depositEthData);
       setDepositEthTx(depositEthData.value);
       setIsLoading(false);
       //console.log("Deposit ETH: ", depositEthData.value.toString());
@@ -251,7 +250,7 @@ function DexTransact({
       );
       setIsLoading(true);
       await dexDepositTx.wait();
-      console.log("Dex deposit tx: ", dexDepositTx);
+      //console.log("Dex deposit tx: ", dexDepositTx);
       setDexTokenTx(dexDepositTx);
       setIsLoading(false);
       //setDepositSuccessMsg(true);
@@ -271,7 +270,7 @@ function DexTransact({
         ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
       );
       await withdrawTx.wait();
-      console.log("withdraw: ", withdrawTx);
+      //console.log("withdraw: ", withdrawTx);
       setDexTokenWithdrawTx(withdrawTx)
       setWithDrawSuccessMsg(true);
       //setWithDrawAmountInfo(ethers.utils.formatEther(withdrawTx.value));

@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
 import { ethers } from "ethers";
+import { v4 as uuidv4 } from 'uuid';
 import LimitOrders from '../Transactions/LimitOrders';
 import MarketOrders from '../Transactions/MarketOrders';
+import SellOrders from "../buySell/SellOrders";
+import BuyOrders from "../buySell/BuyOrders";
+
 // limit/market buys and sells and orderbook printout
 
 function Trading({
@@ -34,19 +38,21 @@ function Trading({
   limitSells,
   account,
   toggleTabs4,
-  toggleTabState4
-  
-
+  toggleTabState4,
+  setIsSellInfo,
+  isSellInfo,
+  isBuyInfo,
+  setIsBuyInfo
 }) {
 
   
-   // ORDERS
+   // GET ORDER ORDERS HISTORY WITH EVENTS
    useEffect(() => {
     //-----Limit------------
     if (account) {
 
       dexContract?.on("LimitOrder", (trader, side, ticker, amount, price, event) => {
-        console.log(trader, side, ticker, amount, price, event);
+        //console.log(trader, side, ticker, amount, price, event);
   
         setLimitTx(prevLimitTx => [
           ...prevLimitTx,
@@ -66,7 +72,7 @@ function Trading({
       });
       //-----Market------------
       dexContract?.on("MarketOrder", (trader, side, ticker, amount, event) => {
-        console.log(trader, side, ticker, amount, event);
+        //console.log(trader, side, ticker, amount, event);
   
         setMarketTx(prevMarketTx => [
           ...prevMarketTx,
@@ -82,12 +88,28 @@ function Trading({
           dexContract.removeAllListeners("MarketOrder");
         }
       });
-
     }
-   
-
   }, [dexContract]);
 
+
+  //--------- get trades ----------------
+useEffect(() => {
+  const sellData = window.localStorage.getItem("sell_trades");
+  setIsSellInfo(JSON.parse(sellData));
+
+  const buyData = window.localStorage.getItem("buy_trades");
+  setIsBuyInfo(JSON.parse(buyData));
+  //console.log("data", buyData);
+}, []);
+
+useEffect(() => {
+  window.localStorage.setItem("sell_trades", JSON.stringify(isSellInfo));
+  window.localStorage.setItem("buy_trades", JSON.stringify(isBuyInfo));
+
+}, [isSellInfo, isBuyInfo]); //isLimitSellMsg, isMarketSellMsg
+
+
+  // MAKE TRADES
   const handleLimitOrderSell = async (e) => {
     e.preventDefault();
     try {
@@ -98,22 +120,58 @@ function Trading({
         data.get("amount"),
         ethers.utils.parseEther(data.get("price"))
       );
-      setIsLoading(true);
       await limitOrderSellTx.wait();
       console.log('limit SELL order success', limitOrderSellTx);
-      setIsLoading(false);
-      setLimitSells(limitOrderSellTx);
-      console.log(`limitOrderSellTx: ${limitOrderSellTx}`);
-      //setIsLimitSellMsg(true);
-
-      //window.location.reload();
-
+      setIsLimitSellMsg(true);
+  
+      //get SELL side trades
+      const allTokenList = await dexContract.getTokenListLength();
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dexContract.tokenList(i);
+        // add tokenList result to ticker argument - tokenList is parsed but it's also formatted
+        const sellTx = await dexContract.getOrderBook(
+          ethers.utils.formatBytes32String(
+            ethers.utils.parseBytes32String(tokenList)), 1);
+  
+        // loop through the sellTx instance of getOrderBook
+        for (let i = 0; i < sellTx.length; i++) {
+          const traderSell = sellTx[i]["trader"];
+          const tickerSell = sellTx[i]["ticker"];
+          const amountSell = sellTx[i]["amount"];
+          const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
+          console.log("LimitSell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell);
+  
+          // spread operator to create a new object
+          setIsSellInfo(prevSell => [
+            ...prevSell,
+            {
+              id: uuidv4(),
+              trader: traderSell,
+              ticker: ethers.utils.parseBytes32String(tickerSell),
+              amount: amountSell.toString(),
+              price: priceSell,
+            }
+          ]);
+        };
+      }
     } catch (error) {
       console.log("error", error);
+      //if (error) return alert("error...check token balance");
       setErrorLimitSell(true)
     };
   };
 
+  useEffect(() => {
+    if (account) {
+      handleLimitOrderSell();
+    }
+
+    return () => {
+      console.log("cleanup");
+    }
+  }, [dexContract, isSellInfo]);
+  
+ 
 
   const handleLimitOrderBuy = async (e) => {
     e.preventDefault();
@@ -128,15 +186,52 @@ function Trading({
       await limitOrderBuyTx.wait();
       console.log("limit BUY order success", limitOrderBuyTx);
       setIsLimitBuyMsg(true);
-
-      //window.location.reload();
-
+  
+      //get BUY side trades
+      const allTokenList = await dexContract.getTokenListLength();
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dexContract.tokenList(i);
+  
+        const buyTx = await dexContract.getOrderBook(
+          ethers.utils.formatBytes32String(
+            ethers.utils.parseBytes32String(tokenList)), 0);
+  
+        for (let i = 0; i < buyTx.length; i++) {
+          const traderBuy = buyTx[i]["trader"];
+          const tickerBuy = buyTx[i]["ticker"];
+          const amountBuy = buyTx[i]["amount"];
+          const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
+          console.log("LimitBuy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:");
+  
+          setIsBuyInfo(prevBuy => [
+            ...prevBuy,
+            {
+              id: uuidv4(),
+              trader: traderBuy,
+              ticker: ethers.utils.parseBytes32String(tickerBuy),
+              amount: amountBuy.toString(),
+              price: priceBuy,
+            }
+          ]);
+        };
+      };
+  
     } catch (error) {
       console.log("error", error);
       //if (error) return alert("error...Not enough ETH balancance");
       setErrorLimitBuy(true);
     };
   };
+
+  useEffect(() => {
+    if (account) {
+      handleLimitOrderBuy();
+    }
+
+    return () => {
+      console.log("cleanup");
+    }
+  }, [dexContract, isBuyInfo])
 
 
   const handleMarketOrderSell = async (e) => {
@@ -147,38 +242,131 @@ function Trading({
         1,
         ethers.utils.formatBytes32String(data.get("ticker")),
         data.get("amount"));
-
+  
       await marketOrderSellTx.wait();
       console.log("market SELL order success", marketOrderSellTx);
       setIsMarketSellMsg(true);
-
-      //window.location.reload();
-
+  
+      //get SELL side trades
+      const allTokenList = await dexContract.getTokenListLength();
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dexContract.tokenList(i);
+        // add tokenList result to ticker argument - tokenList is parsed but it's also formatted
+        const sellTx = await dexContract.getOrderBook(
+          ethers.utils.formatBytes32String(
+            ethers.utils.parseBytes32String(tokenList)), 1);
+  
+        // loop through the sellTx instance of getOrderBook
+        for (let i = 0; i < sellTx.length; i++) {
+          const traderSell = sellTx[i]["trader"];
+          const tickerSell = sellTx[i]["ticker"];
+          const amountSell = sellTx[i]["amount"];
+          const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
+          const filledSell = sellTx[i]["filled"];
+          console.log("MarketSell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
+  
+          // spread operator to create a new object
+          setIsSellInfo(prevSell => [
+            ...prevSell,
+            {
+              id: uuidv4(),
+              trader: traderSell,
+              ticker: ethers.utils.parseBytes32String(tickerSell),
+              amount: amountSell.toString(),
+              price: priceSell,
+              filled: filledSell.toNumber(),
+            }
+          ]);
+        };
+      }
+  
     } catch (error) {
       console.log("error", error);
+      //if (error) return alert("something went wrong");
       setErrorMarketSell(true);
     };
   };
 
+  useEffect(() => {
+    if (account) {
+      handleMarketOrderSell();
+    }
+
+    return () => {
+      console.log("cleanup");
+    }
+  }, [dexContract, isSellInfo]);
+
 
   const handleMarketOrderBuy = async (e) => {
-    e.preventDefault();
-    try {
-      const data = new FormData(e.target);
-      const marketOrderTx = await dexContract.createMarketOrder(
-        0, ethers.utils.formatBytes32String(data.get("ticker")), data.get("amount")
-      );
-      await marketOrderTx.wait();
-      console.log("market BUY order success", marketOrderTx);
-      setIsMarketBuyMsg(true);
+  e.preventDefault();
+  try {
+    const data = new FormData(e.target);
+    const marketOrderTx = await dexContract.createMarketOrder(
+      0, ethers.utils.formatBytes32String(data.get("ticker")), data.get("amount")
+    );
+    await marketOrderTx.wait();
+    console.log("market BUY order success", marketOrderTx);
+    setIsMarketBuyMsg(true);
 
-      //window.location.reload();
+    //get BUY side trades
+    const allTokenList = await dexContract.getTokenListLength();
+    for (let i = 0; i < allTokenList; i++) {
+      let tokenList = await dexContract.tokenList(i);
 
-    } catch (error) {
-      console.log("error", error);
-      setErrorMarketBuy(true);
+      const buyTx = await dexContract.getOrderBook(
+        ethers.utils.formatBytes32String(
+          ethers.utils.parseBytes32String(tokenList)), 0);
+
+      for (let i = 0; i < buyTx.length; i++) {
+        const traderBuy = buyTx[i]["trader"];
+        const tickerBuy = buyTx[i]["ticker"];
+        const amountBuy = buyTx[i]["amount"];
+        const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
+        const filledBuy = buyTx[i]["filled"];
+        console.log("MarketBuy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:", filledBuy.toNumber());
+
+        setIsBuyInfo(prevBuy => [
+          ...prevBuy,
+          {
+            id: uuidv4(),
+            trader: traderBuy,
+            ticker: ethers.utils.parseBytes32String(tickerBuy),
+            amount: amountBuy.toString(),
+            price: priceBuy,
+            filled: filledBuy.toNumber()
+          }
+        ]);
+      };
     };
+
+  } catch (error) {
+    console.log("error", error);
+    //if (error) return alert("error...check Eth amount");
+    setErrorMarketBuy(true);
   };
+};
+
+useEffect(() => {
+  if (account) {
+    handleMarketOrderBuy();
+  }
+
+  return () => {
+    console.log("cleanup");
+  }
+}, [dexContract, isBuyInfo]);
+
+
+   //---------- MAP THROUGH OBJECT -> SEND TO PRINT----------------
+   const sellList = isSellInfo.map((sells) => (
+    <SellOrders key={sells.id} sells={sells} />
+  ));
+
+  // MAP THROUGH OBJECT -> SEND TO PRINT
+const buyList = isBuyInfo.map((buys) => (
+  <BuyOrders key={buys.id} buys={buys} />
+));
 
   return (
     <>
@@ -465,9 +653,9 @@ function Trading({
             <div className='box-limit'>
                   <div className='card'>
                     <div className="card-body">
-                      <h6 className="card-subtitle mb-2 text-secondary">LIMIT ORDERS</h6>
+                      <h6 className="card-subtitle mb-2 text-secondary">Sell</h6>
                       <div className="px-4">
-                        <LimitOrders limitTx={limitTx} />
+                        {sellList}
                       </div>
                     </div>
                   </div>
@@ -475,9 +663,9 @@ function Trading({
                 <div className='box-market'>
                   <div className="card">
                     <div className="card-body">
-                      <h6 className="card-subtitle mb-2 text-secondary">MARKET ORDERS</h6>
+                      <h6 className="card-subtitle mb-2 text-secondary">Buy</h6>
                       <div className="px-4" >
-                        <MarketOrders marketTx={marketTx}/>
+                      {buyList}
                       </div>
                     </div>
                   </div>
