@@ -92,7 +92,7 @@ function Trading({
   }, [dexContract]);
 
 
-  //--------- get trades ----------------
+  //--------- SAVE TRADES TO LOCAL STORAGE ----------------
 useEffect(() => {
   const sellData = window.localStorage.getItem("sell_trades");
   setIsSellInfo(JSON.parse(sellData));
@@ -120,9 +120,11 @@ useEffect(() => {
         data.get("amount"),
         ethers.utils.parseEther(data.get("price"))
       );
+      setIsLoading(true);
       await limitOrderSellTx.wait();
       console.log('limit SELL order success', limitOrderSellTx);
-      setIsLimitSellMsg(true);
+      //setIsLimitSellMsg(true);
+      setIsLoading(false);
   
       //get SELL side trades
       const allTokenList = await dexContract.getTokenListLength();
@@ -162,7 +164,7 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    if (account) {
+    if (account === 0) {
       handleLimitOrderSell();
     }
 
@@ -183,9 +185,11 @@ useEffect(() => {
         data.get("amount"),
         ethers.utils.parseEther(data.get("price"))
       );
+      setIsLoading(true);
       await limitOrderBuyTx.wait();
       console.log("limit BUY order success", limitOrderBuyTx);
-      setIsLimitBuyMsg(true);
+      //setIsLimitBuyMsg(true);
+      setIsLoading(false);
   
       //get BUY side trades
       const allTokenList = await dexContract.getTokenListLength();
@@ -224,7 +228,7 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    if (account) {
+    if (account === 0) {
       handleLimitOrderBuy();
     }
 
@@ -242,10 +246,12 @@ useEffect(() => {
         1,
         ethers.utils.formatBytes32String(data.get("ticker")),
         data.get("amount"));
+        setIsLoading(true);
   
       await marketOrderSellTx.wait();
       console.log("market SELL order success", marketOrderSellTx);
-      setIsMarketSellMsg(true);
+      //setIsMarketSellMsg(true);
+      setIsLoading(false);
   
       //get SELL side trades
       const allTokenList = await dexContract.getTokenListLength();
@@ -288,7 +294,7 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    if (account) {
+    if (account === 0) {
       handleMarketOrderSell();
     }
 
@@ -305,9 +311,11 @@ useEffect(() => {
     const marketOrderTx = await dexContract.createMarketOrder(
       0, ethers.utils.formatBytes32String(data.get("ticker")), data.get("amount")
     );
+    setIsLoading(true);
     await marketOrderTx.wait();
     console.log("market BUY order success", marketOrderTx);
-    setIsMarketBuyMsg(true);
+    //setIsMarketBuyMsg(true);
+    setIsLoading(false);
 
     //get BUY side trades
     const allTokenList = await dexContract.getTokenListLength();
@@ -348,10 +356,10 @@ useEffect(() => {
 };
 
 useEffect(() => {
-  if (account) {
+  if (account === 0) {
     handleMarketOrderBuy();
   }
-
+    
   return () => {
     console.log("cleanup");
   }
@@ -504,11 +512,12 @@ const buyList = isBuyInfo.map((buys) => (
                         Create a limit BUY order
                       </button>
                       <div className="my-4 mb-2">
-                        {isLimitBuyMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsLimitBuyMsg(false)}></button>
-                            <strong>Well Done!</strong> Your limit buy has been completed.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
+                          
                         }
 
                         {errorLimitBuy &&
@@ -561,11 +570,12 @@ const buyList = isBuyInfo.map((buys) => (
                         Create a market SELL order
                       </button>
                       <div className="my-4 mb-2">
-                        {isMarketSellMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsMarketSellMsg(false)}></button>
-                            <strong>Well Done!</strong> Your market sell order has been completed.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
+                          
                         }
 
                         {errorMarketSell &&
@@ -619,13 +629,13 @@ const buyList = isBuyInfo.map((buys) => (
                         Create a market BUY order
                       </button>
                       <div className="my-4 mb-2">
-                        {isMarketBuyMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsMarketBuyMsg(false)}></button>
-                            <strong>Well Done!</strong> Your market buy order has been completed.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
+                          
                         }
-
                         {errorMarketBuy &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorMarketBuy(false)}></button>

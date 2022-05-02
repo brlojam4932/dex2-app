@@ -55,6 +55,8 @@ function DexTransact({
   setErrorDepositEthMsg,
   isLoading,
   setIsLoading,
+  isSellInfo, 
+  isBuyInfo
 }) {
 
   //--------- DEX Token List to local storage ----------------
@@ -95,7 +97,6 @@ function DexTransact({
     useEffect(() => {
       window.localStorage.setItem("eth_dex_balances", JSON.stringify(ethDexBalance));
     }, [ethDexBalance]);
-
 
 
   /////////////// DEX //////////////////
@@ -140,7 +141,7 @@ function DexTransact({
         console.log("dexBalances will unmount", dexTokenTX);
       }
 
-}, [account, dexTokenTX, dexTokenWithdrawTx]);
+}, [account, dexTokenTX, dexTokenWithdrawTx, dexContract]);
 
 
   // Get only the ETH bal in DEX
@@ -458,7 +459,6 @@ function DexTransact({
                         ) : (null)
                           
                         }
-
                         {errorDepositEthMsg &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDepositEth(false)}></button>

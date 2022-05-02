@@ -223,7 +223,7 @@ function App() {
           <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
             <div className="mt-4 p-4">
               <h3 className="text-xl font-semibold text-info text-left">
-                Recent ERC20 Token Transactions
+                Recent ERC20 Token Wallet Transactions
               </h3>
               <div>
                 <TxList txs={txs} />
