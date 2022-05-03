@@ -152,6 +152,7 @@ function App() {
   })
 
   const [listOfTokens, setListOfTokens] = useState([]);
+  const [orderbookLength, setOrderbookLength] = useState(0)
 
   //tabs
   const [toggleTabState, setToggleTabState] = useState(1);
@@ -334,6 +335,8 @@ function App() {
         account={account}
         isBuyInfo={isBuyInfo}
         setIsBuyInfo={setIsBuyInfo}
+        setOrderbookLength={setOrderbookLength}
+        orderbookLength={orderbookLength}
       />
       <Footer />
     </>

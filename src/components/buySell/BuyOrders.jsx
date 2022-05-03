@@ -13,17 +13,14 @@ function BuyOrders({ buys }) {
         <strong>Trader:</strong>{" "}{buys.trader}
       </div>
       <div>
-        <strong>Ticker:</strong>{" "}{buys.ticker}
-      </div>
-      <div>
-        <strong>Amount:</strong>{" "}{buys.amount}
+        <strong>Ticker:</strong>{" "}{buys.ticker}{" "}
+        <strong>Amount:</strong>{" "}{buys.amount}{" "}
+        <strong>Filled:</strong>{" "}{buys.filled}
       </div>
       <div className='text-success'>
         <strong>Price:</strong>{" "}{buys.price}
       </div>
-      <div>
-        <strong>Filled:</strong>{" "}{buys.filled}
-      </div>
+     
     </div>
   )
 }

@@ -259,7 +259,7 @@ function Token({
      <div className='container-1'>
         <div className='box-1'>
           <Wrapper2 className='text-info'>
-            <h2 style={{color: "#e1e1e1"}}>ERC20 Contract Wallet</h2>
+            <h2 style={{color: "#e1e1e1"}}>ERC20 DEX Wallet</h2>
             <p>Address: {contractInfo.address}</p>
             <p>Symbol: {contractInfo.tokenSymbol}</p>
             <p>Total Supply: {contractInfo.totalSupply}</p>

@@ -13,17 +13,14 @@ function SellOrders({ sells }) {
         <strong>Trader:</strong>{" "}{sells.trader}
       </div>
       <div>
-        <strong>Ticker:</strong>{" "}{sells.ticker}
-      </div>
-      <div>
-        <strong>Amount:</strong>{" "}{sells.amount}
+        <strong>Ticker:</strong>{" "}{sells.ticker}{" "}
+        <strong>Amount:</strong>{" "}{sells.amount}{" "}
+        <strong>Filled:</strong>{" "}{sells.filled}
       </div>
       <div className='text-danger'>
         <strong>Price:</strong>{" "}{sells.price}
       </div>
-      <div>
-        <strong>Filled:</strong>{" "}{sells.filled}
-      </div>
+
     </div>
   )
 }

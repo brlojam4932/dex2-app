@@ -68,26 +68,21 @@ function DexTransact({
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
+   
   }, [listOfTokens]); // prev listOfTokens
   */
 
   //--------- DEX balances to local storage ----------------
-
     useEffect(() => {
+      if (listOfTokens.length === 0) {
+        const tokenListData = window.localStorage.getItem("token_list");
+        setListOfTokens(JSON.parse(tokenListData));
+      }
+   
+
       const dexBalData = window.localStorage.getItem("dex_balances");
       setDexBalances(JSON.parse(dexBalData));
-      //console.log(tokenListData);
-    }, []);
 
-  
-    useEffect(() => {
-      window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
-    }, [dexBalanceInfo]); // prev dexTokenTX
-
-
-  //--------- DEX ETH balances to local storage ----------------
-    useEffect(() => {
       const ethDexBalData = window.localStorage.getItem("eth_dex_balances");
       setEthDexBalance(JSON.parse(ethDexBalData));// rev setListOfTokens
       //console.log(tokenListData);
@@ -95,8 +90,10 @@ function DexTransact({
 
     
     useEffect(() => {
+      window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
+      window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
       window.localStorage.setItem("eth_dex_balances", JSON.stringify(ethDexBalance));
-    }, [ethDexBalance]);
+    }, [ethDexBalance, dexBalanceInfo, listOfTokens]);
 
 
   /////////////// DEX //////////////////
@@ -418,7 +415,7 @@ function DexTransact({
                         {errorDexDeposit &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexDeposit(false)}></button>
-                            <strong>Oh snap!</strong>Must be an ERC20 token or must be approved, check allowance.
+                            <strong>Oh snap!</strong> Must be an ERC20 token or approve with the DEX wallet.
                           </div>
                         }
                       </div>

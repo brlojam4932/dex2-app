@@ -42,7 +42,9 @@ function Trading({
   setIsSellInfo,
   isSellInfo,
   isBuyInfo,
-  setIsBuyInfo
+  setIsBuyInfo,
+  setOrderbookLength,
+  orderbookLength
 }) {
 
   
@@ -94,6 +96,9 @@ function Trading({
 
   //--------- SAVE TRADES TO LOCAL STORAGE ----------------
 useEffect(() => {
+  const ordersLengthData = window.localStorage.getItem("orders_length");
+  setOrderbookLength(JSON.parse(ordersLengthData));
+
   const sellData = window.localStorage.getItem("sell_trades");
   setIsSellInfo(JSON.parse(sellData));
 
@@ -103,10 +108,11 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  window.localStorage.setItem("orders_length", JSON.stringify(orderbookLength));
   window.localStorage.setItem("sell_trades", JSON.stringify(isSellInfo));
   window.localStorage.setItem("buy_trades", JSON.stringify(isBuyInfo));
 
-}, [isSellInfo, isBuyInfo]); //isLimitSellMsg, isMarketSellMsg
+}, [isSellInfo, isBuyInfo, orderbookLength]); //isLimitSellMsg, isMarketSellMsg
 
 
   // MAKE TRADES
@@ -141,7 +147,10 @@ useEffect(() => {
           const tickerSell = sellTx[i]["ticker"];
           const amountSell = sellTx[i]["amount"];
           const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
-          console.log("LimitSell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell);
+          const filledSell = sellTx[i]["filled"];
+          console.log("order book sell side:", sellTx.length);
+          console.log("LimitSell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
+          setOrderbookLength(sellTx.length);
   
           // spread operator to create a new object
           setIsSellInfo(prevSell => [
@@ -152,6 +161,7 @@ useEffect(() => {
               ticker: ethers.utils.parseBytes32String(tickerSell),
               amount: amountSell.toString(),
               price: priceSell,
+              filled: filledSell.toNumber()
             }
           ]);
         };
@@ -205,7 +215,10 @@ useEffect(() => {
           const tickerBuy = buyTx[i]["ticker"];
           const amountBuy = buyTx[i]["amount"];
           const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
-          console.log("LimitBuy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:");
+          const filledBuy = buyTx[i]["filled"];
+          console.log("order book buy side:", buyTx.length);
+          console.log("LimitBuy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:", filledBuy.toNumber());
+          setOrderbookLength(buyTx.length);
   
           setIsBuyInfo(prevBuy => [
             ...prevBuy,
@@ -215,6 +228,7 @@ useEffect(() => {
               ticker: ethers.utils.parseBytes32String(tickerBuy),
               amount: amountBuy.toString(),
               price: priceBuy,
+              filled: filledBuy.toNumber()
             }
           ]);
         };
@@ -269,8 +283,9 @@ useEffect(() => {
           const amountSell = sellTx[i]["amount"];
           const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
           const filledSell = sellTx[i]["filled"];
+          console.log("order book sell side:", sellTx.length);
           console.log("MarketSell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
-  
+          setOrderbookLength(sellTx.length);
           // spread operator to create a new object
           setIsSellInfo(prevSell => [
             ...prevSell,
@@ -314,9 +329,9 @@ useEffect(() => {
     setIsLoading(true);
     await marketOrderTx.wait();
     console.log("market BUY order success", marketOrderTx);
-    //setIsMarketBuyMsg(true);
     setIsLoading(false);
-
+    //setIsMarketBuyMsg(true);
+  
     //get BUY side trades
     const allTokenList = await dexContract.getTokenListLength();
     for (let i = 0; i < allTokenList; i++) {
@@ -330,9 +345,10 @@ useEffect(() => {
         const traderBuy = buyTx[i]["trader"];
         const tickerBuy = buyTx[i]["ticker"];
         const amountBuy = buyTx[i]["amount"];
-        const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
         const filledBuy = buyTx[i]["filled"];
-        console.log("MarketBuy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:", filledBuy.toNumber());
+        console.log("order book buy side:", buyTx.length);
+        console.log("MarketBuy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Filled:", filledBuy.toNumber());
+        setOrderbookLength(buyTx.length);
 
         setIsBuyInfo(prevBuy => [
           ...prevBuy,
@@ -341,13 +357,11 @@ useEffect(() => {
             trader: traderBuy,
             ticker: ethers.utils.parseBytes32String(tickerBuy),
             amount: amountBuy.toString(),
-            price: priceBuy,
             filled: filledBuy.toNumber()
           }
         ]);
       };
     };
-
   } catch (error) {
     console.log("error", error);
     //if (error) return alert("error...check Eth amount");
@@ -375,6 +389,14 @@ useEffect(() => {
 const buyList = isBuyInfo.map((buys) => (
   <BuyOrders key={buys.id} buys={buys} />
 ));
+
+const getOrderBookSellSide = async () => {
+
+}
+
+const getOrderBookBuySide = async () => {
+  
+}
 
   return (
     <>
@@ -650,7 +672,7 @@ const buyList = isBuyInfo.map((buys) => (
             </div>
           </div>
         </div>
-
+          {/* Orderbook */}             
         <div className='box-2'>
           <div className='container-6'>
             <div className='m-4'>
@@ -663,7 +685,16 @@ const buyList = isBuyInfo.map((buys) => (
             <div className='box-limit'>
                   <div className='card'>
                     <div className="card-body">
-                      <h6 className="card-subtitle mb-2 text-secondary">Sell</h6>
+                    {orderbookLength ? (
+                        <h6 className="card-subtitle mb-2 text-secondary">
+                        Order Book Length: {orderbookLength}
+                          </h6>
+                    ) : ( 
+                      <h6 className="card-subtitle mb-2 text-secondary">
+                        Order Book Length: 0
+                          </h6>
+                     )}
+                        <h6 className="card-subtitle mb-2 text-secondary">Sell</h6>
                       <div className="px-4">
                         {sellList}
                       </div>
