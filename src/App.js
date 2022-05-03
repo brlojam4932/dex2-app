@@ -152,7 +152,8 @@ function App() {
   })
 
   const [listOfTokens, setListOfTokens] = useState([]);
-  const [orderbookLength, setOrderbookLength] = useState(0)
+  const [orderbookSellLength, setOrderbookSellLength] = useState(0);
+  const [orderbookBuyLength, setOrderbookBuyLength] = useState(0);
 
   //tabs
   const [toggleTabState, setToggleTabState] = useState(1);
@@ -182,163 +183,166 @@ function App() {
       <div className='container'>
         <Header
         />
-      </div>
+        <Token
+          isTransferMsg={isTransferMsg}
+          setIsTransferMsg={setIsTransferMsg}
+          transfer={transfer}
+          isApproved={isApproved}
+          setIsApproved={setIsApproved}
+          isAllowanceMsg={isAllowanceMsg}
+          setIsAllowanceMsg={setIsAllowanceMsg}
+          allowanceAmount={allowanceAmount}
+          isTransferFrom={isTransferFrom}
+          setIsTransferFrom={setIsTransferFrom}
+          toggleTabs={toggleTabs}
+          toggleTabState={toggleTabState}
+          errorTransfer={errorTransfer}
+          setErrorTransfer={setErrorTransfer}
+          ApproveList={ApproveList}
+          approveTx={approveTx}
+          errorTransferFrom={errorTransferFrom}
+          setErrorTransferFrom={setErrorTransferFrom}
+          contractInfo={contractInfo}
+          tokenContract={tokenContract}
+          account={account}
+          setContractInfo={setContractInfo}
+          setTxs={setTxs}
+          setApproveTx={setApproveTx}
+          setAllowanceAmount={setAllowanceAmount}
+          setTransfer={setTransfer}
+          dexContractAddress={dexContractAddress}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          setDexApproved={setDexApproved}
+          dexApproved={dexApproved}
+        />
 
-      <Token
-        isTransferMsg={isTransferMsg}
-        setIsTransferMsg={setIsTransferMsg}
-        transfer={transfer}
-        isApproved={isApproved}
-        setIsApproved={setIsApproved}
-        isAllowanceMsg={isAllowanceMsg}
-        setIsAllowanceMsg={setIsAllowanceMsg}
-        allowanceAmount={allowanceAmount}
-        isTransferFrom={isTransferFrom}
-        setIsTransferFrom={setIsTransferFrom}
-        toggleTabs={toggleTabs}
-        toggleTabState={toggleTabState}
-        errorTransfer={errorTransfer}
-        setErrorTransfer={setErrorTransfer}
-        ApproveList={ApproveList}
-        approveTx={approveTx}
-        errorTransferFrom={errorTransferFrom}
-        setErrorTransferFrom={setErrorTransferFrom}
-        contractInfo={contractInfo}
-        tokenContract={tokenContract}
-        account={account}
-        setContractInfo={setContractInfo}
-        setTxs={setTxs}
-        setApproveTx={setApproveTx}
-        setAllowanceAmount={setAllowanceAmount}
-        setTransfer={setTransfer}
-        dexContractAddress={dexContractAddress}
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-        setDexApproved={setDexApproved}
-        dexApproved={dexApproved}
-      />
-
-      {/* Token Events */}
-      <div className='container'>
-        <div className='box-4'>
-          <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
-            <div className="mt-4 p-4">
-              <h3 className="text-xl font-semibold text-info text-left">
-                Recent ERC20 Token Wallet Transactions
-              </h3>
-              <div>
-                <TxList txs={txs} />
-                <ApproveList approveTx={approveTx} />
+        {/* Token Events */}
+        <div className='container'>
+          <div className='box-4'>
+            <div className="m-4 credit-card w-full lg:w-3/4 sm:w-auto shadow-lg mx-auto rounded-xl bg-darkgrey">
+              <div className="mt-4 p-4">
+                <h3 className="text-xl font-semibold text-info text-left">
+                  Recent ERC20 Token Wallet Transactions
+                </h3>
+                <div>
+                  <TxList txs={txs} />
+                  <ApproveList approveTx={approveTx} />
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <DexHeader />
+
+        <DexTransact
+          errorAddToken={errorAddToken}
+          errorDexDeposit={errorDexDeposit}
+          errorDepositEth={errorDepositEth}
+          errorDexWithdraw={errorDexWithdraw}
+          dexBalanceInfo={dexBalanceInfo}
+          withDrawSuccessMsg={withDrawSuccessMsg}
+          withDrawAmountInfo={withDrawAmountInfo}
+          addTokenSuccessMsg={addTokenSuccessMsg}
+          depositEthSuccessMsg={depositEthSuccessMsg}
+          depositEthAmount={depositEthAmount}
+          toggleTabState2={toggleTabState2}
+          depositSuccessMsg={depositSuccessMsg}
+          setDepositSuccessMsg={setDepositSuccessMsg}
+          toggleTabs2={toggleTabs2}
+          setDepositEthSuccessMsg={setDepositEthSuccessMsg}
+          setAddTokenSuccessMsg={setAddTokenSuccessMsg}
+          setErrorAddToken={setErrorAddToken}
+          setErrorDexDeposit={setErrorDexDeposit}
+          setErrorDepositEth={setErrorDepositEth}
+          setErrorDexWithdraw={setErrorDexWithdraw}
+          setWithDrawSuccessMsg={setWithDrawSuccessMsg}
+          errorDepositEthMsg={errorDepositEthMsg}
+          setErrorDepositEthMsg={setErrorDepositEthMsg}
+          ethDexBalance={ethDexBalance}
+          dexContract={dexContract}
+          tokenContract={tokenContract}
+          setLimitTx={setLimitTx}
+          setMarketTx={setMarketTx}
+          setListOfTokens={setListOfTokens}
+          listOfTokens={listOfTokens}
+          setIsTransferMsg={setIsTransferMsg}
+          setTransfer={setTransfer}
+          setErrorTransfer={setErrorTransfer}
+          account={account}
+          setDexBalanceInfo={setDexBalanceInfo}
+          setEthDexBalance={setEthDexBalance}
+          contractInfo={contractInfo}
+          setDepositEthAmount={setDepositEthAmount}
+          setDexTokenTx={setDexTokenTx}
+          setWithDrawAmountInfo={setWithDrawAmountInfo}
+          setIsLimitSellMsg={setIsLimitSellMsg}
+          setErrorLimitSell={setErrorLimitSell}
+          setIsLimitBuyMsg={setIsLimitBuyMsg}
+          setErrorLimitBuy={setErrorLimitBuy}
+          setIsMarketSellMsg={setIsMarketSellMsg}
+          setErrorMarketSell={setErrorMarketSell}
+          setIsMarketBuyMsg={setIsMarketBuyMsg}
+          setErrorMarketBuy={setErrorMarketBuy}
+          dexTokenTX={dexTokenTX}
+          depositEthTx={depositEthTx}
+          setDepositEthTx={setDepositEthTx}
+          dexBalances={dexBalances}
+          setDexBalances={setDexBalances}
+          setTokenAdded={setTokenAdded}
+          tokenAdded={tokenAdded}
+          setDexTokenWithdrawTx={setDexTokenWithdrawTx}
+          dexTokenWithdrawTx={dexTokenWithdrawTx}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+        />
+        <TradingHeader />
+
+        <Trading
+          toggleTabState3={toggleTabState3}
+          toggleTabs3={toggleTabs3}
+          toggleTabs4={toggleTabs4}
+          toggleTabState4={toggleTabState4}
+          isSellInfo={isSellInfo}
+          setIsSellInfo={setIsSellInfo}
+          isLimitSellMsg={isLimitSellMsg}
+          setIsLimitSellMsg={setIsLimitSellMsg}
+          errorLimitSell={errorLimitSell}
+          setErrorLimitSell={setErrorLimitSell}
+          isLimitBuyMsg={isLimitBuyMsg}
+          setIsLimitBuyMsg={setIsLimitBuyMsg}
+          errorLimitBuy={errorLimitBuy}
+          setErrorLimitBuy={setErrorLimitBuy}
+          isMarketBuyMsg={isMarketBuyMsg}
+          setIsMarketBuyMsg={setIsMarketBuyMsg}
+          errorMarketBuy={errorMarketBuy}
+          setErrorMarketBuy={setErrorMarketBuy}
+          isMarketSellMsg={isMarketSellMsg}
+          setIsMarketSellMsg={setIsMarketSellMsg}
+          errorMarketSell={errorMarketSell}
+          setErrorMarketSell={setErrorMarketSell}
+          limitTx={limitTx}
+          setLimitTx={setLimitTx}
+          marketTx={marketTx}
+          setMarketTx={setMarketTx}
+          dexContract={dexContract}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          setLimitSells={setLimitSells}
+          limitSells={limitSells}
+          account={account}
+          isBuyInfo={isBuyInfo}
+          setIsBuyInfo={setIsBuyInfo}
+          setOrderbookSellLength={setOrderbookSellLength}
+          orderbookSellLength={orderbookSellLength}
+          setOrderbookBuyLength={setOrderbookBuyLength}
+          orderbookBuyLength={orderbookBuyLength}
+        />
+        <Footer />
       </div>
 
-      <DexHeader />
 
-      <DexTransact
-        errorAddToken={errorAddToken}
-        errorDexDeposit={errorDexDeposit}
-        errorDepositEth={errorDepositEth}
-        errorDexWithdraw={errorDexWithdraw}
-        dexBalanceInfo={dexBalanceInfo}
-        withDrawSuccessMsg={withDrawSuccessMsg}
-        withDrawAmountInfo={withDrawAmountInfo}
-        addTokenSuccessMsg={addTokenSuccessMsg}
-        depositEthSuccessMsg={depositEthSuccessMsg}
-        depositEthAmount={depositEthAmount}
-        toggleTabState2={toggleTabState2}
-        depositSuccessMsg={depositSuccessMsg}
-        setDepositSuccessMsg={setDepositSuccessMsg}
-        toggleTabs2={toggleTabs2}
-        setDepositEthSuccessMsg={setDepositEthSuccessMsg}
-        setAddTokenSuccessMsg={setAddTokenSuccessMsg}
-        setErrorAddToken={setErrorAddToken}
-        setErrorDexDeposit={setErrorDexDeposit}
-        setErrorDepositEth={setErrorDepositEth}
-        setErrorDexWithdraw={setErrorDexWithdraw}
-        setWithDrawSuccessMsg={setWithDrawSuccessMsg}
-        errorDepositEthMsg={errorDepositEthMsg}
-        setErrorDepositEthMsg={setErrorDepositEthMsg}
-        ethDexBalance={ethDexBalance}
-        dexContract={dexContract}
-        tokenContract={tokenContract}
-        setLimitTx={setLimitTx}
-        setMarketTx={setMarketTx}
-        setListOfTokens={setListOfTokens}
-        listOfTokens={listOfTokens}
-        setIsTransferMsg={setIsTransferMsg}
-        setTransfer={setTransfer}
-        setErrorTransfer={setErrorTransfer}
-        account={account}
-        setDexBalanceInfo={setDexBalanceInfo}
-        setEthDexBalance={setEthDexBalance}
-        contractInfo={contractInfo}
-        setDepositEthAmount={setDepositEthAmount}
-        setDexTokenTx={setDexTokenTx}
-        setWithDrawAmountInfo={setWithDrawAmountInfo}
-        setIsLimitSellMsg={setIsLimitSellMsg}
-        setErrorLimitSell={setErrorLimitSell}
-        setIsLimitBuyMsg={setIsLimitBuyMsg}
-        setErrorLimitBuy={setErrorLimitBuy}
-        setIsMarketSellMsg={setIsMarketSellMsg}
-        setErrorMarketSell={setErrorMarketSell}
-        setIsMarketBuyMsg={setIsMarketBuyMsg}
-        setErrorMarketBuy={setErrorMarketBuy}
-        dexTokenTX={dexTokenTX}
-        depositEthTx={depositEthTx}
-        setDepositEthTx={setDepositEthTx}
-        dexBalances={dexBalances}
-        setDexBalances={setDexBalances}
-        setTokenAdded={setTokenAdded}
-        tokenAdded={tokenAdded}
-        setDexTokenWithdrawTx={setDexTokenWithdrawTx}
-        dexTokenWithdrawTx={dexTokenWithdrawTx}
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-      />
-      <TradingHeader />
-
-      <Trading
-        toggleTabState3={toggleTabState3}
-        toggleTabs3={toggleTabs3}
-        toggleTabs4={toggleTabs4}
-        toggleTabState4={toggleTabState4}
-        isSellInfo={isSellInfo}
-        setIsSellInfo={setIsSellInfo}
-        isLimitSellMsg={isLimitSellMsg}
-        setIsLimitSellMsg={setIsLimitSellMsg}
-        errorLimitSell={errorLimitSell}
-        setErrorLimitSell={setErrorLimitSell}
-        isLimitBuyMsg={isLimitBuyMsg}
-        setIsLimitBuyMsg={setIsLimitBuyMsg}
-        errorLimitBuy={errorLimitBuy}
-        setErrorLimitBuy={setErrorLimitBuy}
-        isMarketBuyMsg={isMarketBuyMsg}
-        setIsMarketBuyMsg={setIsMarketBuyMsg}
-        errorMarketBuy={errorMarketBuy}
-        setErrorMarketBuy={setErrorMarketBuy}
-        isMarketSellMsg={isMarketSellMsg}
-        setIsMarketSellMsg={setIsMarketSellMsg}
-        errorMarketSell={errorMarketSell}
-        setErrorMarketSell={setErrorMarketSell}
-        limitTx={limitTx}
-        setLimitTx={setLimitTx}
-        marketTx={marketTx}
-        setMarketTx={setMarketTx}
-        dexContract={dexContract}
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-        setLimitSells={setLimitSells}
-        limitSells={limitSells}
-        account={account}
-        isBuyInfo={isBuyInfo}
-        setIsBuyInfo={setIsBuyInfo}
-        setOrderbookLength={setOrderbookLength}
-        orderbookLength={orderbookLength}
-      />
-      <Footer />
     </>
   );
 };

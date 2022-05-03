@@ -25,7 +25,7 @@ function LimitOrders({ limitTx }) {
          }
         </div>
         <div>
-         <strong>Price:</strong>{" "}{limit.price}
+         <strong>Price:</strong>{" "}{limit.price} ETH
         </div>
       </div>
     ))}

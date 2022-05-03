@@ -43,8 +43,10 @@ function Trading({
   isSellInfo,
   isBuyInfo,
   setIsBuyInfo,
-  setOrderbookLength,
-  orderbookLength
+  setOrderbookSellLength,
+  orderbookSellLength,
+  setOrderbookBuyLength,
+  orderbookBuyLength
 }) {
 
   
@@ -97,7 +99,7 @@ function Trading({
   //--------- SAVE TRADES TO LOCAL STORAGE ----------------
 useEffect(() => {
   const ordersLengthData = window.localStorage.getItem("orders_length");
-  setOrderbookLength(JSON.parse(ordersLengthData));
+  setOrderbookSellLength(JSON.parse(ordersLengthData));
 
   const sellData = window.localStorage.getItem("sell_trades");
   setIsSellInfo(JSON.parse(sellData));
@@ -108,11 +110,11 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  window.localStorage.setItem("orders_length", JSON.stringify(orderbookLength));
+  window.localStorage.setItem("orders_length", JSON.stringify(orderbookSellLength));
   window.localStorage.setItem("sell_trades", JSON.stringify(isSellInfo));
   window.localStorage.setItem("buy_trades", JSON.stringify(isBuyInfo));
 
-}, [isSellInfo, isBuyInfo, orderbookLength]); //isLimitSellMsg, isMarketSellMsg
+}, [isSellInfo, isBuyInfo, orderbookSellLength]); //isLimitSellMsg, isMarketSellMsg
 
 
   // MAKE TRADES
@@ -148,9 +150,9 @@ useEffect(() => {
           const amountSell = sellTx[i]["amount"];
           const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
           const filledSell = sellTx[i]["filled"];
-          console.log("order book sell side:", sellTx.length);
+          //console.log("order book sell side:", sellTx.length);
           console.log("LimitSell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
-          setOrderbookLength(sellTx.length);
+          //setOrderbookLength(sellTx.length);
   
           // spread operator to create a new object
           setIsSellInfo(prevSell => [
@@ -216,9 +218,9 @@ useEffect(() => {
           const amountBuy = buyTx[i]["amount"];
           const priceBuy = ethers.utils.formatEther(buyTx[i]["price"]);
           const filledBuy = buyTx[i]["filled"];
-          console.log("order book buy side:", buyTx.length);
+          //console.log("order book buy side:", buyTx.length);
           console.log("LimitBuy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Price:", priceBuy, "Filled:", filledBuy.toNumber());
-          setOrderbookLength(buyTx.length);
+          //setOrderbookLength(buyTx.length);
   
           setIsBuyInfo(prevBuy => [
             ...prevBuy,
@@ -283,9 +285,9 @@ useEffect(() => {
           const amountSell = sellTx[i]["amount"];
           const priceSell = ethers.utils.formatEther(sellTx[i]["price"]);
           const filledSell = sellTx[i]["filled"];
-          console.log("order book sell side:", sellTx.length);
+          //console.log("order book sell side:", sellTx.length);
           console.log("MarketSell:", "Trader:", traderSell, "Symbol:", ethers.utils.parseBytes32String(tickerSell), "Amount:", amountSell.toString(), "Price:", priceSell, "Filled:", filledSell.toNumber());
-          setOrderbookLength(sellTx.length);
+          //setOrderbookLength(sellTx.length);
           // spread operator to create a new object
           setIsSellInfo(prevSell => [
             ...prevSell,
@@ -346,9 +348,9 @@ useEffect(() => {
         const tickerBuy = buyTx[i]["ticker"];
         const amountBuy = buyTx[i]["amount"];
         const filledBuy = buyTx[i]["filled"];
-        console.log("order book buy side:", buyTx.length);
+        //console.log("order book buy side:", buyTx.length);
         console.log("MarketBuy:", "Trader:", traderBuy, "Symbol:", ethers.utils.parseBytes32String(tickerBuy), "Amount:", amountBuy.toString(), "Filled:", filledBuy.toNumber());
-        setOrderbookLength(buyTx.length);
+        //setOrderbookLength(buyTx.length);
 
         setIsBuyInfo(prevBuy => [
           ...prevBuy,
@@ -390,13 +392,53 @@ const buyList = isBuyInfo.map((buys) => (
   <BuyOrders key={buys.id} buys={buys} />
 ));
 
-const getOrderBookSellSide = async () => {
 
-}
+const getOrderBookSellSide = async () => {
+  try {
+    const allTokenList = await dexContract.getTokenListLength();
+    for (let i = 0; i < allTokenList; i++) {
+      let tokenList = await dexContract.tokenList(i);
+      // add tokenList result to ticker argument - tokenList is parsed but it's also formatted
+      const sellTx = await dexContract.getOrderBook(
+        ethers.utils.formatBytes32String(
+          ethers.utils.parseBytes32String(tokenList)), 1);
+          console.log("order book sell side:", sellTx.length);
+          setOrderbookSellLength(sellTx.length);
+        };
+  } catch (error) {
+    console.log("eror", error);
+  }
+
+};
 
 const getOrderBookBuySide = async () => {
+  try {
+    const allTokenList = await dexContract.getTokenListLength();
+    for (let i = 0; i < allTokenList; i++) {
+      let tokenList = await dexContract.tokenList(i);
+      // add tokenList result to ticker argument - tokenList is parsed but it's also formatted
+      const buyTx = await dexContract.getOrderBook(
+        ethers.utils.formatBytes32String(
+          ethers.utils.parseBytes32String(tokenList)), 0);
+          console.log("order book sell side:", buyTx.length);
+          setOrderbookBuyLength(buyTx.length);
+        };
+  } catch (error) {
+    console.log("eror", error)
+  }
   
-}
+};
+
+useEffect(() => {
+  if (account === 0) {
+    getOrderBookSellSide();
+    getOrderBookBuySide();
+  }
+  return () => {
+    console.log("cleanup");
+  }
+}, [isSellInfo, isBuyInfo]);
+
 
   return (
     <>
@@ -678,22 +720,32 @@ const getOrderBookBuySide = async () => {
             <div className='m-4'>
               <div className='container'>
               <div className='bloc-tabs'>
-              <button className={toggleTabState4 === 13 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(13)}>Orders</button>
-              <button className={toggleTabState4 === 14 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(14)}>Order History</button>
+              <button className={toggleTabState4 === 13 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(13)}>Trades</button>
+              <button className={toggleTabState4 === 14 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(14)}>Trade History</button>
             </div>
             <div  className={toggleTabState4 === 13 ? 'content active-content' : "content"}>
             <div className='box-limit'>
                   <div className='card'>
                     <div className="card-body">
-                    {orderbookLength ? (
+                    {orderbookSellLength ? (
                         <h6 className="card-subtitle mb-2 text-secondary">
-                        Order Book Length: {orderbookLength}
+                        Order Book Sells: {orderbookSellLength}
                           </h6>
                     ) : ( 
                       <h6 className="card-subtitle mb-2 text-secondary">
-                        Order Book Length: 0
+                        Order Book Sells: 0
                           </h6>
                      )}
+                       {orderbookBuyLength ? (
+                        <h6 className="card-subtitle mb-2 text-secondary">
+                        Order Book Buys: {orderbookBuyLength}
+                          </h6>
+                    ) : ( 
+                      <h6 className="card-subtitle mb-2 text-secondary">
+                        Order Book Buys: 0
+                          </h6>
+                     )}
+                     <br />
                         <h6 className="card-subtitle mb-2 text-secondary">Sell</h6>
                       <div className="px-4">
                         {sellList}

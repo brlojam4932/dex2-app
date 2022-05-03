@@ -19,6 +19,7 @@ function SellOrders({ sells }) {
       </div>
       <div className='text-danger'>
         <strong>Price:</strong>{" "}{sells.price}
+        <p className='text-secondary'>ETH</p>
       </div>
 
     </div>

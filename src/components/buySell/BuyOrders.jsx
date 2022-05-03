@@ -19,6 +19,7 @@ function BuyOrders({ buys }) {
       </div>
       <div className='text-success'>
         <strong>Price:</strong>{" "}{buys.price}
+        <p className='text-secondary'>ETH</p>
       </div>
      
     </div>
