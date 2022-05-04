@@ -7,8 +7,8 @@ function MarketOrders({ marketTx }) {
 
   return (
     <>
-    {marketTx.map((market, index) => (
-      <div key={index} className="alert alert-dismissible alert-primary">
+    {marketTx.map((market) => (
+      <div key={market.id} className="alert alert-dismissible alert-primary">
       <div className='text-secondary'>
       <strong>Side:</strong>{market.side}
       </div>

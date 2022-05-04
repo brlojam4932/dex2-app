@@ -17,6 +17,8 @@ import Trading from './components/Trading/Trading';
 import { useWeb3React } from "@web3-react/core";
 import { getContract } from './utils/utils';
 
+// go to code line -> control G
+
 // https://youtu.be/a0osIaAOFSE
 // the complete guide to full stack ehtereum development - tutorial for beginners
 
@@ -52,7 +54,7 @@ function App() {
   const { library, account } = useWeb3React(); // import library
 
   useEffect(() => {
-    if (library) {
+    if (account) {
       // to init a contract
       const token = getContract(tokenContractAddress, RealToken.abi, library, account);
       setTokenContract(token);
@@ -242,6 +244,7 @@ function App() {
           errorDepositEth={errorDepositEth}
           errorDexWithdraw={errorDexWithdraw}
           dexBalanceInfo={dexBalanceInfo}
+          setDexBalanceInfo={setDexBalanceInfo}
           withDrawSuccessMsg={withDrawSuccessMsg}
           withDrawAmountInfo={withDrawAmountInfo}
           addTokenSuccessMsg={addTokenSuccessMsg}
@@ -271,7 +274,6 @@ function App() {
           setTransfer={setTransfer}
           setErrorTransfer={setErrorTransfer}
           account={account}
-          setDexBalanceInfo={setDexBalanceInfo}
           setEthDexBalance={setEthDexBalance}
           contractInfo={contractInfo}
           setDepositEthAmount={setDepositEthAmount}

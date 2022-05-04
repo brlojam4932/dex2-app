@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import useDeepCompareEffect from 'use-deep-compare-effect';
 import { ethers } from "ethers";
 import { v4 as uuidv4 } from 'uuid';
 import DexBalances from '../Transactions/DexBalances';
@@ -14,31 +15,25 @@ function DexTransact({
   errorAddToken,
   errorDexDeposit,
   errorDexWithdraw,
-  dexBalanceInfo,
   withDrawSuccessMsg,
   withDrawAmountInfo,
   addTokenSuccessMsg,
   depositEthSuccessMsg,
-  depositEthAmount,
   toggleTabState2,
   toggleTabs2,
   setAddTokenSuccessMsg,
   setErrorAddToken,
   setErrorDexDeposit,
   setErrorDexWithdraw,
-  depositSuccessMsg,
-  setDepositSuccessMsg,
-  setDepositEthSuccessMsg,
   setErrorDepositEth,
   setWithDrawSuccessMsg,
   errorDepositEthMsg,
   ethDexBalance,
   dexContract,
-  setLimitTx,
-  setMarketTx,
   setListOfTokens,
   listOfTokens,
   account,
+  dexBalanceInfo,
   setDexBalanceInfo,
   setEthDexBalance,
   contractInfo,
@@ -55,51 +50,50 @@ function DexTransact({
   setErrorDepositEthMsg,
   isLoading,
   setIsLoading,
-  isSellInfo, 
-  isBuyInfo
 }) {
-
-  //--------- DEX Token List to local storage ----------------
-  /*
-  useEffect(() => {
-    const tokenListData = window.localStorage.getItem("token_list");
-    setListOfTokens(JSON.parse(tokenListData));
-    //console.log(tokenListData);
-  }, []);
-
-  useEffect(() => {
-   
-  }, [listOfTokens]); // prev listOfTokens
-  */
 
   //--------- DEX balances to local storage ----------------
     useEffect(() => {
-      if (listOfTokens.length === 0) {
-        const tokenListData = window.localStorage.getItem("token_list");
-        setListOfTokens(JSON.parse(tokenListData));
-      }
-   
+      const tokenListData = window.localStorage.getItem("token_list");
+      if (tokenListData !== null)
+      setListOfTokens(JSON.parse(tokenListData));
+      // eslint-disable-next-line
+    }, []);
 
+    useEffect(() => {
       const dexBalData = window.localStorage.getItem("dex_balances");
+      if (dexBalData !== null)
       setDexBalances(JSON.parse(dexBalData));
+      // eslint-disable-next-line
+    }, []);
 
+    useEffect(() => {
       const ethDexBalData = window.localStorage.getItem("eth_dex_balances");
+      if (ethDexBalData !== null)
       setEthDexBalance(JSON.parse(ethDexBalData));// rev setListOfTokens
       //console.log(tokenListData);
+      // eslint-disable-next-line
     }, []);
 
     
     useEffect(() => {
       window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
+    }, [listOfTokens]);
+
+    useEffect(() => {
       window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
+    }, [dexBalanceInfo]);
+
+    useEffect(() => {
       window.localStorage.setItem("eth_dex_balances", JSON.stringify(ethDexBalance));
-    }, [ethDexBalance, dexBalanceInfo, listOfTokens]);
+    }, [ethDexBalance]);
 
 
   /////////////// DEX //////////////////
   // Get ERC20 token balances in DEX
   const getDexBalances = async () => {
     try {
+      console.count("getDexBalance: ");
       // get token list
       const allTokenList = await dexContract.getTokenListLength();
       //console.log("token list length:", allTokenList.toNumber());
@@ -124,26 +118,36 @@ function DexTransact({
             ticker: ethers.utils.parseBytes32String(tokenList),
           }
         ]);
-
       };
+
     } catch (error) {
       console.log("error", error);
     }
   };
 
-  useEffect(() => {
+  useDeepCompareEffect(() => {
     //console.log("dexBalances mount");
+    let isCancelled = false;
+    if (account) {
       getDexBalances();
+
+      if (!isCancelled);
+      console.log(`a Dex tx was made ${account} ${dexTokenTX}, ${dexTokenWithdrawTx}, ${dexContract}`);
+    }
+    
       return () => {
-        console.log("dexBalances will unmount", dexTokenTX);
+        //console.log("dexBalances will unmount", dexTokenTX);
+        isCancelled = true;
       }
 
-}, [account, dexTokenTX, dexTokenWithdrawTx, dexContract]);
+}, [dexTokenTX, dexTokenWithdrawTx, dexContract]);
+
 
 
   // Get only the ETH bal in DEX
   const getDexETH_Balance = async () => {
     try {
+      console.count("getDex Eth Bal: ");
       const dexEthBal = await dexContract.balances(account, ethers.utils.formatBytes32String("ETH"));
       //console.log("Dex ETH Bal:", ethers.utils.formatEther(dexEthBal.toString()));
       setEthDexBalance({
@@ -156,7 +160,19 @@ function DexTransact({
   };
 
   useEffect(() => {
-        getDexETH_Balance();
+    let isCancelled = false;
+    if (account) {
+      getDexETH_Balance();
+      
+      if (!isCancelled) {
+        console.log(`get Eth Bal change ${account}, ${depositEthTx}, ${depositEthSuccessMsg}, ${dexTokenWithdrawTx} `)
+      }
+    }
+
+    return () => {
+      isCancelled = true;
+    }
+        
     // eslint-disable-next-line
   }, [account, depositEthTx, depositEthSuccessMsg, dexTokenWithdrawTx]);
 
@@ -186,15 +202,21 @@ function DexTransact({
   };
 
   useEffect(() => {
+    let isCancelled = false;
     if (listOfTokens.length === 0) {
       //console.log("list..tokens mount");
       handleGetTokenList();
+
+      if (!isCancelled) {
+        console.log(`token list changed ${account}, ${tokenAdded}, ${dexTokenTX}`)
+      }
     }
   
       return () => {
-        console.log("list of tokens will unmount", listOfTokens)
+        //console.log("list of tokens will unmount", listOfTokens)
+        isCancelled = true;
       }
-
+      // eslint-disable-next-line
   }, [account, tokenAdded, dexTokenTX ]); //tokenAdded, dexTokenTX
 
 
@@ -231,6 +253,8 @@ function DexTransact({
       //console.log("Deposit ETH: ", depositEthData.value.toString());
       //setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
       //setDepositEthSuccessMsg(true);
+      window.location.reload();
+      
     } catch (error) {
       console.log("error", error);
       setErrorDepositEthMsg(true);
@@ -241,6 +265,7 @@ function DexTransact({
   // DEPOSIT ERC20 TOKENS INTO DEX
   const handleDexTokenDeposit = async (e) => {
     e.preventDefault();
+    console.count("handle Dex deposits: ");
     try {
       const data = new FormData(e.target);
       const dexDepositTx = await dexContract.deposit(
@@ -252,6 +277,9 @@ function DexTransact({
       setDexTokenTx(dexDepositTx);
       setIsLoading(false);
       //setDepositSuccessMsg(true);
+
+      window.location.reload();
+      
     } catch (error) {
       console.log("error", error);
       setErrorDexDeposit(true);

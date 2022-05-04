@@ -6,8 +6,8 @@ function LimitOrders({ limitTx }) {
 
   return (
     <>
-     {limitTx.map((limit, index) => (
-      <div key={index} className="alert alert-dismissible alert-primary">
+     {limitTx.map((limit) => (
+      <div key={limit.id} className="alert alert-dismissible alert-primary">
            <div className='text-secondary'>
          <strong>Side:</strong>{" "}{limit.side}
         </div>

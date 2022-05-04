@@ -93,14 +93,14 @@ function Token({
     // eslint-disable-next-line
   }, [dexApproved]);
 
-   // ------------------GET ERC20 TOKEN CONTRACT -----------------------
-    //--------- DEX Token List ----------------
+  // ------------------GET ERC20 TOKEN CONTRACT -----------------------
+  //--------- DEX Token List to Local Storage ----------------
   
   useEffect(() => {
     const tokenInfoData = window.localStorage.getItem("token_info");
+    if (tokenInfoData !== null)
     setContractInfo(JSON.parse(tokenInfoData));
     //console.log(tokenListData);
-
     // eslint-disable-next-line
   }, []);
 
@@ -200,6 +200,7 @@ function Token({
     e.preventDefault();
     try {
       const data = new FormData(e.target);
+      // infinite
       // 115792089237316195423570985008687907853269984665640564039457584007913129639935
       const transaction = await tokenContract.approve(data.get("spender"), ethers.utils.parseEther(data.get("amount")));
       setIsLoading(true);
@@ -216,6 +217,7 @@ function Token({
   const handleApproveDex = async (e) => {
     e.preventDefault();
     try {
+      console.count("handle approve DEX: ");
       const data = new FormData(e.target);
       const approveTx = await tokenContract.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
       setIsLoading(true);

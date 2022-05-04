@@ -12,8 +12,8 @@ function DexHeader() {
                 <h1 className="text-xl font-semibold text-info text-left">
                   DEX UI
                 </h1>
-                <p><small className="text-muted">To trade, add ERC20 tokens into DEX on the Robsten testnet blockchain. Deposit the amount of tokens, deposit ETH to make transactions and withdraw tokens.</small> </p>
-                <p><small className='text-secondary'>You must be login to Metamask or Coinbase Link Wallet.</small></p>
+                <p><small className="text-muted">To trade, add ERC20 tokens into DEX on the Ropsten testnet blockchain. Deposit the amount of tokens, deposit ETH to make transactions and withdraw tokens.</small> </p>
+                <p><small className='text-secondary'>You must be login to Metamask.</small></p>
               </main>
             </div>
           </div>
