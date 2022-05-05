@@ -128,7 +128,7 @@ function DexTransact({
   useDeepCompareEffect(() => {
     //console.log("dexBalances mount");
     let isCancelled = false;
-    if (account) {
+    if (dexContract !== null) {
       getDexBalances();
 
       if (!isCancelled);
@@ -140,7 +140,7 @@ function DexTransact({
         isCancelled = true;
       }
 
-}, [dexTokenTX, dexTokenWithdrawTx, dexContract]);
+}, [dexContract, dexTokenTX, dexTokenWithdrawTx]);
 
 
 
@@ -161,7 +161,7 @@ function DexTransact({
 
   useEffect(() => {
     let isCancelled = false;
-    if (account) {
+    if (dexContract !== null) {
       getDexETH_Balance();
       
       if (!isCancelled) {
@@ -174,7 +174,7 @@ function DexTransact({
     }
         
     // eslint-disable-next-line
-  }, [account, depositEthTx, depositEthSuccessMsg, dexTokenWithdrawTx]);
+  }, [dexContract, depositEthTx, depositEthSuccessMsg, dexTokenWithdrawTx]);
 
 
   // get token list
@@ -203,7 +203,7 @@ function DexTransact({
 
   useEffect(() => {
     let isCancelled = false;
-    if (listOfTokens.length === 0) {
+    if (account !== null) {
       //console.log("list..tokens mount");
       handleGetTokenList();
 
@@ -229,7 +229,7 @@ function DexTransact({
         ethers.utils.formatBytes32String(data.get("ticker")), contractInfo.address
       );
       await addTokenTx.wait();
-      //console.log("Add Token: ", addTokenTx);
+      console.log("Add Token: ", addTokenTx);
       setTokenAdded(addTokenTx)
       setAddTokenSuccessMsg(true);
     } catch (error) {
@@ -253,6 +253,8 @@ function DexTransact({
       //console.log("Deposit ETH: ", depositEthData.value.toString());
       //setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
       //setDepositEthSuccessMsg(true);
+      //window.location.reload();
+
       window.location.reload();
       
     } catch (error) {

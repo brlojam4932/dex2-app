@@ -13,8 +13,8 @@ function GetEvents({
   toggleTabState4,
   limitTx,
   marketTx,
-  isSellInfo,
-  isBuyInfo
+  limitOrders,
+  marketOrders,
 }) {
     useEffect(() => {
       const marketTX_data = window.localStorage.getItem("market_Tx");
@@ -36,7 +36,6 @@ function GetEvents({
    // GET ORDER ORDERS HISTORY WITH EVENTS
    useEffect(() => {
     //-----Limit------------
-    if (account) {
       dexContract?.on("LimitOrder", (trader, side, ticker, amount, price, event) => {
         //console.log(trader, side, ticker, amount, price, event);
   
@@ -55,15 +54,13 @@ function GetEvents({
         return () => {
           dexContract.removeAllListeners("LimitOrder");
         }
-  
       });
-    }
+
   // eslint-disable-next-line
-  }, [account]);
+  }, [account, limitOrders]);
   
 
   useEffect(() => {
-    if (account) {
       dexContract?.on("MarketOrder", (trader, side, ticker, amount, event) => {
         //console.log(trader, side, ticker, amount, event);
   
@@ -82,9 +79,9 @@ function GetEvents({
           dexContract.removeAllListeners("MarketOrder");
         }
       });
-    }
   // eslint-disable-next-line
-  }, [account]);
+  }, [marketOrders]);
+  
 
   return (
      <div  className={toggleTabState4 === 14 ? 'content active-content' : "content"}>

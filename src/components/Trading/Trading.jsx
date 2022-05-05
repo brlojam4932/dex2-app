@@ -38,7 +38,11 @@ function Trading({
   setOrderbookSellLength,
   orderbookSellLength,
   setOrderbookBuyLength,
-  orderbookBuyLength
+  orderbookBuyLength,
+  limitOrders,
+  setLimitOrders,
+  marketOrders,
+  setMarketOrders
 }) {
  
   //--------- SAVE TRADES TO LOCAL STORAGE ----------------
@@ -80,6 +84,7 @@ useEffect(() => {
       );
       setIsLoading(true);
       await limitOrderSellTx.wait();
+      setLimitOrders(limitOrderSellTx)
       console.log('limit SELL order success', limitOrderSellTx);
       //setIsLimitSellMsg(true);
       setIsLoading(false);
@@ -139,6 +144,7 @@ useEffect(() => {
       );
       setIsLoading(true);
       await limitOrderBuyTx.wait();
+      //setLimitOrders(limitOrderBuyTx);
       console.log("limit BUY order success", limitOrderBuyTx);
       //setIsLimitBuyMsg(true);
       setIsLoading(false);
@@ -196,6 +202,7 @@ useEffect(() => {
         setIsLoading(true);
   
       await marketOrderSellTx.wait();
+      //setMarketOrders(marketOrderSellTx);
       console.log("market SELL order success", marketOrderSellTx);
       //setIsMarketSellMsg(true);
       setIsLoading(false);
@@ -250,6 +257,7 @@ useEffect(() => {
     );
     setIsLoading(true);
     await marketOrderTx.wait();
+    setMarketOrders(marketOrderTx);
     console.log("market BUY order success", marketOrderTx);
     setIsLoading(false);
     //setIsMarketBuyMsg(true);
@@ -340,18 +348,6 @@ const getOrderBookBuySide = async () => {
   }
   
 };
-/*
-
-useEffect(() => {
-  if (account === 0) {
-    getOrderBookSellSide();
-    getOrderBookBuySide();
-  }
-  return () => {
-    console.log("get orderbook cleanup");
-  }
-}, [isSellInfo, isBuyInfo]);
-*/
 
 useDeepCompareEffect(() => {
   let isCancelled = false;
@@ -657,7 +653,7 @@ useDeepCompareEffect(() => {
               <div className='container'>
               <div className='bloc-tabs'>
               <button className={toggleTabState4 === 13 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(13)}>Trades</button>
-              <button className={toggleTabState4 === 14 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(14)}>Trade History</button>
+              <button className={toggleTabState4 === 14 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs4(14)}>Order Book History</button>
             </div>
             <div  className={toggleTabState4 === 13 ? 'content active-content' : "content"}>
             <div className='box-limit'>
@@ -711,6 +707,10 @@ useDeepCompareEffect(() => {
              marketTx={marketTx}
              isSellInfo={isSellInfo}
              isBuyInfo={isBuyInfo}
+             limitOrders={limitOrders}
+             marketOrders={marketOrders}
+             setLimitOrders={setLimitOrders}
+             setMarketOrders={setMarketOrders}
             />
               
               </div>

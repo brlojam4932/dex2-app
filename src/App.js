@@ -134,7 +134,8 @@ function App() {
   const [isSellInfo, setIsSellInfo] = useState([]);
   const [isBuyInfo, setIsBuyInfo] = useState([]);
 
-  const [limitSells, setLimitSells] = useState([]);
+  const [limitOrders, setLimitOrders] = useState([]);
+  const [marketOrders, setMarketOrders] = useState([]);
 
   const [addTokenSuccessMsg, setAddTokenSuccessMsg] = useState(false);
 
@@ -331,8 +332,6 @@ function App() {
           dexContract={dexContract}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
-          setLimitSells={setLimitSells}
-          limitSells={limitSells}
           account={account}
           isBuyInfo={isBuyInfo}
           setIsBuyInfo={setIsBuyInfo}
@@ -340,6 +339,10 @@ function App() {
           orderbookSellLength={orderbookSellLength}
           setOrderbookBuyLength={setOrderbookBuyLength}
           orderbookBuyLength={orderbookBuyLength}
+          limitOrders={limitOrders}
+          setLimitOrders={setLimitOrders}
+          marketOrders={marketOrders}
+          setMarketOrders={setMarketOrders}
         />
         <Footer />
       </div>

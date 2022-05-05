@@ -10,11 +10,7 @@ margin: 17px;
 
 
 function Token({
-  isTransferMsg,
-  setIsTransferMsg,
   transfer,
-  isApproved,
-  setIsApproved,
   isAllowanceMsg,
   setIsAllowanceMsg,
   setAllowanceAmount,
@@ -73,9 +69,7 @@ function Token({
 
   // APPROVE EVENTS
   useEffect(() => {
-
     if (account) {
-
       tokenContract?.on("Approval", (spender, event) => {
         //console.log({ spender, amount, event });
         setApproveTx(prevApprove => [
@@ -138,7 +132,7 @@ function Token({
 
   // Get ERC20 Token Contract Info
   useEffect(() => {
-    handleGetTokenInfo();
+      handleGetTokenInfo();
     // eslint-disable-next-line
   }, [account, transfer]);
 

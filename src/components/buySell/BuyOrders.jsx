@@ -17,10 +17,16 @@ function BuyOrders({ buys }) {
         <strong>Amount:</strong>{" "}{buys.amount}{" "}
         <strong>Filled:</strong>{" "}{buys.filled}
       </div>
-      <div className='text-success'>
+      {buys.price == null ? (
+         <div className='text-success'>
+         <strong>Price:</strong> Market
+       </div>
+      ) : (
+        <div className='text-success'>
         <strong>Price:</strong>{" "}{buys.price}
         <p className='text-secondary'>ETH</p>
       </div>
+      )}
      
     </div>
   )
