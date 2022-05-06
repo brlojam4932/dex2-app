@@ -8,7 +8,6 @@ margin: 17px;
 `
 // ERC20 token transfer, approve, transferFrom 
 
-
 function Token({
   transfer,
   isAllowanceMsg,
@@ -34,7 +33,8 @@ function Token({
   isLoading,
   setIsLoading,
   setDexApproved,
-  dexApproved
+  dexApproved,
+  dexBalanceInfo
  }) {
 
   // ethers js /// provider is read only; signer is write to contract
@@ -85,7 +85,7 @@ function Token({
       };
     };
     // eslint-disable-next-line
-  }, [dexApproved]);
+  }, [dexApproved, dexBalanceInfo]);
 
   // ------------------GET ERC20 TOKEN CONTRACT -----------------------
   //--------- DEX Token List to Local Storage ----------------

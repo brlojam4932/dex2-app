@@ -81,7 +81,7 @@ function Header() {
           </ButtonWrapper>
           <p><small className="text-muted">Read and write using my RETK ERC20 Token smart contract on the Ropsten testnet blockchain. Use approve, transfer, transfer from and receive event messages from the blockchain.</small> </p>
           <br />
-          <a className="nav-link text-info" href='https://ropsten.etherscan.io/token/0xe4b6351dc44f54e5cbbbe9008f06fa253001bcfb'>Link to my ERC20 RETK token contract </a>
+          <a className="nav-link text-info" href='https://ropsten.etherscan.io/token/0xe4b6351dc44f54e5cbbbe9008f06fa253001bcfb'>Link to my ERC20, RETK token contract </a>
         </main>
       </div>
     </div>

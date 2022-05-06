@@ -69,7 +69,6 @@ function App() {
 
   const [contractInfo, setContractInfo] = useState({
     address: "-",
-    tokenName: "-",
     tokenSymbol: "-",
     totalSupply: "-",
     user: "-",
@@ -218,6 +217,7 @@ function App() {
           setIsLoading={setIsLoading}
           setDexApproved={setDexApproved}
           dexApproved={dexApproved}
+          dexBalanceInfo={dexBalanceInfo}
         />
 
         {/* Token Events */}

@@ -6,7 +6,6 @@ import MarketOrders from '../Transactions/MarketOrders';
 
 
 function GetEvents({ 
-  account,
   dexContract,
   setLimitTx,
   setMarketTx,
@@ -58,7 +57,7 @@ function GetEvents({
       });
 
   // eslint-disable-next-line
-  }, [account, limitOrders]);
+  }, [limitOrders]); //[account, limitOrders]
   
 
   useEffect(() => {

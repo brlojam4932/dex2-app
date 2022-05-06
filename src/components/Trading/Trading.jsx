@@ -145,6 +145,7 @@ useEffect(() => {
       setIsLoading(true);
       await limitOrderBuyTx.wait();
       //setLimitOrders(limitOrderBuyTx);
+      setLimitOrders(limitOrderBuyTx);
       console.log("limit BUY order success", limitOrderBuyTx);
       //setIsLimitBuyMsg(true);
       setIsLoading(false);
@@ -203,6 +204,7 @@ useEffect(() => {
   
       await marketOrderSellTx.wait();
       //setMarketOrders(marketOrderSellTx);
+      setMarketOrders(marketOrderSellTx);
       console.log("market SELL order success", marketOrderSellTx);
       //setIsMarketSellMsg(true);
       setIsLoading(false);
