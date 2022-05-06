@@ -50,8 +50,6 @@ function DexTransact({
   setErrorDepositEthMsg,
   isLoading,
   setIsLoading,
-  limitTx,
-  marketTx,
 }) {
 
   //--------- DEX balances to local storage ----------------
@@ -569,13 +567,9 @@ const refresh = (e) => {
                     </footer>
                   </form>
                 </div>
-
               </div>
-
             </div>
-
           </div>
-
         </div>
         {/* get Dex balances */}
         <div className='box-3'>

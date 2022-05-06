@@ -53,6 +53,21 @@ function App() {
 
   const { library, account } = useWeb3React(); // import library
 
+  const [contractInfo, setContractInfo] = useState({
+    address: "-",
+    tokenName: "-",
+    tokenSymbol: "-",
+    totalSupply: "-",
+    user: "-",
+    balance: "-"
+  });
+
+  const [dexBalances, setDexBalances] = useState({
+    address: "-",
+    amount: "-",
+    ticker: "-"
+  })
+
   useEffect(() => {
     if (account) {
       // to init a contract
@@ -65,22 +80,6 @@ function App() {
       //console.log("dex:", dex);
     }
   }, [account, library]);
-
-
-  const [contractInfo, setContractInfo] = useState({
-    address: "-",
-    tokenSymbol: "-",
-    totalSupply: "-",
-    user: "-",
-    balance: "-"
-  });
-
-  /*
-  const [balanceInfo, setBalanceInfo] = useState({
-    address: "-",
-    balance: "-"
-  });
-  */
 
   const [txs, setTxs] = useState([]);
   const [approveTx, setApproveTx] = useState([]);
@@ -146,12 +145,6 @@ function App() {
   const [depositEthTx, setDepositEthTx] = useState("-");
   const [tokenAdded, setTokenAdded] = useState([]);
   const [dexTokenWithdrawTx, setDexTokenWithdrawTx] = useState([]);
-
-  const [dexBalances, setDexBalances] = useState({
-    address: "-",
-    amount: "-",
-    ticker: "-"
-  })
 
   const [listOfTokens, setListOfTokens] = useState([]);
   const [orderbookSellLength, setOrderbookSellLength] = useState(0);

@@ -351,6 +351,7 @@ const getOrderBookBuySide = async () => {
   
 };
 
+// trigger handle order functions and render to Trades window
 useDeepCompareEffect(() => {
   let isCancelled = false;
     
@@ -363,7 +364,7 @@ useDeepCompareEffect(() => {
     getOrderBookBuySide();
 
     if (!isCancelled) {
-      console.log(`an order was changed: ${account}, ${isSellInfo}, ${isBuyInfo}`);
+      console.log(`an order was changed: ${isSellInfo}, ${isBuyInfo}`);
     }
   }
     
@@ -428,7 +429,7 @@ useDeepCompareEffect(() => {
                         className="input p-1"
                         placeholder="Token Price in ETH"
                         style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
+                      /> ETH
                     </div>
                     <footer className="p-4">
                       <button
@@ -500,7 +501,7 @@ useDeepCompareEffect(() => {
                         className="input p-1"
                         placeholder="Token Price in ETH"
                         style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
+                      /> ETH
                     </div>
                     <footer className="p-4">
                       <button
@@ -573,9 +574,7 @@ useDeepCompareEffect(() => {
                           <strong>...Loading</strong> Transaction is being processed
                         </div>
                         ) : (null)
-                          
                         }
-
                         {errorMarketSell &&
                           <div className="alert alert-dismissible alert-warning">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorMarketSell(false)}></button>

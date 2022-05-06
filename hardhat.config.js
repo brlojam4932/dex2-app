@@ -27,7 +27,7 @@ module.exports = {
     hardhat: {
       chainId: 1337
     },
-    /* 
+
     ropsten: {
       url: secret.url,
       accounts: [secret.key],
@@ -36,10 +36,7 @@ module.exports = {
       timeoutBlocks: 200,
       skipDryRun: true,
     }
-    */
-
   }
-
 };
 
 // npx hardhat compile

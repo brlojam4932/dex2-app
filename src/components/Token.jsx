@@ -34,7 +34,7 @@ function Token({
   setIsLoading,
   setDexApproved,
   dexApproved,
-  dexBalanceInfo
+  dexTokenWithdrawTx,
  }) {
 
   // ethers js /// provider is read only; signer is write to contract
@@ -42,7 +42,7 @@ function Token({
   useEffect(() => {
     //event Transfer(address indexed from, address indexed to, uint256 value);
    if (account) {
-
+    console.count("event Transfer: ");
     tokenContract?.on("Transfer", (from, to, amount, event) => {
       //console.log({ from, to, amount, event });
       // the transaction result gets copied over to a state
@@ -64,12 +64,13 @@ function Token({
 
    };
     // eslint-disable-next-line
-  }, [contractInfo.address, transfer]);
+  }, [contractInfo, transfer, dexTokenWithdrawTx]);
 
 
   // APPROVE EVENTS
   useEffect(() => {
     if (account) {
+      console.count("event Approval: ");
       tokenContract?.on("Approval", (spender, event) => {
         //console.log({ spender, amount, event });
         setApproveTx(prevApprove => [
@@ -85,7 +86,7 @@ function Token({
       };
     };
     // eslint-disable-next-line
-  }, [dexApproved, dexBalanceInfo]);
+  }, [dexApproved]);
 
   // ------------------GET ERC20 TOKEN CONTRACT -----------------------
   //--------- DEX Token List to Local Storage ----------------
@@ -100,12 +101,13 @@ function Token({
 
   useEffect(() => {
     window.localStorage.setItem("token_info", JSON.stringify(contractInfo));
-  }, [contractInfo]);
+  }, [account, dexContractAddress, dexTokenWithdrawTx]);
 
 
    const handleGetTokenInfo = async () => {
     //e.preventDefault();
     try {
+      console.count("handle token info: ");
       //const data = new FormData(e.target);
       //const erc20 = getContract(data.get(contractAddress), RealToken.abi, library, account);
       const tokenName = await tokenContract.name();
@@ -134,9 +136,9 @@ function Token({
   useEffect(() => {
       handleGetTokenInfo();
     // eslint-disable-next-line
-  }, [account, transfer]);
+  }, [account, transfer, dexTokenWithdrawTx]);
 
-   /*
+
   console.log(
     "contractInfo address:",
     contractInfo.address,
@@ -145,7 +147,7 @@ function Token({
     "totalSupply:", contractInfo.totalSupply,
     "balanceInfo balance:", contractInfo.balance
   );
-  */
+  
 
   const handleTransfer = async (e) => {
     e.preventDefault();
@@ -257,6 +259,7 @@ function Token({
           <Wrapper2 className='text-info'>
             <h2 style={{color: "#e1e1e1"}}>ERC20 DEX Wallet</h2>
             <p>Address: {contractInfo.address}</p>
+            <p>Name: {contractInfo.tokenName}</p>
             <p>Symbol: {contractInfo.tokenSymbol}</p>
             <p>Total Supply: {contractInfo.totalSupply}</p>
           </Wrapper2>
