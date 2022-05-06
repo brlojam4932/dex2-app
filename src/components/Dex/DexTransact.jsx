@@ -50,15 +50,19 @@ function DexTransact({
   setErrorDepositEthMsg,
   isLoading,
   setIsLoading,
+  limitTx,
+  marketTx,
 }) {
 
   //--------- DEX balances to local storage ----------------
+  /*
     useEffect(() => {
       const tokenListData = window.localStorage.getItem("token_list");
       if (tokenListData !== null)
       setListOfTokens(JSON.parse(tokenListData));
       // eslint-disable-next-line
     }, []);
+    */
 
     useEffect(() => {
       const dexBalData = window.localStorage.getItem("dex_balances");
@@ -75,10 +79,11 @@ function DexTransact({
       // eslint-disable-next-line
     }, []);
 
-    
+    /*
     useEffect(() => {
       window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
     }, [listOfTokens]);
+    */
 
     useEffect(() => {
       window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
@@ -181,6 +186,7 @@ function DexTransact({
   
   const handleGetTokenList = async () => {
     try {
+      console.count("handle token list: ");
         // get token list
         const allTokenList = await dexContract.getTokenListLength();
         //console.log("token list length:", allTokenList.toNumber());
@@ -208,7 +214,7 @@ function DexTransact({
       handleGetTokenList();
 
       if (!isCancelled) {
-        console.log(`token list changed ${account}, ${tokenAdded}, ${dexTokenTX}`)
+        console.log(`token list changed ${dexContract}, ${tokenAdded}`)
       }
     }
   
@@ -217,7 +223,7 @@ function DexTransact({
         isCancelled = true;
       }
       // eslint-disable-next-line
-  }, [account, tokenAdded, dexTokenTX ]); //tokenAdded, dexTokenTX
+  }, [dexContract, tokenAdded]); //account, tokenAdded, dexTokenTX
 
 
 
@@ -232,6 +238,9 @@ function DexTransact({
       console.log("Add Token: ", addTokenTx);
       setTokenAdded(addTokenTx)
       setAddTokenSuccessMsg(true);
+      
+      window.localStorage.reload();
+
     } catch (error) {
       //console.log("error", error);
       setErrorAddToken(true);
@@ -309,6 +318,12 @@ function DexTransact({
     }
   };
 
+  // REFRESH PAGE
+
+const refresh = (e) => {
+  e.preventDefault();
+  window.location.reload();
+};
 
   // PRINT TOKEN LIST
 
@@ -588,6 +603,11 @@ function DexTransact({
           </Wrapper3>
             </div>
           </div>
+          <Wrapper3>
+          <div className='box-refresh'>
+                <button className="btn btn-primary" onClick={refresh}>Refresh Balances</button>
+              </div>
+          </Wrapper3>
         </div>
       </div>
     </>

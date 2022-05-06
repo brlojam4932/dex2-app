@@ -27,6 +27,9 @@ function LimitOrders({ limitTx }) {
         <div>
          <strong>Price:</strong>{" "}{limit.price} ETH
         </div>
+        <div className='text-secondary'> 
+         <strong>Time:</strong>{" "}{limit.time}
+        </div>
       </div>
     ))}
     </>

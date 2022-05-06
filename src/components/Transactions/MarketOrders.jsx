@@ -25,6 +25,9 @@ function MarketOrders({ marketTx }) {
          (<p className='text-warning'>{market.amount}</p>)
          }
         </div>
+        <div className='text-secondary'>
+      <strong>Time:</strong> {market.time}
+      </div>
       </div>
     ))}
     </>

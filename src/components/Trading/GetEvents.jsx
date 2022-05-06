@@ -36,7 +36,7 @@ function GetEvents({
    // GET ORDER ORDERS HISTORY WITH EVENTS
    useEffect(() => {
     //-----Limit------------
-      dexContract?.on("LimitOrder", (trader, side, ticker, amount, price, event) => {
+      dexContract?.on("LimitOrder", (trader, side, ticker, amount, price, timestamp, event) => {
         //console.log(trader, side, ticker, amount, price, event);
   
         setLimitTx(prevLimitTx => [
@@ -44,6 +44,7 @@ function GetEvents({
           {
             txHash: event.transactionHash,
             id: uuidv4(),
+            time: new Date(timestamp.toNumber() * 1000).toLocaleString(),
             trader,
             side,
             ticker: ethers.utils.parseBytes32String(ticker),
@@ -61,7 +62,7 @@ function GetEvents({
   
 
   useEffect(() => {
-      dexContract?.on("MarketOrder", (trader, side, ticker, amount, event) => {
+      dexContract?.on("MarketOrder", (trader, side, ticker, amount, timestamp, event) => {
         //console.log(trader, side, ticker, amount, event);
   
         setMarketTx(prevMarketTx => [
@@ -69,6 +70,7 @@ function GetEvents({
           {
             txHash: event.transactionHash,
             id: uuidv4(),
+            time: new Date(timestamp.toNumber() * 1000).toLocaleString(),
             trader,
             side,
             ticker: ethers.utils.parseBytes32String(ticker),

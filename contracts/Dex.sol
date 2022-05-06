@@ -21,6 +21,7 @@ contract Dex is Wallet {
         uint256 amount;
         uint256 price;
         uint256 filled;
+        uint256 timestamp;
     }
 
     uint256 public nextOrderId = 0;
@@ -32,13 +33,15 @@ contract Dex is Wallet {
         Side side,
         bytes32 indexed ticker,
         uint256 amount,
-        uint256 price
+        uint256 price,
+        uint256 timestanp
     );
     event MarketOrder(
         address indexed trader,
         Side side,
         bytes32 indexed ticker,
-        uint256 amount
+        uint256 amount,
+        uint256 timestamp
     );
 
     function getOrderBook(bytes32 ticker, Side side)
@@ -75,7 +78,16 @@ contract Dex is Wallet {
 
         Order[] storage orders = OrderBook[ticker][uint256(side)];
         orders.push(
-            Order(nextOrderId, msg.sender, side, ticker, amount, price, 0)
+            Order(
+                nextOrderId,
+                msg.sender,
+                side,
+                ticker,
+                amount,
+                price,
+                0,
+                block.timestamp
+            )
         );
 
         //Bubble sort
@@ -104,7 +116,14 @@ contract Dex is Wallet {
         }
         nextOrderId++;
 
-        emit LimitOrder(msg.sender, side, ticker, amount, price);
+        emit LimitOrder(
+            msg.sender,
+            side,
+            ticker,
+            amount,
+            price,
+            block.timestamp
+        );
     }
 
     function createMarketOrder(
@@ -206,7 +225,7 @@ contract Dex is Wallet {
             orders.pop();
         }
 
-        emit MarketOrder(msg.sender, side, ticker, amount);
+        emit MarketOrder(msg.sender, side, ticker, amount, block.timestamp);
     }
 
     function getTokenListLength() public view returns (uint256) {
