@@ -64,7 +64,7 @@ function Token({
 
    };
     // eslint-disable-next-line
-  }, [contractInfo, transfer, dexTokenWithdrawTx]);
+  }, [contractInfo, transfer]);
 
 
   // APPROVE EVENTS
@@ -101,7 +101,7 @@ function Token({
 
   useEffect(() => {
     window.localStorage.setItem("token_info", JSON.stringify(contractInfo));
-  }, [account, dexContractAddress, dexTokenWithdrawTx]);
+  }, [dexContractAddress, dexTokenWithdrawTx]);
 
 
    const handleGetTokenInfo = async () => {
@@ -138,7 +138,7 @@ function Token({
     // eslint-disable-next-line
   }, [account, transfer, dexTokenWithdrawTx]);
 
-
+/*
   console.log(
     "contractInfo address:",
     contractInfo.address,
@@ -147,6 +147,7 @@ function Token({
     "totalSupply:", contractInfo.totalSupply,
     "balanceInfo balance:", contractInfo.balance
   );
+  */
   
 
   const handleTransfer = async (e) => {

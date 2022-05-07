@@ -18,11 +18,9 @@ function TxList({ txs }) {
           <div>
             <strong>Amount:</strong>{" "}{item.amount}
           </div>
-          {/* if Contract is on Ropsten or Rineby
               <a href={`https://ropsten.etherscan.io/tx/${item.txHash}`}>
                   Check in block explorer
               </a>
-               */}
         </div>
       ))}
     </>

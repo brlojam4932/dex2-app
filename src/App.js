@@ -37,13 +37,13 @@ import { getContract } from './utils/utils';
 //dex deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 //Real Token deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 
-// robsten deployment
+// robsten deployment old
 // dex deployed to: 0x71E33774EA49494aAfA8E96b0A793F03EE069a2b
 // Real Token deployed to: 0xe4b6351Dc44f54e5CbbBe9008f06fA253001BcFb
 
 // localhost test net
-const tokenContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const tokenContractAddress = "0x55576CDf0f328101A9d7029658F14500952AAfD0"
+const dexContractAddress = "0x6bCD042f1D4B390DC912ef682B272F429f638f3C";
 
 
 function App() {

@@ -232,10 +232,12 @@ function DexTransact({
       const addTokenTx = await dexContract.addToken(
         ethers.utils.formatBytes32String(data.get("ticker")), contractInfo.address
       );
+      setIsLoading(true);
       await addTokenTx.wait();
       console.log("Add Token: ", addTokenTx);
-      setTokenAdded(addTokenTx)
-      setAddTokenSuccessMsg(true);
+      setTokenAdded(addTokenTx);
+      setIsLoading(false);
+      //setAddTokenSuccessMsg(true);
       
       window.localStorage.reload();
 
@@ -304,12 +306,16 @@ function DexTransact({
       const withdrawTx = await dexContract.withdraw(
         ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
       );
+      setIsLoading(true);
       await withdrawTx.wait();
       //console.log("withdraw: ", withdrawTx);
       setDexTokenWithdrawTx(withdrawTx)
-      setWithDrawSuccessMsg(true);
-      //setWithDrawAmountInfo(ethers.utils.formatEther(withdrawTx.value));
       setWithDrawAmountInfo(data.get(("amount")));
+      setIsLoading(false);
+
+      //setWithDrawSuccessMsg(true);
+      //setWithDrawAmountInfo(ethers.utils.formatEther(withdrawTx.value));
+
     } catch (error) {
       console.log("error", error);
       setErrorDexWithdraw(true);
@@ -379,18 +385,16 @@ const refresh = (e) => {
                         Add Token
                       </button>
                       <div className="my-4 mb-2">
-                        {addTokenSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert"
-                              onClick={() => setAddTokenSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your you added a token.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)                     
                         }
-
                         {errorAddToken &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorAddToken(false)}></button>
-                            <strong>Oh snap!</strong> Token must be ERC20 and you must be the owner or log into Metamask or Coinbase Link Wallet. Also, make sure the token smart contract is logged in as well.
+                            <strong>Oh snap!</strong> Token must be ERC20 and you must be the owner or log into Metamask. Also, make sure the token smart contract is logged in as well or ignore this message as it may happen on reload
                           </div>
                         }
                       </div>
@@ -453,7 +457,6 @@ const refresh = (e) => {
                           <strong>...Loading</strong> Transaction is being processed
                         </div>
                         ) : (null)
-                          
                         }
                         {errorDexDeposit &&
                           <div className="alert alert-dismissible alert-danger">
@@ -477,7 +480,7 @@ const refresh = (e) => {
                         <h6 className="card-subtitle mb-2 text-muted">deposit ETH to DEX</h6>
                       </div>
                       <input
-                        type="number"
+                        type="text"
                         name="amount"
                         className="input p-1"
                         placeholder="ETH Amount"
@@ -497,7 +500,6 @@ const refresh = (e) => {
                           <strong>...Loading</strong> Transaction is being processed
                         </div>
                         ) : (null)
-                          
                         }
                         {errorDepositEthMsg &&
                           <div className="alert alert-dismissible alert-danger">
@@ -523,7 +525,7 @@ const refresh = (e) => {
                         <h6 className="card-subtitle mb-2 text-muted">widthraw tokens from DEX</h6>
                       </div>
                       <input
-                        type="number"
+                        type="text"
                         name="amount"
                         className="input p-1"
                         placeholder="Token Amount"
@@ -551,11 +553,11 @@ const refresh = (e) => {
                         Withdraw Tokens
                       </button>
                       <div className="my-4 mb-2">
-                        {withDrawSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setWithDrawSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your widthrawl of {withDrawAmountInfo} tokens was executed.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
                         }
                         {errorDexWithdraw &&
                           <div className="alert alert-dismissible alert-danger">
