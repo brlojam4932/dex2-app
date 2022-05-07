@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import RealToken from "./artifacts/contracts/tokens.sol/RealToken.json";
+import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/Transactions/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
