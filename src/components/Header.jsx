@@ -80,7 +80,7 @@ function Header() {
           <HomeConnectButton click={connectOn} disconnect={disconnect}></HomeConnectButton>
           </ButtonWrapper>
           <br />
-          <p><small className="text-muted">Here is a DEX project I coded at Moralis Academy, following instructor Filip Martinsson. The project was coden in Solidity and most recently, I unit tested it using Hardaht and developed the Dapp using React, which I also learned at Moralis. I also updated this Dapp, as it uses Web3-React to create an account, signers and provider. The Dapp has taking me a long time to develop and it's not perfect by any means.
+          <p><small className="text-muted">Here is a DEX project I coded at Moralis Academy, following instructor Filip Martinsson. The project was coded in Solidity and most recently, I unit tested it using Hardaht and developed the Dapp using React, which I also learned at Moralis. After a young Moralis dev looked at my project, he made some suggenstions so I updated this Dapp, as it uses now Web3-React to create an account, signers and provider and I also re-factored the code, to create smaller components, which where missing. The Dapp has taking me a long time to develop and it's not perfect by any means.
         </small> </p>
           <p><small className="text-muted">
           There are issues with useEffect re-renders and a few other issues but overall, it works, except now, the widthraw ETH is not adding the ETH back to Metamask wallet. Regardles, I need to finish it and move on. Conversely, one can send tokens, receive, approve and buy and sell tokens using the DEX contract. I would have to send you some of my RealToken, RETK token or one can easily trade any other token like DAI or LINK.</small> </p>
