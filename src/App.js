@@ -4,8 +4,6 @@ import RealToken from "./artifacts/contracts/tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/Transactions/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
-//import SellOrders from './components/Transactions/SellOrders';
-//import BuyOrders from './components/Transactions/BuyOrders';
 import ApproveList from './components/Transactions/ApproveList';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -32,10 +30,6 @@ import { getContract } from './utils/utils';
 //practice - Flexbox CSS in 20 minutes
 //https://youtu.be/JJSoEo8JSnc
 //const myTokenSymbol = ethers.utils.formatBytes32String("RETK");
-
-// localhost
-//dex deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
-//Real Token deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 
 // robsten deployment old
 // dex deployed to: 0x71E33774EA49494aAfA8E96b0A793F03EE069a2b

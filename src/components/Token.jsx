@@ -101,7 +101,7 @@ function Token({
 
   useEffect(() => {
     window.localStorage.setItem("token_info", JSON.stringify(contractInfo));
-  }, [dexContractAddress, dexTokenWithdrawTx]);
+  }, [contractInfo, dexContractAddress, dexTokenWithdrawTx]);
 
 
    const handleGetTokenInfo = async () => {
