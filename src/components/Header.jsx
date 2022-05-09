@@ -86,9 +86,9 @@ function Header() {
           There are issues with useEffect re-renders and a few other issues but overall, it works, except now, the widthraw ETH is not adding the ETH back to Metamask wallet. Regardles, I need to finish it and move on. Conversely, one can send tokens, receive, approve and buy and sell tokens using the DEX contract. I would have to send you some of my RealToken, RETK token or one can easily trade any other token like DAI or LINK.</small> </p>
           <p><small className="text-muted">Lastly, some kinks...it's not what I wanted by the connect button has to be clicked to updated the token balances. I set up a refresh button which clears up some of the re-renders but it also softly disconnects the Dapp from Metamask, hence the re-clicking of the connect button. The DEX might have to be refreshed the first time and then it should be fine</small> </p>
           <br />
-          <a className="nav-link text-info" href='https://ropsten.etherscan.io/address/0x55576CDf0f328101A9d7029658F14500952AAfD0'>Link to my ERC20, RETK token contract </a>
+          <a className="nav-link text-info" href='https://ropsten.etherscan.io/address/0x0d344A32c2c196f32898967FFd466e590DC7Da4F'>Link to my ERC20, RETK token contract </a>
           <br />
-          <a className="nav-link text-info" href='https://ropsten.etherscan.io/address/0x6bCD042f1D4B390DC912ef682B272F429f638f3C'>Link to my DEX contract </a>
+          <a className="nav-link text-info" href='https://ropsten.etherscan.io/address/0x94a689275C88e9EA123eaB8E8276fe35064449e4'>Link to my DEX contract </a>
         </main>
       </div>
     </div>

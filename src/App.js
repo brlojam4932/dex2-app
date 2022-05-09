@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import RealToken from "./artifacts/contracts/tokens.sol/RealToken.json";
+import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/Transactions/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
@@ -36,8 +36,8 @@ import { getContract } from './utils/utils';
 // Real Token deployed to: 0xe4b6351Dc44f54e5CbbBe9008f06fA253001BcFb
 
 // localhost test net
-const tokenContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const tokenContractAddress = "0x0d344A32c2c196f32898967FFd466e590DC7Da4F"
+const dexContractAddress = "0x94a689275C88e9EA123eaB8E8276fe35064449e4";
 
 
 function App() {
