@@ -27,7 +27,7 @@ contract Wallet is Ownable {
         _;
     }
 
-    function addToken(bytes32 ticker, address tokenAddress) external onlyOwner {
+    function addToken(bytes32 ticker, address tokenAddress) external {
         tokenMapping[ticker] = Token(ticker, tokenAddress);
         tokenList.push(ticker);
         //bytes32("LINK"); // BYTES 32 VALUE FROM A STRING

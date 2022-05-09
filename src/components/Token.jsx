@@ -27,7 +27,6 @@ function Token({
   tokenContract,
   setContractInfo,
   dexContractAddress,
-  setTxs,
   setApproveTx,
   setTransfer,
   isLoading,
@@ -35,9 +34,52 @@ function Token({
   setDexApproved,
   dexApproved,
   dexTokenWithdrawTx,
+  txs,
+  setTxs,
+  approveTx,
+  txListened,
+  setTxListened
  }) {
 
-  // ethers js /// provider is read only; signer is write to contract
+  useEffect(() => {
+    const tokenTx = window.localStorage.getItem("token_tx");
+    if (tokenTx !== null)
+    setTxs(JSON.parse(tokenTx));
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("token_tx", JSON.stringify(txs));
+  }, [txs]);
+
+
+  useEffect(() => {
+    const getApproveTx = window.localStorage.getItem("approve_tx");
+    if (getApproveTx !== null);
+    setApproveTx(JSON.parse(getApproveTx));
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("approve_tx", JSON.stringify(approveTx))
+  }, [approveTx])
+
+
+  //--------- DEX Token List to Local Storage ----------------
+  
+  useEffect(() => {
+    const tokenInfoData = window.localStorage.getItem("token_info");
+    if (tokenInfoData !== null)
+    setContractInfo(JSON.parse(tokenInfoData));
+    //console.log(tokenListData);
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("token_info", JSON.stringify(contractInfo));
+  }, [contractInfo, dexContractAddress]);
+
+
   // TOKEN EVENTS
   useEffect(() => {
     //event Transfer(address indexed from, address indexed to, uint256 value);
@@ -58,13 +100,15 @@ function Token({
       //event.removeListener(); // Solve memory leak with this.
     });
 
+    setTxListened(tokenContract);
+
     return () => {
-      tokenContract.removeAllListeners("Transfer")
+      txListened.removeAllListeners("Transfer")
     };
 
    };
     // eslint-disable-next-line
-  }, [contractInfo, transfer]);
+  }, [transfer, dexTokenWithdrawTx]);
 
 
   // APPROVE EVENTS
@@ -81,27 +125,13 @@ function Token({
           }
         ]);
       });
+      setTxListened(tokenContract);
       return () => {
-        tokenContract.removeAllListeners("Approval");
+        txListened.removeAllListeners("Approval");
       };
     };
     // eslint-disable-next-line
   }, [dexApproved]);
-
-  // ------------------GET ERC20 TOKEN CONTRACT -----------------------
-  //--------- DEX Token List to Local Storage ----------------
-  
-  useEffect(() => {
-    const tokenInfoData = window.localStorage.getItem("token_info");
-    if (tokenInfoData !== null)
-    setContractInfo(JSON.parse(tokenInfoData));
-    //console.log(tokenListData);
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem("token_info", JSON.stringify(contractInfo));
-  }, [contractInfo, dexContractAddress, dexTokenWithdrawTx]);
 
 
    const handleGetTokenInfo = async () => {
@@ -127,6 +157,9 @@ function Token({
         balance: String(ethFormatBalance)
       });
       //setContractAddress(data); // this, in case I switch to a dynamic input field again
+
+      window.location.reload();
+
     } catch (error) {
       console.log("error", error);
     }
@@ -136,7 +169,7 @@ function Token({
   useEffect(() => {
       handleGetTokenInfo();
     // eslint-disable-next-line
-  }, [account, transfer, dexTokenWithdrawTx]);
+  }, [account, transfer]); //dexTokenWithdrawTx
 
 /*
   console.log(
@@ -158,9 +191,12 @@ function Token({
       setIsLoading(true);
       //console.log('...loading');
       await transaction.wait();
-      setIsLoading(false);
       //console.log("...success!");
       setTransfer(data.get("amount"));
+      setIsLoading(false);
+
+      window.location.reload();
+
     } catch (error) {
       console.log(error);
       //if (error) return alert('transfer amount exceeds balance');
@@ -181,6 +217,9 @@ function Token({
       await transactionFrom.wait();
      // console.log("transferFrom -- success");
       setIsTransferFrom(true);
+
+      window.location.reload();
+
     } catch (error) {
       console.log(error);
       //setError(true);
@@ -205,6 +244,7 @@ function Token({
       await transaction.wait();
       setIsLoading(false);
       //console.log("...success!");
+
     } catch (error) {
       console.log(error);
       if (error) return alert("error, check address or re-set Metamask");
@@ -223,6 +263,7 @@ function Token({
       setIsLoading(false);
       setDexApproved(approveTx);
       //console.log("...success!");
+
     } catch (error) {
       console.log(error);
       if (error) return alert("error, check address or re-set Metamask");
@@ -238,7 +279,7 @@ function Token({
     try {
       const data = new FormData(e.target);
       const allowance = await tokenContract.allowance(data.get("owner"), data.get("spender"));
-      console.log(allowance.toString());
+      console.log("allowance:", allowance.toString());
       setIsAllowanceMsg(true);
       setAllowanceAmount(ethers.utils.formatEther(allowance));
 
@@ -442,7 +483,7 @@ function Token({
 
               <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
                 <h3 className='text-muted'>Allowance</h3>
-                <small className='text-muted'>Check the allowance amount between your Metamask or Coinbase Link address and the spender, like this DEX it's ERC20 Wallet</small>
+                <small className='text-muted'>Check allowance amount between the owner address, the Metamask account and DEX address 0x5FbDB2315678afecb367f032d93F642f64180aa3</small>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleAllowance}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import RealToken from "./artifacts/contracts/Tokens.sol/RealToken.json";
+import RealToken from "./artifacts/contracts/tokens.sol/RealToken.json";
 import 'bootswatch/dist/slate/bootstrap.min.css';
 import TxList from './components/Transactions/TxList.jsx';
 import Dex from "./artifacts/contracts/Dex.sol/Dex.json";
@@ -36,8 +36,8 @@ import { getContract } from './utils/utils';
 // Real Token deployed to: 0xe4b6351Dc44f54e5CbbBe9008f06fA253001BcFb
 
 // localhost test net
-const tokenContractAddress = "0x55576CDf0f328101A9d7029658F14500952AAfD0"
-const dexContractAddress = "0x6bCD042f1D4B390DC912ef682B272F429f638f3C";
+const tokenContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+const dexContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 
 function App() {
@@ -76,9 +76,10 @@ function App() {
   }, [account, library]);
 
   const [txs, setTxs] = useState([]);
-  const [approveTx, setApproveTx] = useState([]);
+  const [approveTx, setApproveTx] = useState([0]);
   const [limitTx, setLimitTx] = useState([]);
   const [marketTx, setMarketTx] = useState([]);
+  const [txListened, setTxListened] = useState([]);
 
   const [ethDexBalance, setEthDexBalance] = useState({
     address: "-",
@@ -188,14 +189,12 @@ function App() {
           errorTransfer={errorTransfer}
           setErrorTransfer={setErrorTransfer}
           ApproveList={ApproveList}
-          approveTx={approveTx}
           errorTransferFrom={errorTransferFrom}
           setErrorTransferFrom={setErrorTransferFrom}
           contractInfo={contractInfo}
           tokenContract={tokenContract}
           account={account}
           setContractInfo={setContractInfo}
-          setTxs={setTxs}
           setApproveTx={setApproveTx}
           setAllowanceAmount={setAllowanceAmount}
           setTransfer={setTransfer}
@@ -205,6 +204,11 @@ function App() {
           setDexApproved={setDexApproved}
           dexApproved={dexApproved}
           dexBalanceInfo={dexBalanceInfo}
+          txs={txs}
+          setTxs={setTxs}
+          approveTx={approveTx}
+          txListened={txListened}
+          setTxListened={setTxListened}
         />
 
         {/* Token Events */}

@@ -15,18 +15,13 @@ function DexTransact({
   errorAddToken,
   errorDexDeposit,
   errorDexWithdraw,
-  withDrawSuccessMsg,
-  withDrawAmountInfo,
-  addTokenSuccessMsg,
   depositEthSuccessMsg,
   toggleTabState2,
   toggleTabs2,
-  setAddTokenSuccessMsg,
   setErrorAddToken,
   setErrorDexDeposit,
   setErrorDexWithdraw,
   setErrorDepositEth,
-  setWithDrawSuccessMsg,
   errorDepositEthMsg,
   ethDexBalance,
   dexContract,
@@ -62,6 +57,12 @@ function DexTransact({
     }, []);
     */
 
+        /*
+    useEffect(() => {
+      window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
+    }, [listOfTokens]);
+    */
+
     useEffect(() => {
       const dexBalData = window.localStorage.getItem("dex_balances");
       if (dexBalData !== null)
@@ -76,12 +77,6 @@ function DexTransact({
       //console.log(tokenListData);
       // eslint-disable-next-line
     }, []);
-
-    /*
-    useEffect(() => {
-      window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
-    }, [listOfTokens]);
-    */
 
     useEffect(() => {
       window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
@@ -135,7 +130,7 @@ function DexTransact({
       getDexBalances();
 
       if (!isCancelled);
-      console.log(`a Dex tx was made ${account} ${dexTokenTX}, ${dexTokenWithdrawTx}, ${dexContract}`);
+      console.log(`a Dex tx was made ${dexTokenTX}, ${dexTokenWithdrawTx}, ${dexContract}`);
     }
     
       return () => {
@@ -262,7 +257,6 @@ function DexTransact({
       //console.log("Deposit ETH: ", depositEthData.value.toString());
       //setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
       //setDepositEthSuccessMsg(true);
-      //window.location.reload();
 
       window.location.reload();
       
@@ -312,6 +306,8 @@ function DexTransact({
       setDexTokenWithdrawTx(withdrawTx)
       setWithDrawAmountInfo(data.get(("amount")));
       setIsLoading(false);
+
+      //window.localStorage.reload();
 
       //setWithDrawSuccessMsg(true);
       //setWithDrawAmountInfo(ethers.utils.formatEther(withdrawTx.value));
@@ -394,7 +390,7 @@ const refresh = (e) => {
                         {errorAddToken &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorAddToken(false)}></button>
-                            <strong>Oh snap!</strong> Token must be ERC20 and you must be the owner or log into Metamask. Also, make sure the token smart contract is logged in as well or ignore this message as it may happen on reload
+                            <strong>Oh snap!</strong> Token must be ERC20. Log into Metamask. This error message may have been triggered during reload.
                           </div>
                         }
                       </div>
@@ -562,7 +558,7 @@ const refresh = (e) => {
                         {errorDexWithdraw &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexWithdraw(false)}></button>
-                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist. Add ETH ticker/symbol to the DEX
+                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist. Add ETH ticker/symbol to the DEX or this message got triggered on reload.
                           </div>
                         }
                       </div>
