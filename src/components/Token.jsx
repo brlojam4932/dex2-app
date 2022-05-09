@@ -1,37 +1,296 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import styled from 'styled-components';
+import { ethers } from "ethers";
+
+export const Wrapper2 = styled.section`
+padding: 19px;
+margin: 17px;
+`
 // ERC20 token transfer, approve, transferFrom 
 
 function Token({
-  handleGetTokenInfo,
-  getMyBalance,
-  balanceInfo,
-  handleTransfer,
-  isTransferMsg,
-  setIsTransferMsg,
   transfer,
-  handleApprove,
-  isApproved,
-  setIsApproved,
-  handleAllowance,
   isAllowanceMsg,
   setIsAllowanceMsg,
+  setAllowanceAmount,
   allowanceAmount,
-  handleTransferFrom,
   isTransferFrom,
   setIsTransferFrom,
-  contractAddress,
   contractInfo,
   toggleTabs,
   toggleTabState,
   errorTransfer,
   setErrorTransfer,
-  ApproveList,
-  approveTx,
   errorTransferFrom,
   setErrorTransferFrom,
-  handleApproveDex
-  
+  account,
+  tokenContract,
+  setContractInfo,
+  dexContractAddress,
+  setApproveTx,
+  setTransfer,
+  isLoading,
+  setIsLoading,
+  setDexApproved,
+  dexApproved,
+  dexTokenWithdrawTx,
+  txs,
+  setTxs,
+  approveTx,
+  txListened,
+  setTxListened
  }) {
+
+  useEffect(() => {
+    const tokenTx = window.localStorage.getItem("token_tx");
+    if (tokenTx !== null)
+    setTxs(JSON.parse(tokenTx));
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("token_tx", JSON.stringify(txs));
+  }, [txs]);
+
+
+  useEffect(() => {
+    const getApproveTx = window.localStorage.getItem("approve_tx");
+    if (getApproveTx !== null);
+    setApproveTx(JSON.parse(getApproveTx));
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("approve_tx", JSON.stringify(approveTx))
+  }, [approveTx])
+
+
+  //--------- DEX Token List to Local Storage ----------------
+  
+  useEffect(() => {
+    const tokenInfoData = window.localStorage.getItem("token_info");
+    if (tokenInfoData !== null)
+    setContractInfo(JSON.parse(tokenInfoData));
+    //console.log(tokenListData);
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("token_info", JSON.stringify(contractInfo));
+  }, [contractInfo, dexContractAddress]);
+
+
+  // TOKEN EVENTS
+  useEffect(() => {
+    //event Transfer(address indexed from, address indexed to, uint256 value);
+   if (account) {
+    console.count("event Transfer: ");
+    tokenContract?.on("Transfer", (from, to, amount, event) => {
+      //console.log({ from, to, amount, event });
+      // the transaction result gets copied over to a state
+      setTxs((prevTx) => [
+        ...prevTx,
+        {
+          txHash: event.transactionHash,
+          from,
+          to,
+          amount: ethers.utils.formatEther(amount), //amount: String(amount)
+        }
+      ]);
+      //event.removeListener(); // Solve memory leak with this.
+    });
+
+    setTxListened(tokenContract);
+
+    return () => {
+      txListened.removeAllListeners("Transfer")
+    };
+
+   };
+    // eslint-disable-next-line
+  }, [transfer, dexTokenWithdrawTx]);
+
+
+  // APPROVE EVENTS
+  useEffect(() => {
+    if (account) {
+      console.count("event Approval: ");
+      tokenContract?.on("Approval", (spender, event) => {
+        //console.log({ spender, amount, event });
+        setApproveTx(prevApprove => [
+          ...prevApprove,
+          {
+            txHash: event.transactionHash,
+            spender,
+          }
+        ]);
+      });
+      setTxListened(tokenContract);
+      return () => {
+        txListened.removeAllListeners("Approval");
+      };
+    };
+    // eslint-disable-next-line
+  }, [dexApproved]);
+
+
+   const handleGetTokenInfo = async () => {
+    //e.preventDefault();
+    try {
+      console.count("handle token info: ");
+      //const data = new FormData(e.target);
+      //const erc20 = getContract(data.get(contractAddress), RealToken.abi, library, account);
+      const tokenName = await tokenContract.name();
+      const tokenSymbol = await tokenContract.symbol();
+      const totalSupply = await tokenContract.totalSupply();
+
+      const balance = await tokenContract.balanceOf(account);
+      const ethFormatBalance = ethers.utils.formatEther(balance);
+
+      setContractInfo({
+        //address: data.get(contractAddress),
+        address: tokenContract.address,
+        tokenName,
+        tokenSymbol,
+        totalSupply: ethers.utils.formatEther(totalSupply),
+        user: account,
+        balance: String(ethFormatBalance)
+      });
+      //setContractAddress(data); // this, in case I switch to a dynamic input field again
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  // Get ERC20 Token Contract Info
+  useEffect(() => {
+      handleGetTokenInfo();
+    // eslint-disable-next-line
+  }, [account, transfer]); //dexTokenWithdrawTx
+
+/*
+  console.log(
+    "contractInfo address:",
+    contractInfo.address,
+    "name:", contractInfo.tokenName,
+    "symbol:", contractInfo.tokenSymbol,
+    "totalSupply:", contractInfo.totalSupply,
+    "balanceInfo balance:", contractInfo.balance
+  );
+  */
+  
+
+  const handleTransfer = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const transaction = await tokenContract.transfer(data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
+      setIsLoading(true);
+      //console.log('...loading');
+      await transaction.wait();
+      //console.log("...success!");
+      setTransfer(data.get("amount"));
+      setIsLoading(false);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log(error);
+      //if (error) return alert('transfer amount exceeds balance');
+      setErrorTransfer(true);
+    };
+
+  };
+
+   // function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+  // address a, b & c -> a is the sender, b is the spender, c is the recipient
+  // address b can send to address c on a's behalf
+
+  const handleTransferFrom = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const transactionFrom = await tokenContract.transferFrom(data.get("sender"), data.get("recipient"), ethers.utils.parseEther(data.get("amount")));
+      await transactionFrom.wait();
+     // console.log("transferFrom -- success");
+      setIsTransferFrom(true);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.log(error);
+      //setError(true);
+      if (error) return alert("transfer from amount exceeds balance");
+    };
+
+  };
+
+
+  //function approve(address spender, uint256 amount) external returns (bool);
+  // address a, b & c -> address a approves address b, the spender
+
+  const handleApprove = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      // infinite
+      // 115792089237316195423570985008687907853269984665640564039457584007913129639935
+      const transaction = await tokenContract.approve(data.get("spender"), ethers.utils.parseEther(data.get("amount")));
+      setIsLoading(true);
+      //console.log('...loading');
+      await transaction.wait();
+      setIsLoading(false);
+      //console.log("...success!");
+
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("error, check address or re-set Metamask");
+    }
+  }
+
+  const handleApproveDex = async (e) => {
+    e.preventDefault();
+    try {
+      console.count("handle approve DEX: ");
+      const data = new FormData(e.target);
+      const approveTx = await tokenContract.approve(dexContractAddress, ethers.utils.parseEther(data.get("amount")));
+      setIsLoading(true);
+      //console.log("...loading");
+      await approveTx.wait();
+      setIsLoading(false);
+      setDexApproved(approveTx);
+      //console.log("...success!");
+
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("error, check address or re-set Metamask");
+    }
+  }
+
+
+  // function allowance(address owner, address spender) external view returns (uint256);
+  // address a is owner and address b is the spender -> checks the balance owner allows spender to spend
+
+  const handleAllowance = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const allowance = await tokenContract.allowance(data.get("owner"), data.get("spender"));
+      console.log("allowance:", allowance.toString());
+      setIsAllowanceMsg(true);
+      setAllowanceAmount(ethers.utils.formatEther(allowance));
+
+      return allowance;
+
+    } catch (error) {
+      console.log(error);
+      if (error) return alert("Input correct address");
+    };
+
+  };
 
   
   return (
@@ -39,83 +298,26 @@ function Token({
      {/* ERC20 token info/get balance/tx/approve/allowance/txfer-from/receipts */}
      <div className='container-1'>
         <div className='box-1'>
-          <form className="m-4" onSubmit={handleGetTokenInfo}>
-            <div className="shadow-lg bg-darkgrey">
-              <main className="mt-4 p-4">
-                <div>
-                  <h6 className="card-subtitle mb-2 text-muted">ERC20 token contract</h6>
-                  <div className="my-3">
-                    <input
-                      type="text"
-                      name={contractAddress}
-                      className="input p-1"
-                      placeholder="ERC20 contract address"
-                      style={{ background: "#1f1f1f", borderStyle: "solid 1px", borderColor: "#7bc3ed", borderRadius: "5px", color: "white" }}
-                    />
-                  </div>
-                </div>
-              </main>
-              <footer className="p-4">
-                <button
-                  type="submit"
-                  className="btn btn-outline-success"
-                >
-                  Get token info
-                </button>
-              </footer>
-              <div className="px-4">
-                <table className="table w-full text-info">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Symbol</th>
-                      <th>Total supply</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>{contractInfo.tokenName}</th>
-                      <td>{contractInfo.tokenSymbol}</td>
-                      <td>{String(contractInfo.totalSupply)}</td>
-                      <td>{contractInfo.deployedAt}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-4">
-                <button
-                  onClick={getMyBalance}
-                  type="submit"
-                  className="btn btn-success"
-                >
-                  LOGIN / Get my balance
-                </button>
-              </div>
-              <div className="px-4">
-                <table className="table w-full text-info">
-                  <thead>
-                    <tr>
-                      <th>Address</th>
-                      <th>Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>{balanceInfo.address}</th>
-                      <td>{balanceInfo.balance}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </form>
+          <Wrapper2 className='text-info'>
+            <h2 style={{color: "#e1e1e1"}}>ERC20 DEX Wallet</h2>
+            <p>Address: {contractInfo.address}</p>
+            <p>Name: {contractInfo.tokenName}</p>
+            <p>Symbol: {contractInfo.tokenSymbol}</p>
+            <p>Total Supply: {contractInfo.totalSupply}</p>
+          </Wrapper2>
+
+        <Wrapper2 className='text-info'>
+        <h2 style={{color: "#e1e1e1"}}>Account Info</h2>
+        <p>Address: {contractInfo.user}</p>
+        <p>Balance: {contractInfo.balance} {contractInfo.tokenSymbol} </p>
+        </Wrapper2>
         </div>
         {/* Token Tabs */}
         <div className='box-2'>
           {/* Transactions */}
           <div className='container'>
             <div className='bloc-tabs'>
-              <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Transfer</button>
+              <button className={toggleTabState === 1 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(1)}>Send</button>
               <button className={toggleTabState === 5 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(5)}>Approve DEX</button>
               <button className={toggleTabState === 2 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(2)}>Approve</button>
               <button className={toggleTabState === 3 ? 'tabs active-tabs' : "tabs"} onClick={() => toggleTabs(3)}>Allowance</button>
@@ -124,7 +326,7 @@ function Token({
 
             <div className='content-tabs'>
               <div className={toggleTabState === 1 ? 'content active-content' : "content"}>
-                <h3 className='text-muted'>Transfer</h3>
+                <h3 className='text-muted'>Send</h3>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleTransfer}>
@@ -160,17 +362,19 @@ function Token({
                         Transfer
                       </button>
                       <div className="my-4 mb-2">
-                        {isTransferMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsTransferMsg(false)}></button>
-                            <strong>Well Done!</strong> Your transfer amount of {transfer} tokens has been completed.
-                          </div>
+                        {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>Loading!</strong> Sending Transaction
+                        </div>
+                        ) : (
+                          null
+                        )
+                       
                         }
-
                         {errorTransfer &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorTransfer(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient.
+                            <strong>Oh snap!</strong> and try submitting again. Your balance may be insufficient or reset Metamask - advanced, "Reset Account"
                           </div>
                         }
                       </div>
@@ -209,11 +413,14 @@ function Token({
                         Approve DEX
                       </button>
                       <div className="my-4 mb-2">
-                        {isApproved &&
-                          <div className="alert alert-dismissible alert-primary">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <ApproveList approveTx={approveTx} />
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>Loading!</strong> Sending Transaction
+                        </div>
+                        ) : (
+                          null
+                        )
+                          
                         }
                       </div>
                     </footer>
@@ -259,11 +466,14 @@ function Token({
                         Approve Spender
                       </button>
                       <div className="my-4 mb-2">
-                        {isApproved &&
-                          <div className="alert alert-dismissible alert-primary">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setIsApproved(false)}></button>
-                            <ApproveList approveTx={approveTx} />
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>Loading!</strong> Sending Transaction
+                        </div>
+                        ) : (
+                          null
+                        )
+                          
                         }
                       </div>
                     </footer>
@@ -273,7 +483,7 @@ function Token({
 
               <div className={toggleTabState === 3 ? 'content active-content' : "content"}>
                 <h3 className='text-muted'>Allowance</h3>
-                <small className='text-muted'>Check the allowance amount between your Metamask or Coinbase Link address and the spender, like this DEX</small>
+                <small className='text-muted'>Check allowance amount between the owner address, the Metamask account and DEX address 0x5FbDB2315678afecb367f032d93F642f64180aa3</small>
                 <hr />
                 <div className="card-body">
                   <form onSubmit={handleAllowance}>

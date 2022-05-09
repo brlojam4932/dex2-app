@@ -1,37 +1,345 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import useDeepCompareEffect from 'use-deep-compare-effect';
+import { ethers } from "ethers";
+import { v4 as uuidv4 } from 'uuid';
+import DexBalances from '../Transactions/DexBalances';
 // DEX wallet for deposits, withdraw, token list, balances
+import styled from 'styled-components';
+
+export const Wrapper3 = styled.section`
+padding: 19px;
+margin: 17px;
+`
 
 function DexTransact({ 
   errorAddToken,
   errorDexDeposit,
-  errorDepositEth,
   errorDexWithdraw,
-  dexBalanceInfo,
-  withDrawSuccessMsg,
-  withDrawAmountInfo,
-  addTokenSuccessMsg,
   depositEthSuccessMsg,
-  depositEthAmount,
   toggleTabState2,
   toggleTabs2,
-  handleAddToken,
-  setAddTokenSuccessMsg,
   setErrorAddToken,
-  getAllTokensList,
-  myTokenList,
-  handleDexTokenDeposit,
-  handleDepositEth,
   setErrorDexDeposit,
-  handleWithDraw,
   setErrorDexWithdraw,
-  getDexBalances,
-  depositSuccessMsg,
-  setDepositSuccessMsg,
-  setDepositEthSuccessMsg,
   setErrorDepositEth,
-  setWithDrawSuccessMsg
- 
+  errorDepositEthMsg,
+  ethDexBalance,
+  dexContract,
+  setListOfTokens,
+  listOfTokens,
+  account,
+  dexBalanceInfo,
+  setDexBalanceInfo,
+  setEthDexBalance,
+  contractInfo,
+  setDexTokenTx,
+  setWithDrawAmountInfo,
+  dexTokenTX,
+  depositEthTx,
+  setDepositEthTx,
+  setDexBalances,
+  setTokenAdded,
+  tokenAdded,
+  setDexTokenWithdrawTx,
+  dexTokenWithdrawTx,
+  setErrorDepositEthMsg,
+  isLoading,
+  setIsLoading,
 }) {
+
+  //--------- DEX balances to local storage ----------------
+  /*
+    useEffect(() => {
+      const tokenListData = window.localStorage.getItem("token_list");
+      if (tokenListData !== null)
+      setListOfTokens(JSON.parse(tokenListData));
+      // eslint-disable-next-line
+    }, []);
+    */
+
+        /*
+    useEffect(() => {
+      window.localStorage.setItem("token_list", JSON.stringify(listOfTokens));
+    }, [listOfTokens]);
+    */
+
+    useEffect(() => {
+      const dexBalData = window.localStorage.getItem("dex_balances");
+      if (dexBalData !== null)
+      setDexBalances(JSON.parse(dexBalData));
+      // eslint-disable-next-line
+    }, []);
+
+    useEffect(() => {
+      const ethDexBalData = window.localStorage.getItem("eth_dex_balances");
+      if (ethDexBalData !== null)
+      setEthDexBalance(JSON.parse(ethDexBalData));// rev setListOfTokens
+      //console.log(tokenListData);
+      // eslint-disable-next-line
+    }, []);
+
+    useEffect(() => {
+      window.localStorage.setItem("dex_balances", JSON.stringify(dexBalanceInfo));
+    }, [dexBalanceInfo]);
+
+    useEffect(() => {
+      window.localStorage.setItem("eth_dex_balances", JSON.stringify(ethDexBalance));
+    }, [ethDexBalance]);
+
+
+  /////////////// DEX //////////////////
+  // Get ERC20 token balances in DEX
+  const getDexBalances = async () => {
+    try {
+      console.count("getDexBalance: ");
+      // get token list
+      const allTokenList = await dexContract.getTokenListLength();
+      //console.log("token list length:", allTokenList.toNumber());
+      for (let i = 0; i < allTokenList; i++) {
+        let tokenList = await dexContract.tokenList(i);
+        //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+        const tickerBalance = await dexContract.balances(account,
+          (tokenList));
+        //console.log("Dex Token Bal:", ethers.utils.formatEther(tickerBalance.toString()));
+        /*
+        setDexBalances({
+          address: account,
+          amount: ethers.utils.formatEther(tickerBalance),
+          ticker: ethers.utils.parseBytes32String(tokenList)
+        })
+        */
+        setDexBalanceInfo(prevDexBal => [
+          ...prevDexBal,
+          {
+            address: account,
+            amount: ethers.utils.formatEther(tickerBalance),
+            ticker: ethers.utils.parseBytes32String(tokenList),
+          }
+        ]);
+      };
+
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  useDeepCompareEffect(() => {
+    //console.log("dexBalances mount");
+    let isCancelled = false;
+    if (dexContract !== null) {
+      getDexBalances();
+
+      if (!isCancelled);
+      console.log(`a Dex tx was made ${dexTokenTX}, ${dexTokenWithdrawTx}, ${dexContract}`);
+    }
+    
+      return () => {
+        //console.log("dexBalances will unmount", dexTokenTX);
+        isCancelled = true;
+      }
+
+}, [dexContract, dexTokenTX, dexTokenWithdrawTx]);
+
+
+
+  // Get only the ETH bal in DEX
+  const getDexETH_Balance = async () => {
+    try {
+      console.count("getDex Eth Bal: ");
+      const dexEthBal = await dexContract.balances(account, ethers.utils.formatBytes32String("ETH"));
+      //console.log("Dex ETH Bal:", ethers.utils.formatEther(dexEthBal.toString()));
+      setEthDexBalance({
+        address: account,
+        ethBal: ethers.utils.formatEther(dexEthBal)
+      });
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (dexContract !== null) {
+      getDexETH_Balance();
+      
+      if (!isCancelled) {
+        console.log(`get Eth Bal change ${account}, ${depositEthTx}, ${depositEthSuccessMsg}, ${dexTokenWithdrawTx} `)
+      }
+    }
+
+    return () => {
+      isCancelled = true;
+    }
+        
+    // eslint-disable-next-line
+  }, [dexContract, depositEthTx, depositEthSuccessMsg, dexTokenWithdrawTx]);
+
+
+  // get token list
+  
+  const handleGetTokenList = async () => {
+    try {
+      console.count("handle token list: ");
+        // get token list
+        const allTokenList = await dexContract.getTokenListLength();
+        //console.log("token list length:", allTokenList.toNumber());
+        for (let i = 0; i < allTokenList; i++) {
+          let tokenList = await dexContract.tokenList(i);
+          //console.log("token list token:", ethers.utils.parseBytes32String(tokenList));
+          setListOfTokens(prevTokens => [
+            ...prevTokens,
+            {
+              id: uuidv4(),
+              ticker: ethers.utils.parseBytes32String(tokenList)
+            }
+          ]);
+        };
+        //console.log("listOfTokens", listOfTokens);
+    } catch (error) {
+      console.log("error", error)
+    }
+  };
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (account !== null) {
+      //console.log("list..tokens mount");
+      handleGetTokenList();
+
+      if (!isCancelled) {
+        console.log(`token list changed ${dexContract}, ${tokenAdded}`)
+      }
+    }
+  
+      return () => {
+        //console.log("list of tokens will unmount", listOfTokens)
+        isCancelled = true;
+      }
+      // eslint-disable-next-line
+  }, [dexContract, tokenAdded]); //account, tokenAdded, dexTokenTX
+
+
+
+  const handleAddToken = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const addTokenTx = await dexContract.addToken(
+        ethers.utils.formatBytes32String(data.get("ticker")), contractInfo.address
+      );
+      setIsLoading(true);
+      await addTokenTx.wait();
+      console.log("Add Token: ", addTokenTx);
+      setTokenAdded(addTokenTx);
+      setIsLoading(false);
+      //setAddTokenSuccessMsg(true);
+      
+      window.localStorage.reload();
+
+    } catch (error) {
+      //console.log("error", error);
+      setErrorAddToken(true);
+    };
+  };
+
+
+  // Deposit only ETH into DEX
+  const handleDepositEth = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const depositEthData = await dexContract.depositEth({ value: ethers.utils.parseEther(data.get("amount")) });
+      setIsLoading(true);
+      await depositEthData.wait();
+      //console.log("Deposit ETH: ", depositEthData);
+      setDepositEthTx(depositEthData.value);
+      setIsLoading(false);
+      //console.log("Deposit ETH: ", depositEthData.value.toString());
+      //setDepositEthAmount(ethers.utils.formatEther(depositEthData.value));
+      //setDepositEthSuccessMsg(true);
+
+      window.location.reload();
+      
+    } catch (error) {
+      console.log("error", error);
+      setErrorDepositEthMsg(true);
+    };
+  };
+
+
+  // DEPOSIT ERC20 TOKENS INTO DEX
+  const handleDexTokenDeposit = async (e) => {
+    e.preventDefault();
+    console.count("handle Dex deposits: ");
+    try {
+      const data = new FormData(e.target);
+      const dexDepositTx = await dexContract.deposit(
+        ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
+      );
+      setIsLoading(true);
+      await dexDepositTx.wait();
+      //console.log("Dex deposit tx: ", dexDepositTx);
+      setDexTokenTx(dexDepositTx);
+      setIsLoading(false);
+      //setDepositSuccessMsg(true);
+
+      window.location.reload();
+      
+    } catch (error) {
+      console.log("error", error);
+      setErrorDexDeposit(true);
+    };
+  };
+
+
+  // WITHDRAW ERC20 TOKENS FROM DEX
+  const handleWithDraw = async (e) => {
+    e.preventDefault();
+    try {
+      const data = new FormData(e.target);
+      const withdrawTx = await dexContract.withdraw(
+        ethers.utils.parseEther(data.get("amount")), ethers.utils.formatBytes32String(data.get("ticker"))
+      );
+      setIsLoading(true);
+      await withdrawTx.wait();
+      //console.log("withdraw: ", withdrawTx);
+      setDexTokenWithdrawTx(withdrawTx)
+      setWithDrawAmountInfo(data.get(("amount")));
+      setIsLoading(false);
+
+      //window.localStorage.reload();
+
+      //setWithDrawSuccessMsg(true);
+      //setWithDrawAmountInfo(ethers.utils.formatEther(withdrawTx.value));
+
+    } catch (error) {
+      console.log("error", error);
+      setErrorDexWithdraw(true);
+    }
+  };
+
+  // REFRESH PAGE
+
+const refresh = (e) => {
+  e.preventDefault();
+  window.location.reload();
+};
+
+  // PRINT TOKEN LIST
+
+  const myTokenList = listOfTokens.map((lists) => (
+    <div key={lists.id} className="alert alert-dismissible alert-primary text-secondary">
+      <div>
+        <strong>Id:</strong>{" "}{lists.id}
+      </div>
+      <div className='text-info'>
+        <strong>Token:</strong>{" "}{lists.ticker}
+      </div>
+    </div>
+  ));
+
+
+
   return (
     <>
        {/* DEX deposts/balances/add-token, etc...  */}
@@ -73,18 +381,16 @@ function DexTransact({
                         Add Token
                       </button>
                       <div className="my-4 mb-2">
-                        {addTokenSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert"
-                              onClick={() => setAddTokenSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your you added a token.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)                     
                         }
-
                         {errorAddToken &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorAddToken(false)}></button>
-                            <strong>Oh snap!</strong> Token must be ERC20 and you must be the owner or log into Metamask or Coinbase Link Wallet. Also, make sure the token smart contract is logged in as well.
+                            <strong>Oh snap!</strong> Token must be ERC20. Log into Metamask. This error message may have been triggered during reload.
                           </div>
                         }
                       </div>
@@ -95,21 +401,10 @@ function DexTransact({
                 <div className='my-3'>
                   <div>
                     <div className="card-body">
-                      <h6 className="card-subtitle mb-2 text-muted">list tokens</h6>
-                      {/* get Dex add token */}
-                      <form onSubmit={getAllTokensList}>
-                        <footer className="p-4">
-                          <button
-                            type="submit"
-                            className="btn btn-outline-info"
-                          >
-                            List All Tokens
-                          </button>
-                          <div className="my-4 mb-2">
-                            {myTokenList}
+                      <h6 className="card-subtitle mb-2 text-info">Token List</h6>
+                      <div className="my-4 mb-2">
+                         {myTokenList}
                           </div>
-                        </footer>
-                      </form>
                     </div>
                   </div>
                 </div>
@@ -153,16 +448,16 @@ function DexTransact({
                         Deposit Tokens
                       </button>
                       <div className="my-4 mb-2">
-                        {depositSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setDepositSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your deposit was executed.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
                         }
                         {errorDexDeposit &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexDeposit(false)}></button>
-                            <strong>Oh snap!</strong> and try submitting again. Must be an ERC20 token or check allowance.
+                            <strong>Oh snap!</strong> Must be an ERC20 token or approve with the DEX wallet.
                           </div>
                         }
                       </div>
@@ -181,7 +476,7 @@ function DexTransact({
                         <h6 className="card-subtitle mb-2 text-muted">deposit ETH to DEX</h6>
                       </div>
                       <input
-                        type="number"
+                        type="text"
                         name="amount"
                         className="input p-1"
                         placeholder="ETH Amount"
@@ -196,14 +491,13 @@ function DexTransact({
                         Deposit ETH
                       </button>
                       <div className="my-4 mb-2">
-                        {depositEthSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setDepositEthSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your deposit of {depositEthAmount} Ether was executed.
-                          </div>
+                        {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
                         }
-
-                        {errorDepositEth &&
+                        {errorDepositEthMsg &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDepositEth(false)}></button>
                             <strong>Oh snap!</strong> and try submitting again. Token balance may be insufficient.
@@ -227,7 +521,7 @@ function DexTransact({
                         <h6 className="card-subtitle mb-2 text-muted">widthraw tokens from DEX</h6>
                       </div>
                       <input
-                        type="number"
+                        type="text"
                         name="amount"
                         className="input p-1"
                         placeholder="Token Amount"
@@ -255,82 +549,57 @@ function DexTransact({
                         Withdraw Tokens
                       </button>
                       <div className="my-4 mb-2">
-                        {withDrawSuccessMsg &&
-                          <div className="alert alert-dismissible alert-success">
-                            <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setWithDrawSuccessMsg(false)}></button>
-                            <strong>Success!</strong> Your widthrawl of {withDrawAmountInfo} tokens was executed.
-                          </div>
+                      {isLoading ? (
+                          <div className="alert alert-dismissible alert-warning">
+                          <strong>...Loading</strong> Transaction is being processed
+                        </div>
+                        ) : (null)
                         }
                         {errorDexWithdraw &&
                           <div className="alert alert-dismissible alert-danger">
                             <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setErrorDexWithdraw(false)}></button>
-                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist.
+                            <strong>Oh snap!</strong> Token balance may be insufficient or token does not exist. Add ETH ticker/symbol to the DEX or this message got triggered on reload.
                           </div>
                         }
                       </div>
                     </footer>
                   </form>
                 </div>
-
               </div>
-
             </div>
-
           </div>
-
         </div>
         {/* get Dex balances */}
         <div className='box-3'>
           <div className='m-4'>
-            <div>
               <div className="card">
                 <div className="card-body">
-                  <h6 className="card-subtitle mb-2 text-muted">ERC20 Token balances in DEX</h6>
-                  <form onSubmit={getDexBalances}>
-                    <div className="my-3">
-                      <div>
-                        <h6 className="card-subtitle mb-2 text-muted">token symbol</h6>
-                      </div>
-                      <input
-                        type="text"
-                        name="ticker"
-                        className="input p-1"
-                        placeholder="Token Symbol"
-                        style={{ background: "#1f1f1f", border: "1px solid grey", borderRadius: "4px", color: "white" }}
-                      />
-                    </div>
-                    <footer className="p-4">
-                      <button
-                        type="submit"
-                        className="btn btn-primary"
-                      >
-                        Get Dex Balances
-                      </button>
-                    </footer>
-                  </form>
+                  <h6 className="card-subtitle mb-2 text-muted">DEX ETH Balance</h6>
                 </div>
-              </div>
-              {/* return dex balances */}
-              <div className="px-4">
-                <div className="overflow-x-auto">
-                  <table className="table w-full text-info">
-                    <thead>
-                      <tr>
-                        <th>Address</th>
-                        <th>Token Balance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th>{dexBalanceInfo.address}</th>
-                        <td>{dexBalanceInfo.ticker}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+            <Wrapper3 className='text-info'>
+            <div>
+            <strong>Address:</strong> {ethDexBalance.address}         
+            </div>
+            <div>
+            <strong>Amount:</strong> {ethDexBalance.ethBal} ETH
+            </div>
+          </Wrapper3>
+            </div>
+            <br />         
+            <div className="card">
+                <div className="card-body">
+                  <h6 className="card-subtitle mb-2 text-muted">DEX Token Balances</h6>
                 </div>
-              </div>
+            <Wrapper3 className='text-info'>
+              <DexBalances dexBalanceInfo={dexBalanceInfo} />
+          </Wrapper3>
             </div>
           </div>
+          <Wrapper3>
+          <div className='box-refresh'>
+                <button className="btn btn-primary" onClick={refresh}>Refresh Balances</button>
+              </div>
+          </Wrapper3>
         </div>
       </div>
     </>
